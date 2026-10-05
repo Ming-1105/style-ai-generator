@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Placeholder: Roadster side profile">
+  <rect width="400" height="300" fill="#E3E6E1"/>
+  <rect x="10" y="10" width="380" height="280" fill="none" stroke="#5D666C" stroke-width="2" stroke-dasharray="6 6"/>
+  <text x="200" y="140" text-anchor="middle" font-family="monospace" font-size="22" fill="#1B2024">img_06</text>
+  <text x="200" y="172" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#5D666C">Roadster side profile</text>
+</svg>

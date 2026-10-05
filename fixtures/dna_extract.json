@@ -1,0 +1,116 @@
+{
+  "traits": [
+    {
+      "id": "tr_01",
+      "name": "Blade headlights",
+      "description": "Sharp, tapered LED graphic that narrows to a point at the outer edge.",
+      "evidence_image_ids": [
+        "img_02",
+        "img_05",
+        "img_01"
+      ],
+      "seen_count": 9,
+      "confidence": 0.92,
+      "importance": 90,
+      "low_confidence": false,
+      "origin": "ai"
+    },
+    {
+      "id": "tr_02",
+      "name": "Twin centre stripe",
+      "description": "Two parallel stripes running the length of the hood and roof, centred.",
+      "evidence_image_ids": [
+        "img_12",
+        "img_01",
+        "img_17"
+      ],
+      "seen_count": 8,
+      "confidence": 0.84,
+      "importance": 80,
+      "low_confidence": false,
+      "origin": "ai"
+    },
+    {
+      "id": "tr_03",
+      "name": "Hatched shield crest",
+      "description": "Shield badge with fine diagonal hatching, used on the hood and interior trim.",
+      "evidence_image_ids": [
+        "img_03",
+        "img_15",
+        "img_07"
+      ],
+      "seen_count": 12,
+      "confidence": 0.97,
+      "importance": 95,
+      "low_confidence": false,
+      "origin": "ai"
+    },
+    {
+      "id": "tr_04",
+      "name": "Rising shoulder line",
+      "description": "A single crease along the body side that lifts gently toward the rear.",
+      "evidence_image_ids": [
+        "img_06",
+        "img_17"
+      ],
+      "seen_count": 7,
+      "confidence": 0.71,
+      "importance": 65,
+      "low_confidence": false,
+      "origin": "ai"
+    },
+    {
+      "id": "tr_05",
+      "name": "Graphite + single signal color",
+      "description": "Body finished in graphite or silver with exactly one bright accent color.",
+      "evidence_image_ids": [
+        "img_01",
+        "img_02",
+        "img_12"
+      ],
+      "seen_count": 9,
+      "confidence": 0.78,
+      "importance": 70,
+      "low_confidence": false,
+      "origin": "ai"
+    },
+    {
+      "id": "tr_06",
+      "name": "Short front overhang",
+      "description": "Minimal distance between the front axle and the nose of the car.",
+      "evidence_image_ids": [
+        "img_02",
+        "img_06"
+      ],
+      "seen_count": 4,
+      "confidence": 0.46,
+      "importance": 35,
+      "low_confidence": true,
+      "origin": "ai"
+    }
+  ],
+  "tone_words": [
+    "Precise",
+    "Restrained",
+    "Fast",
+    "Engineered"
+  ],
+  "colors": [
+    {
+      "name": "Graphite",
+      "hex": "#2B2F33"
+    },
+    {
+      "name": "Silver",
+      "hex": "#C9CDD0"
+    },
+    {
+      "name": "Signal yellow",
+      "hex": "#E8C21A"
+    },
+    {
+      "name": "White",
+      "hex": "#FFFFFF"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "overall_fit": 61,
+  "trait_scores": [
+    {
+      "trait_id": "tr_01",
+      "score": 31,
+      "status": "ok",
+      "note": "Lamps are round; brand uses tapered blades."
+    },
+    {
+      "trait_id": "tr_02",
+      "score": 48,
+      "status": "ok",
+      "note": "Stripe pair is present but offset to one side instead of centred."
+    },
+    {
+      "trait_id": "tr_03",
+      "score": 88,
+      "status": "ok",
+      "note": "Hatched crest sits on the hood at the reference angle."
+    },
+    {
+      "trait_id": "tr_04",
+      "score": 74,
+      "status": "ok",
+      "note": "Shoulder line rises toward the rear, slightly softer than the references."
+    },
+    {
+      "trait_id": "tr_05",
+      "score": 66,
+      "status": "ok",
+      "note": "Graphite body with one signal color; the accent covers more area than usual."
+    },
+    {
+      "trait_id": "tr_06",
+      "score": null,
+      "status": "not_assessable",
+      "note": "Not assessable from front view."
+    }
+  ],
+  "matches": [
+    {
+      "text": "The hatched crest sits correctly on the hood, at the reference angle.",
+      "trait_ids": [
+        "tr_03"
+      ]
+    },
+    {
+      "text": "Body finish reads as graphite with one signal color, matching the house style.",
+      "trait_ids": [
+        "tr_05"
+      ]
+    },
+    {
+      "text": "The shoulder line rises toward the rear the same way it does across the reference set.",
+      "trait_ids": [
+        "tr_04"
+      ]
+    }
+  ],
+  "departures": [
+    {
+      "text": "Headlights are rounded ovals — the brand signature is a tapered blade shape.",
+      "trait_ids": [
+        "tr_01"
+      ]
+    },
+    {
+      "text": "The centre stripe is offset to one side rather than centred on the hood.",
+      "trait_ids": [
+        "tr_02"
+      ]
+    },
+    {
+      "text": "Front overhang can't be judged from a front-only view; a side photo is needed.",
+      "trait_ids": [
+        "tr_06"
+      ]
+    }
+  ],
+  "directions": [
+    {
+      "id": "dir_a",
+      "title": "Sharpen the lamps",
+      "rationale": "Replace the round lamp graphic with a tapered blade that narrows toward the badge, matching the reference set.",
+      "trait_ids": [
+        "tr_01"
+      ],
+      "image_url": null
+    },
+    {
+      "id": "dir_b",
+      "title": "Centre the stripe",
+      "rationale": "Shift the stripe pair back onto the centreline of the hood so it reads as a single symmetric mark.",
+      "trait_ids": [
+        "tr_02"
+      ],
+      "image_url": null
+    },
+    {
+      "id": "dir_c",
+      "title": "Push further: new signature",
+      "rationale": "A single round unit paired with a wide lower colour block — a deliberately different look, worth flagging as an option outside the current DNA.",
+      "trait_ids": [],
+      "image_url": null
+    }
+  ]
+}

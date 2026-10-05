@@ -1,0 +1,1068 @@
+<title>Vorden Brand DNA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF0EC; --surface:#FAFBF8; --ink:#1B2024; --muted:#5D666C; --line:#D3D8D2;
+    --accent:#2447C4; --accent-soft:#DDE4FA; --good:#2E7D4F; --warn:#B8730F; --bad:#B0432F;
+    --radius:5px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181B; --surface:#1D2226; --ink:#E7EAE6; --muted:#98A1A6; --line:#30373C;
+      --accent:#7E9BFF; --accent-soft:#22304F; --good:#5BBF86; --warn:#E0A247; --bad:#E07A63;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181B; --surface:#1D2226; --ink:#E7EAE6; --muted:#98A1A6; --line:#30373C;
+    --accent:#7E9BFF; --accent-soft:#22304F; --good:#5BBF86; --warn:#E0A247; --bad:#E07A63;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif; font-size:14px; line-height:1.5;
+  }
+  h1,h2,h3{font-family:'Archivo',sans-serif; font-weight:800; margin:0 0 8px;}
+  h2{font-size:20px;} h3{font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600; border-top:1px solid var(--line); padding-top:14px; margin-top:22px;}
+  p{margin:0 0 8px;}
+  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .muted{color:var(--muted);}
+  .label-mono{font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.06em; font-size:10px; color:var(--muted); display:block; margin-bottom:2px;}
+  .text-good{color:var(--good);} .text-warn{color:var(--warn);} .text-bad{color:var(--bad);}
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  button{font-family:inherit; font-size:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit; font-size:13px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:8px 10px;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px;}
+  .field{margin-bottom:16px; max-width:480px;}
+  .field textarea{width:100%; min-height:64px; resize:vertical;}
+  .field input[type=text]{width:100%;}
+
+  /* shell */
+  .app-shell{display:grid; grid-template-columns:220px 1fr; grid-template-areas:"header header" "rail main"; min-height:100vh;}
+  .topbar{grid-area:header; display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--line); background:var(--surface);}
+  .wordmark{font-family:'Archivo',sans-serif; font-weight:800; font-size:16px;}
+  .mock-tag{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:2px 7px;}
+  .project-name{margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted);}
+  .project-name b{color:var(--ink); font-weight:500;}
+
+  .step-rail{grid-area:rail; border-right:1px solid var(--line); padding:12px 0;}
+  .step-btn{display:flex; flex-direction:column; gap:2px; width:100%; text-align:left; background:none; border:none; border-left:3px solid transparent; padding:10px 18px; color:var(--ink);}
+  .step-btn .step-num{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted);}
+  .step-btn .step-label{font-family:'Archivo',sans-serif; font-weight:600; font-size:14px;}
+  .step-btn .step-state{font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .step-btn.current{border-left-color:var(--accent); background:var(--accent-soft);}
+  .step-btn.current .step-state{color:var(--accent);}
+  .step-btn.done .step-state{color:var(--good);}
+  .step-btn.locked{opacity:.5; cursor:not-allowed;}
+  .step-btn:not(:disabled):hover{background:var(--accent-soft);}
+
+  .workspace{grid-area:main; padding:26px 28px 60px; max-width:920px;}
+  .panel-intro{color:var(--muted); max-width:640px; margin-bottom:18px;}
+  .btn-row{display:flex; justify-content:flex-end; gap:10px; margin-top:26px; border-top:1px solid var(--line); padding-top:18px;}
+  .btn-primary{background:var(--accent); color:var(--surface); border:1px solid var(--accent); border-radius:var(--radius); padding:10px 18px; font-weight:500;}
+  .btn-primary:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-secondary{background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:var(--radius); padding:10px 18px;}
+  .btn-ghost{background:none; border:1px solid var(--line); border-radius:var(--radius); padding:5px 10px; font-size:12px; color:var(--muted);}
+  .btn-ghost:hover{color:var(--ink); border-color:var(--ink);}
+
+  .progress-box{margin-top:14px; border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; background:var(--surface); max-width:420px;}
+  .progress-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); padding:3px 0;}
+
+  /* chips */
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .chip{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:20px; padding:4px 10px; font-size:12px; background:var(--surface);}
+  .chip-warn{border-color:var(--warn); color:var(--warn); font-family:'IBM Plex Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.06em;}
+  .keyword-chip{background:var(--accent-soft); border-color:var(--accent-soft);}
+  .chip-remove{background:none; border:none; color:var(--muted); font-size:14px; line-height:1; padding:0;}
+  .tone-chip{border-radius:20px; border:1px solid var(--line); background:var(--surface); padding:6px 12px; color:var(--muted);}
+  .tone-chip.active{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+  .filter-chip{border-radius:20px; border:1px solid var(--line); background:var(--surface); padding:5px 12px; font-size:12px; color:var(--muted);}
+  .filter-chip.active{border-color:var(--accent); color:var(--accent); background:var(--accent-soft);}
+  .add-keyword-row{display:flex; gap:6px; margin-top:8px;}
+  .add-keyword-row input{width:160px;}
+
+  .toggle-row{display:flex; flex-direction:column; gap:8px; max-width:420px; margin-bottom:16px;}
+  .toggle-item{display:flex; align-items:center; gap:8px; font-size:13px;}
+  .dropzone{border:1px dashed var(--line); border-radius:var(--radius); padding:16px; text-align:center; color:var(--muted); font-size:12px; margin-top:6px; background:var(--surface); cursor:pointer;}
+  .dropzone:hover{border-color:var(--accent); color:var(--accent);}
+
+  /* sources grid */
+  .sources-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;}
+  .sources-count{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted);}
+  .sources-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-bottom:10px;}
+  .thumb{position:relative; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:8px; cursor:pointer; transition:opacity .15s;}
+  .thumb:hover{border-color:var(--accent);}
+  .thumb.excluded{opacity:.5;}
+  .thumb.excluded .thumb-caption{text-decoration:line-through;}
+  .thumb-media{aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; color:var(--muted); background:var(--bg); border-radius:3px; margin-bottom:6px;}
+  .thumb-media svg{width:88%; height:88%;}
+  .thumb-check{position:absolute; top:8px; left:8px; width:16px; height:16px; border:1px solid var(--ink); border-radius:3px; background:var(--surface); font-size:11px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:700;}
+  .flag-chip{position:absolute; top:6px; right:6px; background:var(--surface); border:1px solid var(--warn); color:var(--warn); font-family:'IBM Plex Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.06em; padding:2px 6px; border-radius:3px;}
+  .thumb-caption{font-size:12px; font-weight:500; margin-bottom:3px;}
+  .thumb-meta{display:flex; justify-content:space-between; align-items:center; gap:4px; font-size:10px; margin-bottom:3px; flex-wrap:wrap;}
+  .thumb-meta .domain{color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .type-tag{text-transform:uppercase; letter-spacing:.05em; font-family:'IBM Plex Mono',monospace; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:1px 5px; font-size:9px;}
+  .thumb-conf{font-size:11px; color:var(--muted);}
+  .thumb-reason{font-size:10px; color:var(--warn); margin-top:3px;}
+  .add-url-tile{display:flex; align-items:center; justify-content:center; border:1px dashed var(--line); min-height:150px; color:var(--muted); font-size:12px;}
+  .add-url-tile:hover{border-color:var(--accent); color:var(--accent);}
+
+  /* traits */
+  .traits-list{list-style:none; margin:0; padding:0;}
+  .trait-row{display:flex; gap:20px; border-top:1px solid var(--line); padding:16px 0;}
+  .trait-row:last-child{border-bottom:1px solid var(--line);}
+  .trait-main{flex:1; min-width:0;}
+  .trait-name-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .trait-name{font-family:'Archivo',sans-serif; font-weight:600; font-size:15px;}
+  .trait-name[contenteditable="true"]{outline:1px dashed var(--accent); padding:0 3px;}
+  .trait-desc{color:var(--muted); font-size:12.5px; margin:4px 0 10px;}
+  .evidence-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .evidence-thumbs{display:flex; gap:6px;}
+  .evidence-thumb{width:40px; height:32px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
+  .evidence-thumb svg{width:80%; height:80%;}
+  .evidence-label{font-size:11px;}
+  .trait-side{width:210px; flex-shrink:0; display:flex; flex-direction:column; gap:10px;}
+  .trait-conf{display:flex; justify-content:space-between; align-items:center; font-size:13px;}
+  .trait-weight input[type=range]{width:100%; accent-color:var(--accent);}
+  .trait-weight{display:flex; flex-direction:column;}
+  .weight-val{font-size:11px; color:var(--muted);}
+  .trait-actions{display:flex; gap:8px;}
+
+  /* house style doc */
+  .doc{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:26px 30px; max-width:760px;}
+  .doc-meta{margin-bottom:6px;}
+  .features-list{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .feature-row{display:grid; grid-template-columns:180px 1fr 32px; align-items:center; gap:10px; font-size:12.5px;}
+  .weight-bar{height:6px; background:var(--line); border-radius:3px; overflow:hidden;}
+  .weight-bar-fill{height:100%; background:var(--accent);}
+  .swatch-row{display:flex; gap:16px; flex-wrap:wrap; margin-top:10px;}
+  .swatch{width:96px;}
+  .swatch-color{height:48px; border:1px solid var(--line); border-radius:3px; margin-bottom:6px;}
+  .swatch-label{font-size:11px; display:flex; flex-direction:column;}
+  .dodont-list{display:flex; flex-direction:column; gap:10px; margin-top:10px;}
+  .dodont-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:12.5px; border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px;}
+  .mini-thumb-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .mini-thumb{width:52px; height:40px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
+  .mini-thumb svg{width:80%; height:80%;}
+
+  /* compare */
+  .fit-score{font-family:'IBM Plex Mono',monospace; font-size:44px; font-weight:500; color:var(--accent); line-height:1;}
+  .fit-label{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px;}
+  .compare-layout{display:grid; grid-template-columns:340px 1fr; gap:28px; align-items:start;}
+  .sketch-panel{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:14px;}
+  .sketch-wrap{position:relative; background:var(--bg); border:1px solid var(--line); border-radius:3px; padding:10px;}
+  .sketch-wrap svg{width:100%; height:auto; display:block; color:var(--ink);}
+  .pin{position:absolute; width:22px; height:22px; border-radius:50%; background:var(--accent); color:var(--surface); border:2px solid var(--surface); font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; transform:translate(-50%,-50%); box-shadow:0 0 0 1px var(--accent);}
+  .pin:hover{background:var(--ink);}
+  .score-rows{display:flex; flex-direction:column; gap:10px; margin:14px 0 20px;}
+  .score-row{display:grid; grid-template-columns:180px 1fr 50px; align-items:center; gap:10px; border-radius:3px; padding:4px 6px; transition:background .3s;}
+  .score-row.flash{background:var(--accent-soft);}
+  .score-name{font-size:12.5px;}
+  .score-bar{height:8px; background:var(--line); border-radius:4px; overflow:hidden;}
+  .score-bar-fill{height:100%;}
+  .level-good{background:var(--good);} .level-warn{background:var(--warn);} .level-bad{background:var(--bad);}
+  .level-good-text{color:var(--good);} .level-warn-text{color:var(--warn);} .level-bad-text{color:var(--bad);}
+  .score-pct{text-align:right;}
+  .score-na{grid-column:2/4; font-size:11px;}
+  .compare-columns{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:8px;}
+  .compare-columns h3{margin-top:0;}
+  .compare-columns ul{margin:0; padding-left:18px; font-size:12.5px;}
+  .compare-columns li{margin-bottom:8px;}
+  .directions-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:12px;}
+  .direction-tile{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:12px; display:flex; flex-direction:column; gap:6px;}
+  .direction-media{background:var(--bg); border:1px solid var(--line); border-radius:3px; padding:8px;}
+  .direction-media svg{width:100%; height:auto; color:var(--ink);}
+  .direction-title{font-family:'Archivo',sans-serif; font-weight:600; font-size:13px;}
+  .direction-desc{font-size:11.5px; color:var(--muted); flex:1;}
+  .direction-ref{font-size:10.5px;}
+  .direction-actions{display:flex; gap:8px; margin-top:4px;}
+  .btn-toggle{flex:1; border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); padding:6px 0; font-size:12px; color:var(--muted);}
+  .btn-toggle[aria-pressed="true"]{color:var(--surface); font-weight:500;}
+  .btn-accept[aria-pressed="true"]{background:var(--good); border-color:var(--good);}
+  .btn-reject[aria-pressed="true"]{background:var(--bad); border-color:var(--bad);}
+  .notes-box{border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; background:var(--surface); margin-top:8px;}
+  .notes-box ul{margin:0; padding-left:18px; font-size:12.5px;}
+  .notes-box li{margin-bottom:8px; outline:none;}
+  .notes-box li:focus{background:var(--accent-soft);}
+  .hint-note{font-size:11px; color:var(--muted); margin-top:10px;}
+
+  /* toast */
+  #toast-container{position:fixed; left:16px; bottom:16px; display:flex; flex-direction:column; gap:8px; z-index:50; max-width:320px;}
+  .toast{background:var(--ink); color:var(--bg); border-radius:var(--radius); padding:10px 12px; font-size:12.5px; display:flex; align-items:center; gap:12px; justify-content:space-between; box-shadow:0 2px 8px rgba(0,0,0,.2);}
+  .toast-action{background:none; border:1px solid var(--bg); color:var(--bg); border-radius:3px; padding:3px 9px; font-size:11px; flex-shrink:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important;}
+  }
+  @media (max-width:760px){
+    .app-shell{grid-template-columns:1fr; grid-template-areas:"header" "rail" "main";}
+    .step-rail{display:flex; flex-direction:row; overflow-x:auto; border-right:none; border-bottom:1px solid var(--line); padding:8px 8px;}
+    .step-btn{flex-direction:row; align-items:center; gap:6px; width:auto; white-space:nowrap; border-left:none; border-bottom:3px solid transparent; padding:8px 12px;}
+    .step-btn.current{border-bottom-color:var(--accent);}
+    .step-btn .step-state{display:none;}
+    .workspace{padding:18px 16px 50px;}
+    .compare-layout{grid-template-columns:1fr;}
+    .directions-grid{grid-template-columns:1fr;}
+    .compare-columns{grid-template-columns:1fr;}
+    .dodont-row{grid-template-columns:1fr;}
+    .trait-row{flex-direction:column;}
+    .trait-side{width:100%;}
+    .feature-row{grid-template-columns:120px 1fr 30px;}
+  }
+  @media (max-width:420px){
+    .sources-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+    .doc{padding:18px 16px;}
+  }
+</style>
+
+<div class="app-shell">
+  <header class="topbar">
+    <span class="wordmark">Brand DNA</span>
+    <span class="mock-tag">Mockup · sample data</span>
+    <span class="project-name">Project: <b>Vorden</b></span>
+  </header>
+
+  <nav class="step-rail" id="step-rail" aria-label="Workflow steps"></nav>
+
+  <main class="workspace">
+
+    <!-- STEP 1 — BRAND -->
+    <section class="panel" id="step-panel-1" hidden>
+      <h2>Brand</h2>
+      <p class="panel-intro">Tell the tool which brand to study. This sets up the image search and gives the AI a starting point — you'll check its picks on the next screen.</p>
+
+      <div class="field">
+        <label for="brand-name">Brand name</label>
+        <input type="text" id="brand-name" value="Vorden">
+      </div>
+      <div class="field">
+        <label for="brand-category">Category</label>
+        <select id="brand-category">
+          <option value="automotive" selected>Automotive</option>
+          <option value="electronics">Consumer electronics</option>
+          <option value="furniture">Furniture</option>
+          <option value="footwear">Footwear</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="brand-website">Official website</label>
+        <input type="text" id="brand-website" value="vorden-auto.example">
+      </div>
+      <div class="field">
+        <label for="keyword-input">Keywords</label>
+        <div class="chip-row" id="keyword-chips"></div>
+        <div class="add-keyword-row">
+          <input type="text" id="keyword-input" placeholder="Add a keyword">
+          <button type="button" class="btn-ghost" id="add-keyword-btn">Add</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="brand-values">Brand values</label>
+        <textarea id="brand-values">Precise and restrained — nothing on the car is there without a reason. Should look fast-looking even when parked, through stance and line rather than decoration.</textarea>
+      </div>
+      <div class="field">
+        <label>Where should the tool look?</label>
+        <div class="toggle-row">
+          <span class="toggle-item"><input type="checkbox" id="src-toggle-api" checked><label for="src-toggle-api" style="margin:0;">Image search API</label></span>
+          <span class="toggle-item"><input type="checkbox" id="src-toggle-scrape" checked><label for="src-toggle-scrape" style="margin:0;">Official website scrape</label></span>
+          <span class="toggle-item"><input type="checkbox" id="src-toggle-presskit"><label for="src-toggle-presskit" style="margin:0;">Press kit URL</label></span>
+          <span class="toggle-item"><input type="checkbox" id="src-toggle-uploads"><label for="src-toggle-uploads" style="margin:0;">My own uploads</label></span>
+        </div>
+        <div class="dropzone" id="upload-dropzone" tabindex="0" role="button">Drop image files here, or click to browse</div>
+      </div>
+
+      <div id="brand-progress" class="progress-box" hidden></div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-primary" id="find-images-btn">Find reference images</button>
+      </div>
+    </section>
+
+    <!-- STEP 2 — SOURCES -->
+    <section class="panel" id="step-panel-2">
+      <h2>Sources</h2>
+      <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine Vorden reference before the AI reads them.</p>
+
+      <div class="sources-head">
+        <span class="sources-count mono" id="sources-count-line"></span>
+        <div class="chip-row" id="source-filters">
+          <button type="button" class="filter-chip active" data-filter="all">All</button>
+          <button type="button" class="filter-chip" data-filter="Product">Product</button>
+          <button type="button" class="filter-chip" data-filter="Logo">Logo</button>
+          <button type="button" class="filter-chip" data-filter="Packaging">Packaging</button>
+          <button type="button" class="filter-chip" data-filter="Web">Web</button>
+          <button type="button" class="filter-chip" data-filter="Flagged">Flagged</button>
+        </div>
+      </div>
+
+      <div class="sources-grid" id="sources-grid"></div>
+      <div id="extract-progress" class="progress-box" hidden></div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="back-to-brand-btn">← Brand</button>
+        <button type="button" class="btn-primary" id="extract-dna-btn">Extract Style DNA from 13 images</button>
+      </div>
+    </section>
+
+    <!-- STEP 3 — STYLE DNA -->
+    <section class="panel" id="step-panel-3" hidden>
+      <h2>Style DNA</h2>
+      <p class="panel-intro">The AI found 6 recurring traits. Edit, reweight or remove before locking them into the house style package.</p>
+
+      <ul class="traits-list" id="traits-list"></ul>
+
+      <div class="add-keyword-row" style="margin-top:14px;">
+        <input type="text" id="add-trait-input" placeholder="+ Add trait manually">
+        <button type="button" class="btn-ghost" id="add-trait-btn">Add</button>
+      </div>
+
+      <div class="field" style="margin-top:20px;">
+        <label>Brand tone</label>
+        <div class="chip-row">
+          <button type="button" class="tone-chip active" id="tone-precise">Precise</button>
+          <button type="button" class="tone-chip active" id="tone-restrained">Restrained</button>
+          <button type="button" class="tone-chip" id="tone-fast">Fast</button>
+          <button type="button" class="tone-chip" id="tone-engineered">Engineered</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="back-to-sources-btn">← Sources</button>
+        <button type="button" class="btn-primary" id="lock-style-btn">Lock house style package</button>
+      </div>
+    </section>
+
+    <!-- STEP 4 — HOUSE STYLE -->
+    <section class="panel" id="step-panel-4" hidden>
+      <div class="doc" id="house-style-content"></div>
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="back-to-traits-btn">← Style DNA</button>
+        <button type="button" class="btn-secondary" id="export-pdf-btn">Export PDF</button>
+        <button type="button" class="btn-primary" id="compare-btn">Compare a design →</button>
+      </div>
+    </section>
+
+    <!-- STEP 5 — COMPARE -->
+    <section class="panel" id="step-panel-5" hidden>
+      <h2>Compare</h2>
+      <p class="panel-intro">Your concept checked against the Vorden house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
+
+      <div class="compare-layout">
+        <div class="sketch-panel">
+          <span class="label-mono">Your design</span>
+          <div class="sketch-wrap" id="compare-sketch"></div>
+          <div class="dropzone" id="replace-design-dropzone" tabindex="0" role="button" style="margin-top:10px;">Replace design</div>
+        </div>
+        <div>
+          <span class="fit-label">Overall fit</span>
+          <div class="fit-score mono">63%</div>
+          <div class="score-rows" id="score-rows"></div>
+
+          <div class="compare-columns">
+            <div>
+              <h3 style="border-top:none;padding-top:0;">Matches the brand</h3>
+              <ul id="matches-list"></ul>
+            </div>
+            <div>
+              <h3 style="border-top:none;padding-top:0;">Departs from the brand</h3>
+              <ul id="departs-list"></ul>
+            </div>
+          </div>
+
+          <h3>Suggested directions</h3>
+          <div class="directions-grid" id="directions-grid"></div>
+          <p class="hint-note">Directions are suggestions — you decide.</p>
+
+          <h3>Design notes</h3>
+          <div class="notes-box">
+            <ul id="design-notes-list"></ul>
+            <p class="muted mono" id="design-notes-empty" style="font-size:11.5px;">No directions accepted yet — accept a suggestion above to add it here.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="back-to-house-btn">← House style</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- SVG builders (parametrised, reused everywhere) ---------- */
+  var clipCounter = 0;
+  var SHIELD_D = "M20,2 L36,8 L36,24 Q36,38 20,44 Q4,38 4,24 L4,8 Z";
+
+  function crestShape(){
+    clipCounter++;
+    var cid = "crestclip-" + clipCounter;
+    var hatches = "";
+    for (var i = -2; i <= 9; i++){
+      hatches += '<line x1="' + (i*6) + '" y1="-4" x2="' + (i*6-22) + '" y2="48" stroke="currentColor" stroke-width="1.4"/>';
+    }
+    return '<clipPath id="' + cid + '"><path d="' + SHIELD_D + '"/></clipPath>' +
+           '<path d="' + SHIELD_D + '" fill="none" stroke="currentColor" stroke-width="2"/>' +
+           '<g clip-path="url(#' + cid + ')">' + hatches + '</g>';
+  }
+  function svgCrest(opts){
+    opts = opts || {};
+    var size = opts.size || 40;
+    return '<svg viewBox="0 0 40 46" width="' + size + '" height="' + Math.round(size*1.15) + '" role="img" aria-label="Vorden crest">' + crestShape() + '</svg>';
+  }
+  function svgCarSide(opts){
+    opts = opts || {};
+    var stripe = opts.stripe ? '<rect x="70" y="24" width="60" height="4" fill="var(--accent)"/><rect x="70" y="30" width="60" height="2" fill="var(--accent)"/>' : '';
+    return '<svg viewBox="0 0 200 100" role="img" aria-label="Car side silhouette">' +
+      '<path d="M15,72 L32,44 Q58,22 92,22 L138,24 Q162,27 182,58 L182,72 Z" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      stripe +
+      '<circle cx="55" cy="76" r="13" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      '<circle cx="152" cy="76" r="13" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      '</svg>';
+  }
+  function svgCarFront(opts){
+    opts = opts || {};
+    var headlight = opts.headlight || 'round';
+    var stripeOffset = opts.stripeOffset || 0;
+    var crest = !!opts.crest;
+    var wideBlock = !!opts.wideBlock;
+    var hl = headlight === 'blade'
+      ? '<polygon points="35,52 68,47 68,58 40,63" fill="currentColor"/><polygon points="165,52 132,47 132,58 160,63" fill="currentColor"/>'
+      : '<circle cx="52" cy="56" r="11" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="148" cy="56" r="11" fill="none" stroke="currentColor" stroke-width="2.5"/>';
+    var stripeX = 92 + stripeOffset;
+    var marking = wideBlock
+      ? '<rect x="65" y="70" width="70" height="9" fill="var(--accent)"/>'
+      : '<rect x="' + stripeX + '" y="8" width="6" height="44" fill="var(--accent)"/><rect x="' + (stripeX+9) + '" y="8" width="3" height="44" fill="var(--accent)"/>';
+    var crestEl = crest ? '<g transform="translate(88,58) scale(0.5)">' + crestShape() + '</g>' : '';
+    return '<svg viewBox="0 0 200 100" role="img" aria-label="Car front silhouette">' +
+      '<path d="M22,92 L28,48 Q55,12 100,12 Q145,12 172,48 L178,92 Z" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      hl + marking + crestEl +
+      '</svg>';
+  }
+  function svgHeadlightClose(){
+    return '<svg viewBox="0 0 100 60" role="img" aria-label="Headlight detail">' +
+      '<rect x="4" y="4" width="92" height="52" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      '<polygon points="14,18 70,14 70,30 20,38" fill="currentColor"/>' +
+      '<line x1="14" y1="46" x2="86" y2="46" stroke="currentColor" stroke-width="1.5"/>' +
+      '</svg>';
+  }
+  function svgShowroom(){
+    return '<svg viewBox="0 0 120 70" role="img" aria-label="Showroom display">' +
+      '<line x1="4" y1="58" x2="116" y2="58" stroke="currentColor" stroke-width="1.5"/>' +
+      '<rect x="30" y="40" width="60" height="18" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      '<circle cx="42" cy="58" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+      '<circle cx="78" cy="58" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+      '<circle cx="20" cy="8" r="3" fill="currentColor"/><circle cx="60" cy="8" r="3" fill="currentColor"/><circle cx="100" cy="8" r="3" fill="currentColor"/>' +
+      '</svg>';
+  }
+  function svgStripeDetail(){
+    return '<svg viewBox="0 0 100 60" role="img" aria-label="Stripe detail">' +
+      '<rect x="4" y="4" width="92" height="52" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      '<rect x="38" y="4" width="10" height="52" fill="var(--accent)"/><rect x="52" y="4" width="5" height="52" fill="var(--accent)"/>' +
+      '</svg>';
+  }
+  function svgWebsite(){
+    return '<svg viewBox="0 0 100 60" role="img" aria-label="Website screenshot">' +
+      '<rect x="4" y="4" width="92" height="52" fill="none" stroke="currentColor" stroke-width="2"/>' +
+      '<rect x="4" y="4" width="92" height="10" fill="currentColor" opacity="0.15"/>' +
+      '<circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="15" cy="9" r="1.6" fill="currentColor"/>' +
+      '<line x1="12" y1="24" x2="88" y2="24" stroke="currentColor" stroke-width="1.5"/>' +
+      '<line x1="12" y1="32" x2="70" y2="32" stroke="currentColor" stroke-width="1.5"/>' +
+      '<line x1="12" y1="40" x2="80" y2="40" stroke="currentColor" stroke-width="1.5"/>' +
+      '</svg>';
+  }
+  function thumbSvg(kind){
+    switch(kind){
+      case 'side': return svgCarSide({});
+      case 'front': return svgCarFront({headlight:'round'});
+      case 'crest': return svgCrest({size:40});
+      case 'web': return svgWebsite();
+      case 'headlight': return svgHeadlightClose();
+      case 'stripe': return svgStripeDetail();
+      case 'showroom': return svgShowroom();
+      default: return svgCarSide({});
+    }
+  }
+
+  /* ---------- data ---------- */
+  var KEYWORDS = ['GT','sports car','crest','headlight'];
+
+  var SOURCES = [
+    {id:1,type:'Product',domain:'vorden-auto.example',caption:"GT3 — three-quarter front",conf:96,svg:'side',flag:null,included:true},
+    {id:2,type:'Product',domain:'vorden-auto.example',caption:'GT3 — front detail',conf:94,svg:'front',flag:null,included:true},
+    {id:3,type:'Logo',domain:'vorden-auto.example',caption:'Crest, brushed steel plate',conf:98,svg:'crest',flag:null,included:true},
+    {id:4,type:'Web',domain:'vorden-auto.example',caption:'Homepage hero banner',conf:90,svg:'web',flag:null,included:true},
+    {id:5,type:'Product',domain:'press.vorden-auto.example',caption:'Headlight macro, press kit',conf:93,svg:'headlight',flag:null,included:true},
+    {id:6,type:'Product',domain:'autoweeklymag.example',caption:'Roadster side profile',conf:88,svg:'side',flag:null,included:true},
+    {id:7,type:'Packaging',domain:'vorden-auto.example',caption:"Owner's manual cover",conf:81,svg:'crest',flag:null,included:true},
+    {id:8,type:'Product',domain:'carfansdaily.example',caption:'Fan render, front 3/4',conf:52,svg:'front',flag:'Fan render — not official',included:false},
+    {id:9,type:'Logo',domain:'vordentools.example',caption:'Vorden Tools BV logo',conf:61,svg:'crest',flag:'Different company: Vorden Tools BV',included:false},
+    {id:10,type:'Product',domain:'usedcarlistings.example',caption:'Listing photo, side view',conf:38,svg:'side',flag:'Low resolution (240px)',included:false},
+    {id:11,type:'Web',domain:'motorpressreview.example',caption:'Group test, three cars',conf:47,svg:'web',flag:'Competitor car in same article',included:false},
+    {id:12,type:'Product',domain:'vorden-auto.example',caption:'GT3 stripe & shoulder line',conf:91,svg:'stripe',flag:null,included:true},
+    {id:13,type:'Web',domain:'vorden-auto.example',caption:'Configurator screenshot',conf:85,svg:'web',flag:null,included:true},
+    {id:14,type:'Product',domain:'showroommilan.example',caption:'Showroom display, Milan',conf:79,svg:'showroom',flag:null,included:true},
+    {id:15,type:'Logo',domain:'press.vorden-auto.example',caption:'Crest, embossed on leather',conf:95,svg:'crest',flag:null,included:true},
+    {id:16,type:'Packaging',domain:'vorden-auto.example',caption:'Press kit folder',conf:74,svg:'crest',flag:null,included:true},
+    {id:17,type:'Product',domain:'vorden-auto.example',caption:'Rear 3/4, studio light',conf:89,svg:'side',flag:null,included:true},
+    {id:18,type:'Product',domain:'autoweeklymag.example',caption:'Interior dash, low relevance',conf:58,svg:'front',flag:null,included:false}
+  ];
+
+  var TRAITS = [
+    {id:1,name:'Blade headlights',desc:'Sharp, tapered LED graphic that narrows to a point at the outer edge.',conf:92,weight:90,seen:9,evidence:['front','headlight','front'],low:false},
+    {id:2,name:'Twin centre stripe',desc:'Two parallel stripes running the length of the hood and roof, centred.',conf:84,weight:80,seen:8,evidence:['stripe','side','stripe'],low:false},
+    {id:3,name:'Hatched shield crest',desc:'Shield badge with fine diagonal hatching, used on the hood and interior trim.',conf:97,weight:95,seen:12,evidence:['crest','crest','crest'],low:false},
+    {id:4,name:'Rising shoulder line',desc:'A single crease along the body side that lifts gently toward the rear.',conf:71,weight:65,seen:7,evidence:['side','side'],low:false},
+    {id:5,name:'Graphite + single signal color',desc:'Body finished in graphite or silver with exactly one bright accent color.',conf:78,weight:70,seen:9,evidence:['side','front','stripe'],low:false},
+    {id:6,name:'Short front overhang',desc:'Minimal distance between the front axle and the nose of the car.',conf:46,weight:35,seen:4,evidence:['front','side'],low:true}
+  ];
+
+  var SAMPLE_DESIGN = {headlight:'round', stripeOffset:-18, crest:true};
+
+  var PINS = [
+    {num:1,label:'Headlight shape',target:1,top:54,left:26},
+    {num:2,label:'Stripe position',target:2,top:18,left:44},
+    {num:3,label:'Crest placement',target:3,top:62,left:50},
+    {num:4,label:'Shoulder / overhang',target:4,top:88,left:14}
+  ];
+
+  var SCORES = [
+    {trait:'Blade headlights',pct:31,level:'bad'},
+    {trait:'Twin centre stripe',pct:48,level:'warn'},
+    {trait:'Hatched shield crest',pct:88,level:'good'},
+    {trait:'Rising shoulder line',pct:74,level:'good'},
+    {trait:'Graphite + single signal color',pct:66,level:'warn'},
+    {trait:'Short front overhang',pct:null,note:'Not assessable from front view'}
+  ];
+
+  var MATCHES = [
+    'The hatched crest sits correctly on the hood, at the reference angle.',
+    'Body finish reads as graphite with one signal color, matching the house style.',
+    'The shoulder line rises toward the rear the same way it does across the reference set.'
+  ];
+  var DEPARTS = [
+    'Headlights are rounded ovals — the brand signature is a tapered blade shape.',
+    'The centre stripe is offset to one side rather than centred on the hood.',
+    'Front overhang can\'t be judged from a front-only view; a side photo is needed.'
+  ];
+
+  var DIRECTIONS = [
+    {id:'a',title:'Sharpen the lamps',desc:'Replace the round lamp graphic with a tapered blade that narrows toward the badge, matching the reference set.',trait:'Blade headlights',evidence:3,status:'none',svgVariant:{headlight:'blade',stripeOffset:-18,crest:true}},
+    {id:'b',title:'Centre the stripe',desc:'Shift the stripe pair back onto the centreline of the hood so it reads as a single symmetric mark.',trait:'Twin centre stripe',evidence:4,status:'none',svgVariant:{headlight:'round',stripeOffset:0,crest:true}},
+    {id:'c',title:'Push further: new signature',desc:'A single round unit paired with a wide lower colour block — a deliberately different look, worth flagging as an option outside the current DNA.',trait:null,evidence:0,status:'none',svgVariant:{headlight:'round',wideBlock:true,crest:false}}
+  ];
+
+  /* ---------- navigation state ---------- */
+  var STEP_NAMES = ['Brand','Sources','Style DNA','House style','Compare'];
+  var currentStep = 2;
+  var maxReached = 2;
+  var currentFilter = 'all';
+
+  function statusOf(i){ return i === currentStep ? 'current' : (i <= maxReached ? 'done' : 'locked'); }
+
+  function renderStepRail(){
+    var rail = document.getElementById('step-rail');
+    var html = '';
+    for (var i = 0; i < STEP_NAMES.length; i++){
+      var n = i + 1;
+      var status = statusOf(n);
+      var disabled = status === 'locked';
+      html += '<button type="button" class="step-btn ' + status + '" data-step="' + n + '" ' + (disabled ? 'disabled aria-disabled="true"' : '') + ' aria-current="' + (status === 'current' ? 'step' : 'false') + '">' +
+        '<span class="step-num">Step ' + n + '</span>' +
+        '<span class="step-label">' + STEP_NAMES[i] + '</span>' +
+        '<span class="step-state">' + (status === 'done' ? 'Done ✓' : status === 'current' ? 'Current' : 'Locked') + '</span>' +
+        '</button>';
+    }
+    rail.innerHTML = html;
+    var btns = rail.querySelectorAll('.step-btn');
+    for (var j = 0; j < btns.length; j++){
+      btns[j].addEventListener('click', function(){
+        var n = parseInt(this.dataset.step, 10);
+        if (n <= maxReached) navigateToStep(n);
+      });
+    }
+  }
+
+  function showPanel(n){
+    for (var i = 1; i <= 5; i++){
+      document.getElementById('step-panel-' + i).hidden = (i !== n);
+    }
+    if (n === 2) renderSources();
+    if (n === 3) renderTraits();
+    if (n === 4) renderHouseStyle();
+    if (n === 5) renderCompare();
+  }
+
+  function navigateToStep(n){
+    if (n > maxReached) return;
+    currentStep = n;
+    showPanel(n);
+    renderStepRail();
+    window.scrollTo(0, 0);
+  }
+  function advanceToStep(n){
+    maxReached = Math.max(maxReached, n);
+    navigateToStep(n);
+  }
+
+  /* ---------- toast ---------- */
+  function showToast(msg, opts){
+    opts = opts || {};
+    var container = document.getElementById('toast-container');
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.setAttribute('role', 'status');
+    var html = '<span>' + msg + '</span>';
+    if (opts.actionLabel) html += '<button type="button" class="toast-action">' + opts.actionLabel + '</button>';
+    el.innerHTML = html;
+    container.appendChild(el);
+    if (opts.actionLabel && opts.onAction){
+      el.querySelector('.toast-action').addEventListener('click', function(){
+        opts.onAction();
+        el.remove();
+      });
+    }
+    setTimeout(function(){ el.remove(); }, opts.duration || 4500);
+  }
+
+  /* ---------- fake progress sequences ---------- */
+  function runFakeSequence(container, lines, delays, onDone){
+    container.hidden = false;
+    container.innerHTML = '';
+    var i = 0;
+    function step(){
+      if (i >= lines.length){ if (onDone) onDone(); return; }
+      var p = document.createElement('div');
+      p.className = 'progress-line';
+      p.textContent = lines[i];
+      container.appendChild(p);
+      var wait = delays[i] || 400;
+      i++;
+      setTimeout(step, wait);
+    }
+    step();
+  }
+
+  function prefersReducedMotion(){
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /* ---------- step 1: brand ---------- */
+  function renderKeywordChips(){
+    var wrap = document.getElementById('keyword-chips');
+    var html = '';
+    for (var i = 0; i < KEYWORDS.length; i++){
+      html += '<span class="chip keyword-chip">' + KEYWORDS[i] + '<button type="button" class="chip-remove" data-i="' + i + '" aria-label="Remove ' + KEYWORDS[i] + '">×</button></span>';
+    }
+    wrap.innerHTML = html;
+    var btns = wrap.querySelectorAll('.chip-remove');
+    for (var j = 0; j < btns.length; j++){
+      btns[j].addEventListener('click', function(){
+        KEYWORDS.splice(parseInt(this.dataset.i, 10), 1);
+        renderKeywordChips();
+      });
+    }
+  }
+  function addKeyword(){
+    var input = document.getElementById('keyword-input');
+    var v = input.value.trim();
+    if (!v) return;
+    KEYWORDS.push(v);
+    input.value = '';
+    renderKeywordChips();
+  }
+
+  /* ---------- step 2: sources ---------- */
+  function updateSourcesHeader(){
+    var included = 0;
+    for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].included) included++;
+    document.getElementById('sources-count-line').textContent = SOURCES.length + ' candidates · ' + included + ' selected · review before extraction';
+    var btn = document.getElementById('extract-dna-btn');
+    btn.textContent = 'Extract Style DNA from ' + included + ' images';
+    btn.disabled = included === 0;
+  }
+  function thumbCard(s){
+    var html = '<div class="thumb ' + (s.included ? '' : 'excluded') + '" data-id="' + s.id + '" tabindex="0" role="checkbox" aria-checked="' + s.included + '">';
+    html += '<div class="thumb-check" aria-hidden="true">' + (s.included ? '✓' : '') + '</div>';
+    if (s.flag) html += '<div class="flag-chip">flagged</div>';
+    html += '<div class="thumb-media">' + thumbSvg(s.svg) + '</div>';
+    html += '<div class="thumb-body">';
+    html += '<div class="thumb-caption">' + s.caption + '</div>';
+    html += '<div class="thumb-meta"><span class="mono domain">' + s.domain + '</span><span class="type-tag">' + s.type + '</span></div>';
+    html += '<div class="thumb-conf mono">conf ' + s.conf + '%</div>';
+    if (s.flag) html += '<div class="thumb-reason">' + s.flag + '</div>';
+    html += '</div></div>';
+    return html;
+  }
+  function renderSources(){
+    var grid = document.getElementById('sources-grid');
+    var filtered = [];
+    for (var i = 0; i < SOURCES.length; i++){
+      var s = SOURCES[i];
+      if (currentFilter === 'all') filtered.push(s);
+      else if (currentFilter === 'Flagged'){ if (s.flag) filtered.push(s); }
+      else if (s.type === currentFilter) filtered.push(s);
+    }
+    var html = '';
+    for (var j = 0; j < filtered.length; j++) html += thumbCard(filtered[j]);
+    html += '<div class="thumb add-url-tile" tabindex="0" role="button"><div>+ Add image URL</div></div>';
+    grid.innerHTML = html;
+
+    var thumbs = grid.querySelectorAll('.thumb:not(.add-url-tile)');
+    for (var k = 0; k < thumbs.length; k++){
+      thumbs[k].addEventListener('click', function(){ toggleSource(parseInt(this.dataset.id, 10)); });
+      thumbs[k].addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSource(parseInt(this.dataset.id, 10)); }
+      });
+    }
+    var addTile = grid.querySelector('.add-url-tile');
+    if (addTile){
+      addTile.addEventListener('click', function(){ showToast('Mockup — paste a URL to add it as a candidate (not wired).'); });
+      addTile.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showToast('Mockup — paste a URL to add it as a candidate (not wired).'); }
+      });
+    }
+    updateSourcesHeader();
+  }
+  function toggleSource(id){
+    for (var i = 0; i < SOURCES.length; i++){
+      if (SOURCES[i].id === id){ SOURCES[i].included = !SOURCES[i].included; break; }
+    }
+    renderSources();
+  }
+
+  /* ---------- step 3: traits ---------- */
+  function renderTraits(){
+    var list = document.getElementById('traits-list');
+    var html = '';
+    for (var i = 0; i < TRAITS.length; i++){
+      var t = TRAITS[i];
+      var evidenceHtml = '';
+      for (var e = 0; e < t.evidence.length; e++) evidenceHtml += '<div class="evidence-thumb">' + thumbSvg(t.evidence[e]) + '</div>';
+      var confHtml = t.conf === null ? '<span class="mono muted">—</span>' : '<span class="mono ' + (t.low ? 'text-warn' : '') + '">' + t.conf + '%</span>';
+      var evidenceRow = t.manual
+        ? '<span class="mono muted evidence-label">Added manually — no evidence linked yet</span>'
+        : '<div class="evidence-thumbs">' + evidenceHtml + '</div><span class="mono muted evidence-label">seen in ' + t.seen + '/13 images</span>';
+      html += '<li class="trait-row" data-id="' + t.id + '">' +
+        '<div class="trait-main">' +
+          '<div class="trait-name-row">' +
+            '<span class="trait-name" contenteditable="false" id="trait-name-' + t.id + '">' + t.name + '</span>' +
+            (t.low ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
+          '</div>' +
+          '<p class="trait-desc">' + t.desc + '</p>' +
+          '<div class="evidence-row">' + evidenceRow + '</div>' +
+        '</div>' +
+        '<div class="trait-side">' +
+          '<div class="trait-conf"><span class="label-mono">confidence</span>' + confHtml + '</div>' +
+          '<div class="trait-weight">' +
+            '<label class="label-mono" for="trait-weight-' + t.id + '">importance</label>' +
+            '<input type="range" min="0" max="100" value="' + t.weight + '" id="trait-weight-' + t.id + '" data-id="' + t.id + '">' +
+            '<span class="mono weight-val" id="trait-weight-val-' + t.id + '">' + t.weight + '</span>' +
+          '</div>' +
+          '<div class="trait-actions">' +
+            '<button type="button" class="btn-ghost btn-edit" data-id="' + t.id + '">Edit</button>' +
+            '<button type="button" class="btn-ghost btn-remove" data-id="' + t.id + '">Remove</button>' +
+          '</div>' +
+        '</div>' +
+      '</li>';
+    }
+    list.innerHTML = html;
+
+    var ranges = list.querySelectorAll('input[type=range]');
+    for (var r = 0; r < ranges.length; r++){
+      ranges[r].addEventListener('input', function(){
+        var id = parseInt(this.dataset.id, 10);
+        var trait = findTrait(id);
+        trait.weight = parseInt(this.value, 10);
+        document.getElementById('trait-weight-val-' + id).textContent = trait.weight;
+      });
+    }
+    var editBtns = list.querySelectorAll('.btn-edit');
+    for (var b = 0; b < editBtns.length; b++){
+      editBtns[b].addEventListener('click', function(){
+        var id = parseInt(this.dataset.id, 10);
+        var span = document.getElementById('trait-name-' + id);
+        span.contentEditable = 'true';
+        span.focus();
+        var onBlur = function(){
+          span.contentEditable = 'false';
+          var trait = findTrait(id);
+          trait.name = span.textContent.trim() || trait.name;
+          span.textContent = trait.name;
+          span.removeEventListener('blur', onBlur);
+        };
+        span.addEventListener('blur', onBlur);
+      });
+    }
+    var removeBtns = list.querySelectorAll('.btn-remove');
+    for (var rm = 0; rm < removeBtns.length; rm++){
+      removeBtns[rm].addEventListener('click', function(){
+        removeTrait(parseInt(this.dataset.id, 10));
+      });
+    }
+  }
+  function findTrait(id){
+    for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id === id) return TRAITS[i];
+    return null;
+  }
+  function removeTrait(id){
+    var idx = -1;
+    for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id === id){ idx = i; break; }
+    if (idx === -1) return;
+    var removed = TRAITS.splice(idx, 1)[0];
+    renderTraits();
+    showToast('Removed "' + removed.name + '"', {
+      actionLabel: 'Undo',
+      onAction: function(){ TRAITS.splice(idx, 0, removed); renderTraits(); }
+    });
+  }
+  function addTraitManually(){
+    var input = document.getElementById('add-trait-input');
+    var name = input.value.trim();
+    if (!name) return;
+    var maxId = 0;
+    for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id > maxId) maxId = TRAITS[i].id;
+    TRAITS.push({id: maxId + 1, name: name, desc: 'Added manually by the designer.', conf: null, weight: 50, seen: 0, evidence: [], low: false, manual: true});
+    input.value = '';
+    renderTraits();
+  }
+
+  /* ---------- step 4: house style ---------- */
+  function renderHouseStyle(){
+    var el = document.getElementById('house-style-content');
+    var included = 0;
+    for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].included) included++;
+    var featuresHtml = '';
+    for (var t = 0; t < TRAITS.length; t++){
+      var tr = TRAITS[t];
+      featuresHtml += '<div class="feature-row"><span class="feature-name">' + tr.name + '</span>' +
+        '<div class="weight-bar"><div class="weight-bar-fill" style="width:' + tr.weight + '%"></div></div>' +
+        '<span class="mono">' + tr.weight + '</span></div>';
+    }
+    var colors = [
+      {name:'Graphite', hex:'#2B2F33'},
+      {name:'Silver', hex:'#C9CDD0'},
+      {name:'Signal yellow', hex:'#E8C21A'},
+      {name:'White', hex:'#FFFFFF'}
+    ];
+    var colorsHtml = '';
+    for (var c = 0; c < colors.length; c++){
+      colorsHtml += '<div class="swatch"><div class="swatch-color" style="background:' + colors[c].hex + '"></div>' +
+        '<div class="swatch-label">' + colors[c].name + '<span class="mono muted">' + colors[c].hex + '</span></div></div>';
+    }
+    var pairs = [
+      {doT:'Taper light graphics to a point', dontT:'Round or oval lamp shapes'},
+      {doT:'Keep the body graphite or silver with one signal accent', dontT:'Multiple bright accent colors on one surface'},
+      {doT:'One crisp crease along the shoulder', dontT:'Several soft, blended character lines'}
+    ];
+    var pairsHtml = '';
+    for (var p = 0; p < pairs.length; p++){
+      pairsHtml += '<div class="dodont-row"><div><span class="label-mono text-good">Do</span>' + pairs[p].doT + '</div>' +
+        '<div><span class="label-mono text-bad">Don\'t</span>' + pairs[p].dontT + '</div></div>';
+    }
+    var sourcesHtml = '';
+    var shown = 0;
+    for (var s = 0; s < SOURCES.length && shown < 13; s++){
+      if (SOURCES[s].included){ sourcesHtml += '<div class="mini-thumb" title="' + SOURCES[s].caption + '">' + thumbSvg(SOURCES[s].svg) + '</div>'; shown++; }
+    }
+    var dateStr = 'Locked ' + new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+    el.innerHTML =
+      '<h2>Vorden — House Style Package v1</h2>' +
+      '<p class="mono muted doc-meta">' + dateStr + ' · ' + TRAITS.length + ' traits · ' + included + ' sources</p>' +
+      '<section><h3>Signature features</h3><div class="features-list">' + featuresHtml + '</div></section>' +
+      '<section><h3>Color</h3><div class="swatch-row">' + colorsHtml + '</div></section>' +
+      '<section><h3>Form language</h3><div class="dodont-list">' + pairsHtml + '</div></section>' +
+      '<section><h3>Sources</h3><div class="mini-thumb-row">' + sourcesHtml + '</div></section>';
+  }
+
+  /* ---------- step 5: compare ---------- */
+  function pinsHtml(){
+    var html = '';
+    for (var i = 0; i < PINS.length; i++){
+      var p = PINS[i];
+      html += '<button type="button" class="pin" style="top:' + p.top + '%;left:' + p.left + '%" data-target="score-' + p.target + '" aria-label="Pin ' + p.num + ': ' + p.label + '">' + p.num + '</button>';
+    }
+    return html;
+  }
+  function renderCompare(){
+    var sketchWrap = document.getElementById('compare-sketch');
+    sketchWrap.innerHTML = svgCarFront(SAMPLE_DESIGN) + pinsHtml();
+
+    var rowsHtml = '';
+    for (var i = 0; i < SCORES.length; i++){
+      var s = SCORES[i];
+      if (s.pct === null){
+        rowsHtml += '<div class="score-row" id="score-' + (i+1) + '"><span class="score-name">' + s.trait + '</span><span class="score-na mono muted">' + s.note + '</span></div>';
+      } else {
+        rowsHtml += '<div class="score-row" id="score-' + (i+1) + '">' +
+          '<span class="score-name">' + s.trait + '</span>' +
+          '<div class="score-bar"><div class="score-bar-fill level-' + s.level + '" style="width:' + s.pct + '%"></div></div>' +
+          '<span class="mono score-pct level-' + s.level + '-text">' + s.pct + '%</span>' +
+          '</div>';
+      }
+    }
+    document.getElementById('score-rows').innerHTML = rowsHtml;
+
+    var matchesHtml = '';
+    for (var m = 0; m < MATCHES.length; m++) matchesHtml += '<li>' + MATCHES[m] + '</li>';
+    document.getElementById('matches-list').innerHTML = matchesHtml;
+    var departsHtml = '';
+    for (var d = 0; d < DEPARTS.length; d++) departsHtml += '<li>' + DEPARTS[d] + '</li>';
+    document.getElementById('departs-list').innerHTML = departsHtml;
+
+    var dirHtml = '';
+    for (var k = 0; k < DIRECTIONS.length; k++){
+      var dir = DIRECTIONS[k];
+      var refLine = dir.trait
+        ? '<div class="direction-ref mono muted">↳ ' + dir.trait + ' · evidence ' + dir.evidence + ' images</div>'
+        : '<div class="direction-ref mono muted">↳ New direction · outside current DNA</div>';
+      dirHtml += '<div class="direction-tile" data-id="' + dir.id + '">' +
+        '<div class="direction-media">' + svgCarFront(dir.svgVariant) + '</div>' +
+        '<div class="direction-title">' + dir.title + '</div>' +
+        '<p class="direction-desc">' + dir.desc + '</p>' +
+        refLine +
+        '<div class="direction-actions">' +
+          '<button type="button" class="btn-toggle btn-accept" data-id="' + dir.id + '" aria-pressed="' + (dir.status === 'accepted') + '">Accept</button>' +
+          '<button type="button" class="btn-toggle btn-reject" data-id="' + dir.id + '" aria-pressed="' + (dir.status === 'rejected') + '">Reject</button>' +
+        '</div>' +
+      '</div>';
+    }
+    document.getElementById('directions-grid').innerHTML = dirHtml;
+
+    var pins = sketchWrap.querySelectorAll('.pin');
+    for (var pi = 0; pi < pins.length; pi++){
+      pins[pi].addEventListener('click', function(){
+        var target = document.getElementById(this.dataset.target);
+        if (!target) return;
+        target.scrollIntoView({behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center'});
+        target.classList.add('flash');
+        setTimeout(function(){ target.classList.remove('flash'); }, 1200);
+      });
+    }
+    var acceptBtns = document.querySelectorAll('.btn-accept');
+    for (var ab = 0; ab < acceptBtns.length; ab++){
+      acceptBtns[ab].addEventListener('click', function(){
+        var dd = findDirection(this.dataset.id);
+        dd.status = dd.status === 'accepted' ? 'none' : 'accepted';
+        renderCompare();
+      });
+    }
+    var rejectBtns = document.querySelectorAll('.btn-reject');
+    for (var rb = 0; rb < rejectBtns.length; rb++){
+      rejectBtns[rb].addEventListener('click', function(){
+        var dd = findDirection(this.dataset.id);
+        dd.status = dd.status === 'rejected' ? 'none' : 'rejected';
+        renderCompare();
+      });
+    }
+    updateDesignNotes();
+  }
+  function findDirection(id){
+    for (var i = 0; i < DIRECTIONS.length; i++) if (DIRECTIONS[i].id === id) return DIRECTIONS[i];
+    return null;
+  }
+  function updateDesignNotes(){
+    var list = document.getElementById('design-notes-list');
+    var empty = document.getElementById('design-notes-empty');
+    var accepted = [];
+    for (var i = 0; i < DIRECTIONS.length; i++) if (DIRECTIONS[i].status === 'accepted') accepted.push(DIRECTIONS[i]);
+    if (accepted.length === 0){
+      list.innerHTML = '';
+      empty.hidden = false;
+    } else {
+      empty.hidden = true;
+      var html = '';
+      for (var a = 0; a < accepted.length; a++){
+        html += '<li contenteditable="true" spellcheck="false">' + accepted[a].title + ' — ' + accepted[a].desc + '</li>';
+      }
+      list.innerHTML = html;
+    }
+  }
+
+  /* ---------- wire-up ---------- */
+  function init(){
+    renderStepRail();
+    renderKeywordChips();
+    showPanel(currentStep);
+
+    document.getElementById('add-keyword-btn').addEventListener('click', addKeyword);
+    document.getElementById('keyword-input').addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); addKeyword(); }
+    });
+    document.getElementById('upload-dropzone').addEventListener('click', function(){
+      showToast('Mockup — file upload not wired.');
+    });
+    document.getElementById('upload-dropzone').addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showToast('Mockup — file upload not wired.'); }
+    });
+    document.getElementById('find-images-btn').addEventListener('click', function(){
+      var btn = this;
+      btn.disabled = true;
+      var prog = document.getElementById('brand-progress');
+      runFakeSequence(prog, ['Searching images… 24 found', 'Scraping vorden-auto.example… 9 found', 'Removing duplicates…'], [500, 500, 500], function(){
+        btn.disabled = false;
+        prog.hidden = true;
+        advanceToStep(2);
+      });
+    });
+
+    var filterChips = document.querySelectorAll('.filter-chip');
+    for (var f = 0; f < filterChips.length; f++){
+      filterChips[f].addEventListener('click', function(){
+        currentFilter = this.dataset.filter;
+        for (var g = 0; g < filterChips.length; g++) filterChips[g].classList.remove('active');
+        this.classList.add('active');
+        renderSources();
+      });
+    }
+    document.getElementById('back-to-brand-btn').addEventListener('click', function(){ navigateToStep(1); });
+    document.getElementById('extract-dna-btn').addEventListener('click', function(){
+      var included = 0;
+      for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].included) included++;
+      if (included === 0) return;
+      var btn = this;
+      btn.disabled = true;
+      var prog = document.getElementById('extract-progress');
+      runFakeSequence(prog, ['Embedding images…', 'Detecting recurring features…', 'Grouping traits…'], [700, 700, 600], function(){
+        btn.disabled = false;
+        prog.hidden = true;
+        advanceToStep(3);
+      });
+    });
+
+    document.getElementById('add-trait-btn').addEventListener('click', addTraitManually);
+    document.getElementById('add-trait-input').addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); addTraitManually(); }
+    });
+    var toneChips = document.querySelectorAll('.tone-chip');
+    for (var tc = 0; tc < toneChips.length; tc++){
+      toneChips[tc].addEventListener('click', function(){ this.classList.toggle('active'); });
+    }
+    document.getElementById('back-to-sources-btn').addEventListener('click', function(){ navigateToStep(2); });
+    document.getElementById('lock-style-btn').addEventListener('click', function(){ advanceToStep(4); });
+
+    document.getElementById('back-to-traits-btn').addEventListener('click', function(){ navigateToStep(3); });
+    document.getElementById('export-pdf-btn').addEventListener('click', function(){ showToast('Mockup — export not wired yet.'); });
+    document.getElementById('compare-btn').addEventListener('click', function(){ advanceToStep(5); });
+
+    document.getElementById('replace-design-dropzone').addEventListener('click', function(){
+      showToast('Mockup — new upload not wired, sample design shown.');
+    });
+    document.getElementById('replace-design-dropzone').addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showToast('Mockup — new upload not wired, sample design shown.'); }
+    });
+    document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(4); });
+  }
+
+  init();
+})();
+</script>

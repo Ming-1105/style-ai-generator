@@ -11,6 +11,8 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from backend.ai_core.errors import AiCoreError
+from backend.ai_core.extract import extract_dna
 from backend.ai_core.scoring import build_compare_result
 from contracts.models import CompareRequest, CompareResult, ExtractRequest, ExtractResponse
 
@@ -41,7 +43,10 @@ def not_implemented(what: str) -> JSONResponse:
 def extract(body: ExtractRequest):
     if mock_mode():
         return load_fixture("dna_extract.json")
-    return not_implemented("Live Style DNA extraction")
+    try:
+        return extract_dna(body.brand, body.images)
+    except AiCoreError as problem:
+        return problem.to_response()
 
 
 @router.post("/compare", response_model=CompareResult)

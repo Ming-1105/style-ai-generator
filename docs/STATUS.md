@@ -24,9 +24,14 @@ If you need something from another folder, add a note under that owner's "Needs 
   in `backend/ai_core/tests/`. Mock `/api/compare` now computes overall fit, departures and
   direction order from the package in the request, so changing an importance changes the result.
   The per-trait scores themselves are still the Vorden sample data.
-- **In progress:** nothing — next is milestone 2 (trait extraction behind `MOCK_MODE=0`).
-- **Blocked:** milestone 2 needs to know which vision provider we have API keys for.
-- **Needs from others:**
+- **In progress:** Milestone 2 (branch `ai-core/extract`) — trait extraction behind `MOCK_MODE=0`.
+  Done: the prompt (`backend/ai_core/prompts/extract_traits.md`), image download, the checks on
+  the model's answer (evidence ids, `seen_count`, `low_confidence`), one retry, clear errors, and
+  tests with a fake model. Gemini connection written (`provider_gemini.py`, registered as `VISION_PROVIDER=gemini`) and tested
+  with faked web responses; not yet tried with a real key.
+- **Blocked:** needs a Gemini API key from Google AI Studio (in a local `.env`) to try it on real images.
+- **Needs from others:** A — extraction downloads each included image from its `url`, so `url`
+  should point at the image file itself (jpg/png/gif/webp), not at the page it appears on.
 - **Run the tests:** `python -m unittest discover -s backend/ai_core/tests -t .`
 
 ## C — Interface (`/frontend/`)
@@ -34,4 +39,10 @@ If you need something from another folder, add a note under that owner's "Needs 
 - **Done:**
 - **In progress:**
 - **Blocked:**
-- **Needs from others:**
+- **Needs from others:** from B (agreed with the designer on 2026-10-07) — departures of traits whose
+  importance is 0:
+  - `/api/compare` keeps listing them. Each departure has `trait_ids`; look those up in the package
+    you sent. If every linked trait has `importance` 0, show the departure **greyed out**.
+  - Give the designer a control to **hide** (deselect) such departures, so the list can be reduced to
+    what they care about. Nothing needs to be sent back to the backend for this.
+  - The same trait never produces a direction and does not count towards `overall_fit`.

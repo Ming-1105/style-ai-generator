@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
-from contracts.models import Brand, ImageCandidate
+from contracts.models import Brand, ImageCandidate, Trait
 
 
 def build_candidates(sources: list[str]) -> list[ImageCandidate]:
@@ -46,6 +46,47 @@ def build_candidates(sources: list[str]) -> list[ImageCandidate]:
     return candidates
 
 
+SAME_TRAIT_OVERLAP = 0.5  # two traits are "the same" if their evidence images overlap this much
+
+
+def group_runs(runs: list[list[Trait]]) -> list[dict]:
+    """Match traits across runs by the images they cite (the names change from run to run).
+
+    Returns groups, most frequent first: how many runs found the trait, the names it went by,
+    and how many runs cited each image for it.
+    """
+    groups: list[dict] = []
+    for run_number, traits in enumerate(runs):
+        for trait in traits:
+            evidence = set(trait.evidence_image_ids)
+            best = max(
+                (g for g in groups if run_number not in g["runs"]),  # one trait per run per group
+                key=lambda g: len(evidence & g["evidence"]) / len(evidence | g["evidence"]),
+                default=None,
+            )
+            if best and len(evidence & best["evidence"]) / len(evidence | best["evidence"]) >= SAME_TRAIT_OVERLAP:
+                group = best
+            else:
+                group = {"runs": [], "names": [], "evidence": set(), "image_counts": {}}
+                groups.append(group)
+            group["runs"].append(run_number)
+            group["names"].append(trait.name)
+            group["evidence"] |= evidence
+            for image_id in evidence:
+                group["image_counts"][image_id] = group["image_counts"].get(image_id, 0) + 1
+    return sorted(groups, key=lambda g: len(g["runs"]), reverse=True)
+
+
+def print_runs_summary(groups: list[dict], run_count: int) -> None:
+    print(f"\nTRAITS ACROSS {run_count} RUNS (traits matched by the images they cite)\n")
+    for group in groups:
+        found = len(group["runs"])
+        print(f"found in {found}/{run_count} runs   {' / '.join(dict.fromkeys(group['names']))}")
+        images = sorted(group["image_counts"].items(), key=lambda item: (-item[1], item[0]))
+        print("      images (runs citing them): " + ", ".join(f"{i} ({n})" for i, n in images))
+    print()
+
+
 def main(argv: list[str]) -> None:
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="Try Style DNA extraction on real images.")
@@ -54,6 +95,9 @@ def main(argv: list[str]) -> None:
     parser.add_argument("--keywords", default="", help="comma-separated")
     parser.add_argument("--values", default="")
     parser.add_argument("--model", help="overrides VISION_MODEL from .env for this run")
+    parser.add_argument("--runs", type=int, default=1,
+                        help="run extraction this many times and show which traits keep coming back "
+                             "(each run is one API request)")
     parser.add_argument("images", nargs="+", help="image file paths or web addresses")
     args = parser.parse_args(argv)
 
@@ -74,6 +118,18 @@ def main(argv: list[str]) -> None:
     print("Images:")
     for candidate, source in zip(candidates, args.images):
         print(f"  {candidate.id}  {Path(source).name if candidate.source_domain == 'local file' else source}")
+
+    if args.runs > 1:
+        all_runs = []
+        for number in range(1, args.runs + 1):
+            started = time.time()
+            try:
+                all_runs.append(extract_dna(brand, candidates).traits)
+            except AiCoreError as problem:
+                sys.exit(f"\nRun {number} failed ({problem.code}): {problem.message}")
+            print(f"run {number}/{args.runs}: {len(all_runs[-1])} traits in {time.time() - started:.0f}s")
+        print_runs_summary(group_runs(all_runs), args.runs)
+        return
 
     started = time.time()
     try:

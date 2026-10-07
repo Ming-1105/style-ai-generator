@@ -35,6 +35,10 @@ If you need something from another folder, add a note under that owner's "Needs 
   - C: when `reference_images` is in the contract, send the candidates behind the traits' evidence ids
     with `/api/compare`. See also the note on importance-0 departures (greyed out + hide option).
   - A: `url` on each candidate must point at the image file itself, not the page it was found on.
+- **Test page:** with the server running, open `http://localhost:8000/api/dev/compare` to try the compare step
+  with your own package and design image (scores as bars, matches/departures, importance sliders, greyed-out
+  departures for importance 0 with a hide option). Developer tool in `backend/ai_core/devtools/`, not the app's
+  real screen; C can copy the idea for the real compare screen.
 - **Try it yourself:** `python -m backend.ai_core.try_extract` and `python -m backend.ai_core.try_compare`
   (read the top of each file). Tests: `python -m unittest discover -s backend/ai_core/tests -t .`
 

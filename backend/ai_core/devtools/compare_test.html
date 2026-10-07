@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare test</title>
+<style>
+  :root{
+    --bg:#EEF0EC; --surface:#FAFBF8; --ink:#1B2024; --muted:#5D666C; --line:#D3D8D2;
+    --accent:#2447C4; --accent-soft:#DDE4FA; --good:#2E7D4F; --warn:#B8730F; --bad:#B0432F; --radius:5px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14181B; --surface:#1D2226; --ink:#E7EAE6; --muted:#98A1A6; --line:#30373C;
+           --accent:#7E9BFF; --accent-soft:#22304F; --good:#5BBF86; --warn:#E0A247; --bad:#E07A63; }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .mono{font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums;}
+  .muted{color:var(--muted);}
+  header{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 20px; background:var(--surface); border-bottom:1px solid var(--line);}
+  .wordmark{font-weight:800; font-size:16px;}
+  .tag{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:2px 7px;}
+  .tag.live{color:var(--good); border-color:var(--good);} .tag.mock{color:var(--warn); border-color:var(--warn);}
+  main{max-width:920px; margin:0 auto; padding:22px 20px 60px;}
+  h2{font-size:15px; margin:0 0 8px;}
+  h3{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:22px 0 8px; padding-top:14px; border-top:1px solid var(--line);}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px;}
+  .row{display:flex; flex-wrap:wrap; align-items:center; gap:10px;}
+  button{font:inherit; cursor:pointer; border-radius:var(--radius); padding:7px 14px; border:1px solid var(--line); background:var(--surface); color:var(--ink);}
+  button.primary{background:var(--accent); border-color:var(--accent); color:var(--surface); font-weight:600;}
+  button:disabled{opacity:.5; cursor:not-allowed;}
+  input[type=file]{font:inherit; max-width:100%;}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .preview{max-width:220px; max-height:160px; border:1px solid var(--line); border-radius:3px; margin-top:10px; display:block;}
+  .sliders{display:grid; gap:6px 18px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); margin-top:8px;}
+  .slider{display:grid; grid-template-columns:1fr 70px 28px; align-items:center; gap:8px; font-size:12.5px;}
+  .slider input{width:100%; accent-color:var(--accent);}
+  .banner{border:1px solid var(--warn); color:var(--warn); border-radius:var(--radius); padding:8px 12px; margin:10px 0; font-size:12.5px;}
+  .error{border:1px solid var(--bad); color:var(--bad); border-radius:var(--radius); padding:10px 12px; margin-top:12px;}
+  .fit{font:500 46px/1 ui-monospace,Consolas,monospace; color:var(--accent);}
+  .label{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .score{padding:8px 0; border-top:1px solid var(--line);}
+  .score-head{display:grid; grid-template-columns:minmax(120px,220px) 1fr 52px; align-items:center; gap:10px;}
+  .bar{height:8px; background:var(--line); border-radius:4px; overflow:hidden;}
+  .bar > div{height:100%;}
+  .good{background:var(--good);} .warn{background:var(--warn);} .bad{background:var(--bad);}
+  .t-good{color:var(--good);} .t-warn{color:var(--warn);} .t-bad{color:var(--bad);}
+  .pct{text-align:right;}
+  .note{font-size:12.5px; color:var(--muted); margin-top:3px;}
+  .na{grid-column:2/4; font-size:12px;}
+  .chip{display:inline-block; font:9px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; border:1px solid var(--warn); color:var(--warn); border-radius:3px; padding:1px 5px; margin-left:6px;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:700px){ .cols{grid-template-columns:1fr;} .score-head{grid-template-columns:1fr 1fr 44px;} }
+  ul{margin:0; padding-left:18px;} li{margin-bottom:7px; font-size:13px;}
+  li.greyed{opacity:.45;} li.greyed .zero{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; margin-left:6px; color:var(--muted);}
+  li.hidden{display:none;}
+  .dir{border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; margin-bottom:8px;}
+</style>
+</head>
+<body>
+<header>
+  <span class="wordmark">Brand DNA</span>
+  <span class="tag">Developer tool · compare step</span>
+  <span id="mode" class="tag">checking…</span>
+</header>
+
+<main>
+  <p class="muted">Try the comparison with your own images. This is a test page for the AI core, not the app's real screen.</p>
+
+  <div class="card">
+    <h2>1. House style package</h2>
+    <div class="row">
+      <input type="file" id="pkg-file" accept=".json,application/json" aria-label="Package JSON file">
+      <button id="sample-btn" type="button">Use the Vorden sample package</button>
+    </div>
+    <p id="pkg-info" class="muted mono" style="margin:8px 0 0;">No package loaded. Make one with <code>try_extract --save-package</code>.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Your design</h2>
+    <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Design image">
+    <img id="preview" class="preview" alt="Your design" hidden>
+  </div>
+
+  <div class="card" id="importance-card" hidden>
+    <h2>3. Importance of each trait</h2>
+    <span class="muted">Set by the designer, never shown to the AI. It only changes how the scores are weighed.</span>
+    <div id="sliders" class="sliders"></div>
+  </div>
+
+  <div class="row">
+    <button id="run" class="primary" type="button" disabled>Compare</button>
+    <span id="status" class="muted mono"></span>
+  </div>
+  <div id="error" class="error" role="alert" hidden></div>
+
+  <section id="results" hidden>
+    <h3 style="border-top:none; padding-top:0;">Result</h3>
+    <div id="mock-banner" class="banner" hidden>Mock mode: these scores are the Vorden sample data, whatever image you upload. Set MOCK_MODE=0 in .env and restart the server to use the AI.</div>
+    <div class="label">Overall fit</div>
+    <div id="fit" class="fit mono"></div>
+    <div id="fit-note" class="note"></div>
+
+    <h3>Scores per trait</h3>
+    <div id="scores"></div>
+
+    <div class="cols">
+      <div><h3>Matches the brand</h3><ul id="matches"></ul></div>
+      <div>
+        <h3>Departs from the brand</h3>
+        <label class="note"><input type="checkbox" id="hide-zero"> Hide departures of traits with importance 0</label>
+        <ul id="departures" style="margin-top:8px;"></ul>
+      </div>
+    </div>
+
+    <h3>Suggested directions</h3>
+    <div id="directions"></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let pkg = null;        // the package as loaded; importance values are edited in place
+let designUrl = null;  // the design image as a data URL
+let sentImportance = {};
+
+// Model output is untrusted text, so everything below uses textContent, never innerHTML.
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function readFile(file, as) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Could not read the file."));
+    as === "text" ? reader.readAsText(file) : reader.readAsDataURL(file);
+  });
+}
+
+function showError(message) {
+  const box = $("error");
+  box.hidden = !message;
+  box.textContent = message || "";
+}
+
+function updateRunButton() { $("run").disabled = !(pkg && designUrl); }
+
+async function showMode() {
+  const tag = $("mode");
+  try {
+    const status = await (await fetch("/api/dev/status")).json();
+    if (status.mock_mode) { tag.textContent = "Mock mode · sample scores"; tag.className = "tag mock"; }
+    else { tag.textContent = `Live · ${status.provider || "no provider"} / ${status.model || "default model"}`; tag.className = "tag live"; }
+  } catch { tag.textContent = "server not reachable"; tag.className = "tag"; }
+}
+
+function setPackage(data, label) {
+  if (!data || !Array.isArray(data.traits) || !data.traits.length) {
+    showError("That file is not a house style package: it has no traits."); return;
+  }
+  showError("");
+  pkg = data;
+  $("pkg-info").textContent = `${label}: ${data.brand?.name || "unnamed brand"}, ${data.traits.length} traits`;
+  const sliders = $("sliders");
+  sliders.replaceChildren();
+  for (const trait of pkg.traits) {
+    const row = el("label", "slider");
+    row.append(el("span", "", trait.name));
+    const input = el("input");
+    input.type = "range"; input.min = 0; input.max = 100; input.value = trait.importance;
+    const value = el("span", "mono", String(trait.importance));
+    input.addEventListener("input", () => { trait.importance = Number(input.value); value.textContent = input.value; });
+    row.append(input, value);
+    sliders.append(row);
+  }
+  $("importance-card").hidden = false;
+  updateRunButton();
+}
+
+function levelOf(score) { return score >= 70 ? "good" : score >= 50 ? "warn" : "bad"; }
+
+function render(result) {
+  const names = Object.fromEntries(pkg.traits.map((t) => [t.id, t.name]));
+  $("results").hidden = false;
+  $("fit").textContent = result.overall_fit === null ? "—" : String(result.overall_fit);
+  $("fit-note").textContent = result.overall_fit === null ? "No trait could be assessed, so there is no overall fit." : "";
+
+  const scores = $("scores");
+  scores.replaceChildren();
+  for (const s of result.trait_scores) {
+    const block = el("div", "score");
+    const head = el("div", "score-head");
+    const name = el("span", "", names[s.trait_id] || s.trait_id);
+    if (s.status === "low_confidence") name.append(el("span", "chip", "low confidence"));
+    head.append(name);
+    if (s.score === null) {
+      head.append(el("span", "na mono muted", "not assessable"));
+    } else {
+      const bar = el("div", "bar"); const fill = el("div", levelOf(s.score)); fill.style.width = s.score + "%"; bar.append(fill);
+      head.append(bar, el("span", `pct mono t-${levelOf(s.score)}`, String(s.score)));
+    }
+    block.append(head);
+    const importance = sentImportance[s.trait_id];
+    block.append(el("div", "note", (s.note || "") + (importance !== undefined ? `  (importance ${importance})` : "")));
+    scores.append(block);
+  }
+
+  const fill = (listId, items, greyZero) => {
+    const list = $(listId); list.replaceChildren();
+    if (!items.length) list.append(el("li", "muted", "None."));
+    for (const item of items) {
+      const li = el("li", "", item.text);
+      li.append(el("span", "mono muted", `  ${item.trait_ids.map((id) => names[id] || id).join(", ")}`));
+      if (greyZero && item.trait_ids.length && item.trait_ids.every((id) => sentImportance[id] === 0)) {
+        li.classList.add("greyed", "zero-item");
+        li.append(el("span", "zero", "importance 0"));
+      }
+      list.append(li);
+    }
+  };
+  fill("matches", result.matches, false);
+  fill("departures", result.departures, true);
+  applyHide();
+
+  const dirs = $("directions"); dirs.replaceChildren();
+  if (!result.directions.length) dirs.append(el("p", "muted", "No directions yet. They are generated in a later step (milestone 5)."));
+  for (const d of result.directions) {
+    const card = el("div", "dir");
+    card.append(el("strong", "", d.title), el("div", "note", d.rationale));
+    if (d.trait_ids.length) card.append(el("div", "note mono", "↳ " + d.trait_ids.map((id) => names[id] || id).join(", ")));
+    dirs.append(card);
+  }
+}
+
+function applyHide() {
+  const hide = $("hide-zero").checked;
+  document.querySelectorAll("#departures .zero-item").forEach((li) => li.classList.toggle("hidden", hide));
+}
+
+async function run() {
+  showError("");
+  const button = $("run");
+  button.disabled = true;
+  $("status").textContent = "Asking… live mode can take 20 to 60 seconds.";
+  sentImportance = Object.fromEntries(pkg.traits.map((t) => [t.id, t.importance]));
+  const started = performance.now();
+  try {
+    const response = await fetch("/api/compare", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ package: pkg, design_image: designUrl }),
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error?.message || `The server answered with error ${response.status}.`);
+    render(body);
+    const status = await (await fetch("/api/dev/status")).json();
+    $("mock-banner").hidden = !status.mock_mode;
+    $("status").textContent = `Done in ${((performance.now() - started) / 1000).toFixed(1)} s.`;
+  } catch (problem) {
+    $("status").textContent = "";
+    showError(problem.message);
+  } finally {
+    updateRunButton();
+  }
+}
+
+$("pkg-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0]; if (!file) return;
+  try { setPackage(JSON.parse(await readFile(file, "text")), file.name); }
+  catch { showError("That file could not be read as JSON."); }
+});
+$("sample-btn").addEventListener("click", async () => {
+  try { setPackage(await (await fetch("/api/dev/sample-package")).json(), "Sample package"); }
+  catch { showError("Could not load the sample package."); }
+});
+$("design-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0]; if (!file) return;
+  designUrl = await readFile(file, "dataurl");
+  $("preview").src = designUrl; $("preview").hidden = false;
+  updateRunButton();
+});
+$("hide-zero").addEventListener("change", applyHide);
+$("run").addEventListener("click", run);
+showMode();
+</script>
+</body>
+</html>

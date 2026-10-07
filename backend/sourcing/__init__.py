@@ -1,7 +1,6 @@
 """Sourcing (Person A): image search, scraping known URLs, dedupe, flagging.
 
-Right now this is only the mock path: it returns the fixture. Build the real
-implementation behind the MOCK_MODE check and keep the mock path working.
+Mock mode returns the fixture; live mode searches SerpAPI using local configuration.
 """
 
 import json
@@ -12,6 +11,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from contracts.models import SearchRequest, SearchResponse
+from .serpapi import SearchError, search_images
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
 
@@ -30,10 +30,10 @@ def load_fixture(name: str) -> dict:
 def search(body: SearchRequest):
     if mock_mode():
         return load_fixture("sources_search.json")
-    return JSONResponse(
-        status_code=501,
-        content={"error": {
-            "code": "not_implemented",
-            "message": "Live image search is not built yet — set MOCK_MODE=1 to use the sample data.",
-        }},
-    )
+    try:
+        return search_images(body.brand)
+    except SearchError as exc:
+        return JSONResponse(status_code=exc.status, content={"error": {
+            "code": exc.code, "message": exc.message,
+        }})
+

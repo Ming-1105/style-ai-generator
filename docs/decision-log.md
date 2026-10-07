@@ -16,3 +16,8 @@
   out of overall fit. Overall fit is `null` when nothing could be assessed.
 - **Why:** Counting it as 0 would lower the fit for something the AI simply could not see, which
   presents a gap in the evidence as a flaw in the design.
+
+## 2026-10-07 — Search metadata without inferred visual relevance (Person A)
+
+- **What:** Use SerpAPI google_images with existing httpx. Build one query from brand name, category, keywords and official; return up to 30 image URLs and source domains. No images are downloaded. Keep relevance=null and category=other until the later classification milestone.
+- **Why:** One request limits allowance usage. Provider ranking is not a measured relevance score, and a search query does not prove an image is official. Preserve the working mock path and never commit the private .env file.

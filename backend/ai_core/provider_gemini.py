@@ -14,7 +14,7 @@ import httpx
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import LoadedImage
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"  # 2.5 models are closed to new accounts
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 TIMEOUT_SECONDS = 120
 
@@ -47,6 +47,11 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
         raise AiCoreError("vision_auth",
                           "Gemini refused the request — check that VISION_API_KEY in .env is a valid "
                           f"key and that the model \"{model}\" exists (VISION_MODEL).", status=502)
+    if response.status_code == 404:
+        raise AiCoreError("vision_model_unavailable",
+                          f"Gemini does not offer the model \"{model}\" to this account — "
+                          "set VISION_MODEL in .env to another model (see aistudio.google.com).",
+                          status=502)
     if response.status_code == 429:
         raise AiCoreError("vision_rate_limited",
                           "Gemini says we sent too many requests (free-tier limit) — wait a minute and try again.",

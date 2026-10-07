@@ -64,6 +64,9 @@ class FailureTests(unittest.TestCase):
     def test_bad_key(self):
         self.assertEqual(self.code_for(reply(403)), "vision_auth")
 
+    def test_unknown_or_closed_model(self):
+        self.assertEqual(self.code_for(reply(404)), "vision_model_unavailable")
+
     def test_rate_limit(self):
         self.assertEqual(self.code_for(reply(429)), "vision_rate_limited")
 

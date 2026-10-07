@@ -54,3 +54,11 @@
 - **Why:** Search results often point at images that block outside access or have disappeared,
   and we need to know exactly which images the model saw to validate its evidence. Images are
   held in memory for one request and never saved.
+
+## 2026-10-07 — Departures stay when importance is 0; the interface greys them out (Person B)
+
+- **What:** If the designer sets a trait's importance to 0, `/api/compare` still lists its departure.
+  The trait no longer counts in overall fit and gets no direction. The interface shows such
+  departures greyed out and lets the designer hide them.
+- **Why:** The AI measures and the designer decides: "this doesn't matter to me" should not delete a
+  factual observation, only stop it from steering the score and the suggestions.

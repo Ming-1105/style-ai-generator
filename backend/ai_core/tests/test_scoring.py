@@ -130,6 +130,14 @@ class BuildCompareResultTests(FixtureCase):
         self.set_importance("tr_01", 0)
         self.assertEqual([d.id for d in self.build().directions], ["dir_b", "dir_c"])
 
+    def test_importance_zero_keeps_the_departure_but_not_the_score_weight(self):
+        # The designer said the trait doesn't matter, but the observed difference stays in the
+        # result so the interface can show it greyed out (or hidden, if the designer chooses).
+        self.set_importance("tr_01", 0)
+        result = self.build()
+        self.assertIn("tr_01", [tid for d in result.departures for tid in d.trait_ids])
+        self.assertEqual(result.overall_fit, 70)  # tr_01 no longer pulls the fit down
+
     def test_removed_trait_disappears_from_the_result(self):
         self.traits[:] = [t for t in self.traits if t.id != "tr_02"]
         result = self.build()

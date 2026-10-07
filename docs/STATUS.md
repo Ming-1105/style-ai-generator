@@ -40,4 +40,10 @@ If you need something from another folder, add a note under that owner's "Needs 
 - **Done:**
 - **In progress:**
 - **Blocked:**
-- **Needs from others:**
+- **Needs from others:** from B (agreed with the designer on 2026-10-07) — departures of traits whose
+  importance is 0:
+  - `/api/compare` keeps listing them. Each departure has `trait_ids`; look those up in the package
+    you sent. If every linked trait has `importance` 0, show the departure **greyed out**.
+  - Give the designer a control to **hide** (deselect) such departures, so the list can be reduced to
+    what they care about. Nothing needs to be sent back to the backend for this.
+  - The same trait never produces a direction and does not count towards `overall_fit`.

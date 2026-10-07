@@ -45,13 +45,13 @@ class RequestTests(unittest.TestCase):
     def test_key_goes_in_a_header_never_in_the_url(self):
         _, post = self.ask(answer("{}"))
         self.assertEqual(post.call_args.kwargs["headers"]["x-goog-api-key"], "secret-key")
-        self.assertNotIn("secret-key", post.call_args.args[0])
+        self.assertNotIn("secret-key", post.call_args.kwargs["url"])
 
     def test_model_can_be_overridden(self):
         with patch.dict(os.environ, {**ENV, "VISION_MODEL": "gemini-test"}), \
                 patch("httpx.post", return_value=answer("{}")) as post:
             provider_gemini.ask("p", IMAGES)
-        self.assertIn("gemini-test:generateContent", post.call_args.args[0])
+        self.assertIn("gemini-test:generateContent", post.call_args.kwargs["url"])
 
 
 class RetryTests(unittest.TestCase):

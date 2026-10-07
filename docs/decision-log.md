@@ -16,3 +16,41 @@
   out of overall fit. Overall fit is `null` when nothing could be assessed.
 - **Why:** Counting it as 0 would lower the fit for something the AI simply could not see, which
   presents a gap in the evidence as a flaw in the design.
+
+## 2026-10-07 — The vision model is interchangeable (Person B)
+
+- **What:** All of `ai_core` talks to a "provider": one function that takes a prompt and images
+  and returns the model's text. Which model is behind it is set by `VISION_PROVIDER` and lives
+  only in `backend/ai_core/providers.py`. No provider is connected yet.
+- **Why:** We have no API key yet and may switch model during the project. The prompt, the checks
+  and the tests do not depend on the choice, so the report can compare models on equal terms.
+
+## 2026-10-07 — The model proposes traits, the code checks them (Person B)
+
+- **What:** For trait extraction the model returns name, description, evidence image ids,
+  confidence and a suggested importance. In code we then: drop evidence ids for images we did
+  not send, count `seen_count` from the remaining ids, set `low_confidence` below 0.6, and
+  remove a trait that has no valid evidence left. An invalid answer is retried once; after that
+  the designer gets an error instead of made-up traits.
+- **Why:** A language model can miscount or cite an image that does not exist. Anything that can
+  be counted or looked up should not rest on the model's word, so every trait the designer sees
+  is linked to images that were really shown to the model.
+
+## 2026-10-07 — Extraction prompt: images are the only evidence (Person B)
+
+- **What:** `prompts/extract_traits.md` tells the model to report only what is visible in the
+  supplied images, not what it knows about the brand from elsewhere; to need at least 2 images
+  per trait; to describe the product, not the photograph; and to return fewer traits rather than
+  pad the list. Brand keywords and values are given as context, explicitly not as evidence.
+- **Why:** For a well-known brand the model could recite a textbook description that the
+  designer cannot verify against their own reference set. Tying traits to the reviewed images
+  keeps the designer's curation in step 2 meaningful.
+
+## 2026-10-07 — Images are downloaded by us and sent as data (Person B)
+
+- **What:** Extraction downloads each included image (max 20, most relevant first, jpg/png/gif/
+  webp up to 5 MB) and sends the image data to the model. Images that fail to load are skipped
+  and logged; with fewer than 2 usable images the request fails with a clear message.
+- **Why:** Search results often point at images that block outside access or have disappeared,
+  and we need to know exactly which images the model saw to validate its evidence. Images are
+  held in memory for one request and never saved.

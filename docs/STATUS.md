@@ -24,9 +24,15 @@ If you need something from another folder, add a note under that owner's "Needs 
   in `backend/ai_core/tests/`. Mock `/api/compare` now computes overall fit, departures and
   direction order from the package in the request, so changing an importance changes the result.
   The per-trait scores themselves are still the Vorden sample data.
-- **In progress:** nothing — next is milestone 2 (trait extraction behind `MOCK_MODE=0`).
-- **Blocked:** milestone 2 needs to know which vision provider we have API keys for.
-- **Needs from others:**
+- **In progress:** Milestone 2 (branch `ai-core/extract`) — trait extraction behind `MOCK_MODE=0`.
+  Done: the prompt (`backend/ai_core/prompts/extract_traits.md`), image download, the checks on
+  the model's answer (evidence ids, `seen_count`, `low_confidence`), one retry, clear errors, and
+  tests with a fake model. Not done: the connection to a real vision model. Until one is added
+  in `backend/ai_core/providers.py`, live mode answers with a "no vision model is set up" error.
+- **Blocked:** we have no vision API key yet. The provider is interchangeable, so the choice can
+  wait, but milestone 2 cannot be tried on real images until we have one.
+- **Needs from others:** A — extraction downloads each included image from its `url`, so `url`
+  should point at the image file itself (jpg/png/gif/webp), not at the page it appears on.
 - **Run the tests:** `python -m unittest discover -s backend/ai_core/tests -t .`
 
 ## C — Interface (`/frontend/`)

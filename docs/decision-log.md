@@ -71,3 +71,17 @@
   key is sent in a header, never in the URL.
 - **Why:** A free API key is available through Google AI Studio, and no new dependency is needed.
   Because the provider is interchangeable, we can compare other models later with the same prompt.
+
+## 2026-10-07 — First real extraction test: which Gemini model works on the free tier (Person B)
+
+- **What:** Tried extraction on 12 product screenshots of one real brand (kept local, not in the repo).
+  On a free-tier key: `gemini-3.8-flash` was overloaded (503, then a timeout), `gemini-3.1-pro-preview`
+  was rate-limited (429), `gemini-2.5-*` is closed to new accounts, and **`gemini-3.5-flash` worked**
+  (6 traits in 24 s, all with valid evidence ids). Model is chosen with `VISION_MODEL` in `.env`.
+- **Observed:** the model rated every trait 0.85–0.95 confident and suggested importance 75–95, so
+  the confidence and importance numbers barely distinguish traits. Spot checks of 2 of 12 images
+  found the cited evidence plausible. Worth handling in the interface: the designer sets importance,
+  and the AI's confidence should not be read as an accuracy measure.
+- **Why it matters:** availability of the preferred model varies by hour on a free key; the pinned
+  model for the report must be one that actually responds, and the comparison against a Pro model
+  needs a paid or higher-quota key.

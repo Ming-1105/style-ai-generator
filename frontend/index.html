@@ -104,6 +104,13 @@
   .evidence-thumb img,.mini-thumb img{width:100%; height:100%; object-fit:cover; border-radius:2px;}
   .sketch-wrap img{width:100%; height:auto; display:block;}
   .direction-media img{width:100%; height:auto; display:block;}
+  .mini-thumb:hover{border-color:var(--accent);}
+  .palette-actions{margin-top:12px;}
+  .lightbox{position:fixed; inset:0; z-index:100; background:rgba(10,12,14,.82); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:24px;}
+  .lightbox[hidden]{display:none;}
+  .lightbox img{max-width:min(92vw,1100px); max-height:78vh; background:var(--surface); border-radius:var(--radius); object-fit:contain;}
+  .lightbox-caption{color:#fff; font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .lightbox-close{position:absolute; top:16px; right:16px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:var(--radius); padding:6px 12px;}
   .finding-ignored{color:var(--muted); opacity:.6;}
   .thumb-check{position:absolute; top:8px; left:8px; width:16px; height:16px; border:1px solid var(--ink); border-radius:3px; background:var(--surface); font-size:11px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:700;}
   .flag-chip{position:absolute; top:6px; right:6px; background:var(--surface); border:1px solid var(--warn); color:var(--warn); font-family:'IBM Plex Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.06em; padding:2px 6px; border-radius:3px;}
@@ -122,14 +129,14 @@
   .trait-row:last-child{border-bottom:1px solid var(--line);}
   .trait-main{flex:1; min-width:0;}
   .trait-name-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  .trait-name{font-family:'Archivo',sans-serif; font-weight:600; font-size:15px;}
+  .trait-name{font-family:'Archivo',sans-serif; font-weight:600; font-size:18px;}
   .trait-name[contenteditable="true"]{outline:1px dashed var(--accent); padding:0 3px;}
-  .trait-desc{color:var(--muted); font-size:12.5px; margin:4px 0 10px;}
+  .trait-desc{color:var(--muted); font-size:16px; line-height:1.5; margin:6px 0 14px;}
   .evidence-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  .evidence-thumbs{display:flex; gap:6px;}
-  .evidence-thumb{width:40px; height:32px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
+  .evidence-thumbs{display:flex; flex-wrap:wrap; gap:8px;}
+  .evidence-thumb{width:100px; height:80px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
   .evidence-thumb svg{width:80%; height:80%;}
-  .evidence-label{font-size:11px;}
+  .evidence-label{font-size:12px;}
   .trait-side{width:210px; flex-shrink:0; display:flex; flex-direction:column; gap:10px;}
   .trait-conf{display:flex; justify-content:space-between; align-items:center; font-size:13px;}
   .trait-weight input[type=range]{width:100%; accent-color:var(--accent);}
@@ -151,7 +158,7 @@
   .dodont-list{display:flex; flex-direction:column; gap:10px; margin-top:10px;}
   .dodont-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; font-size:12.5px; border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px;}
   .mini-thumb-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
-  .mini-thumb{width:52px; height:40px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
+  .mini-thumb{width:130px; height:100px; padding:0; cursor:zoom-in; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
   .mini-thumb svg{width:80%; height:80%;}
 
   /* compare */
@@ -395,6 +402,12 @@
     </section>
 
   </main>
+</div>
+
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged source image" hidden>
+  <button type="button" class="lightbox-close" id="lightbox-close">Close ✕</button>
+  <img id="lightbox-img" alt="">
+  <div class="lightbox-caption" id="lightbox-caption"></div>
 </div>
 
 <div id="toast-container" aria-live="polite"></div>
@@ -845,7 +858,8 @@
       ? '<div class="swatch-row">' + pkg.colors.map(function(c){
           return '<div class="swatch"><div class="swatch-color" style="background:' + esc(c.hex) + '"></div>' +
             '<div class="swatch-label">' + esc(c.name) + '<span class="mono muted">' + esc(c.hex) + '</span></div></div>';
-        }).join('') + '</div>'
+        }).join('') + '</div>' +
+        '<div class="palette-actions"><button type="button" class="btn-ghost" id="download-palette-btn">Download palette (PNG)</button></div>'
       : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">The AI found no brand colors.</p>';
     var pairsHtml = pkg.do_dont.length
       ? '<div class="dodont-list">' + pkg.do_dont.map(function(p){
@@ -853,7 +867,11 @@
             '<div><span class="label-mono text-bad">Don\'t</span>' + esc(p.dont) + '</div></div>';
         }).join('') + '</div>'
       : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">No do/don\'t rules yet.</p>';
-    var sourcesHtml = pkg.source_image_ids.map(function(id){ return imageThumb(id, 'mini-thumb'); }).join('');
+    var sourcesHtml = pkg.source_image_ids.map(function(id){
+      var c = findCandidate(id);
+      if (!c) return imageThumb(id, 'mini-thumb');
+      return '<button type="button" class="mini-thumb" data-id="' + esc(c.id) + '" title="' + esc(c.id + ' · ' + c.source_domain + ' — click to enlarge') + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="" loading="lazy"></button>';
+    }).join('');
     var domains = [];
     pkg.source_image_ids.forEach(function(id){
       var c = findCandidate(id);
@@ -870,6 +888,56 @@
       '<section><h3>Form language</h3>' + pairsHtml + '</section>' +
       '<section><h3>Sources</h3><div class="mini-thumb-row">' + sourcesHtml + '</div>' +
         '<p class="mono muted" style="font-size:11px;margin-top:8px;">From: ' + esc(domains.join(', ')) + '</p></section>';
+
+    el.querySelectorAll('.mini-thumb[data-id]').forEach(function(b){
+      b.addEventListener('click', function(){ openLightbox(this.dataset.id); });
+    });
+    var dl = document.getElementById('download-palette-btn');
+    if (dl) dl.addEventListener('click', downloadPalette);
+  }
+
+  function openLightbox(id){
+    var c = findCandidate(id);
+    if (!c) return;
+    var img = document.getElementById('lightbox-img');
+    img.src = c.url;
+    img.alt = 'Reference image ' + c.id + ' from ' + c.source_domain;
+    document.getElementById('lightbox-caption').textContent = c.id + ' · ' + c.source_domain + ' · ' + c.category;
+    document.getElementById('lightbox').hidden = false;
+    document.getElementById('lightbox-close').focus();
+  }
+  function closeLightbox(){
+    document.getElementById('lightbox').hidden = true;
+    document.getElementById('lightbox-img').removeAttribute('src');
+  }
+
+  // Draws every colour of the package as a swatch with its name and hex, and saves it as a PNG.
+  function downloadPalette(){
+    var colors = state.package.colors;
+    var cw = 220, ch = 260, pad = 24, cols = Math.min(colors.length, 4);
+    var rows = Math.ceil(colors.length / cols);
+    var canvas = document.createElement('canvas');
+    canvas.width = pad + cols * (cw + pad);
+    canvas.height = 70 + rows * (ch + pad);
+    var g = canvas.getContext('2d');
+    g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, canvas.width, canvas.height);
+    g.fillStyle = '#1B2024'; g.font = '600 24px Arial, sans-serif'; g.textBaseline = 'alphabetic';
+    g.fillText(state.package.brand.name + ' — colour palette', pad, 44);
+    colors.forEach(function(c, i){
+      var x = pad + (i % cols) * (cw + pad);
+      var y = 70 + Math.floor(i / cols) * (ch + pad);
+      g.fillStyle = c.hex; g.fillRect(x, y, cw, 180);
+      g.strokeStyle = '#D3D8D2'; g.lineWidth = 1; g.strokeRect(x + .5, y + .5, cw - 1, 179);
+      g.fillStyle = '#1B2024'; g.font = '600 18px Arial, sans-serif'; g.fillText(c.name, x, y + 210);
+      g.fillStyle = '#5D666C'; g.font = '16px "Courier New", monospace'; g.fillText(c.hex.toUpperCase(), x, y + 236);
+    });
+    canvas.toBlob(function(blob){
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (state.package.brand.name || 'brand').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-palette.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    }, 'image/png');
   }
 
   /* ---------- step 5: compare ---------- */
@@ -1023,6 +1091,10 @@
   function init(){
     renderStepRail();
     showPanel(currentStep);
+
+    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+    document.getElementById('lightbox').addEventListener('click', function(e){ if (e.target === this) closeLightbox(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeLightbox(); });
 
     document.getElementById('add-keyword-btn').addEventListener('click', addKeyword);
     document.getElementById('keyword-input').addEventListener('keydown', function(e){

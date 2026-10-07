@@ -26,3 +26,8 @@
 
 - **What:** Check robots.txt and read the exact supplied HTML page. Disallowed, inaccessible, redirected or rate-restricted pages return an actionable error; clear the website field for search only. Missing robots.txt (404) permits collection. No links or image resources are fetched and no JavaScript is run.
 - **Why:** Keep collection inspectable within single-page scope without hiding failures. Support relative and lazy-loading image URLs using existing dependencies. Category and relevance remain unknown. No new dependencies.
+
+## 2026-10-07 — URL dedupe and metadata-based size filtering (Person A)
+
+- **What:** Deduplicate URLs across search and scrape candidates, normalizing hostname/default ports and removing fragments while preserving query parameters. Drop images with a known side below 128 pixels. Use SerpAPI original dimensions or HTML declared dimensions; retain unknown sizes. Return a clear error if no images remain.
+- **Why:** Remove repeated evidence and small icons without new dependencies or downloading source images. HTML dimensions describe display size, not verified intrinsic resolution. Visually similar images at different URLs remain; perceptual hashing is not implemented.

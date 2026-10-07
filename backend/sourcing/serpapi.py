@@ -27,12 +27,13 @@ def valid_url(value):
         return False
     try:
         parsed = urlsplit(value)
+        parsed.port  # Reject malformed ports before normalization or display.
         return parsed.scheme in ("http", "https") and bool(parsed.hostname)
     except ValueError:
         return False
 
 
-def search_images(brand: Brand) -> SearchResponse:
+def search_images(brand: Brand, dimensions=None) -> SearchResponse:
     if not brand.name.strip():
         raise SearchError(400, "brand_required", "Enter a brand name to search for reference images.")
     if os.getenv("IMAGE_SEARCH_PROVIDER", "").strip().lower() != "serpapi":
@@ -78,6 +79,12 @@ def search_images(brand: Brand) -> SearchResponse:
         image, source = item.get("original"), item.get("link")
         if not valid_url(image) or not valid_url(source):
             continue
+        if dimensions is not None:
+            from .filtering import positive_dimension
+            size = (positive_dimension(item.get("original_width")),
+                    positive_dimension(item.get("original_height")))
+            if any(value is not None for value in size):
+                dimensions[image] = size
         thumbnail = item.get("thumbnail")
         candidates.append(ImageCandidate(
             id="img_" + hashlib.sha256(image.encode()).hexdigest()[:16],

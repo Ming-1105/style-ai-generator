@@ -11,6 +11,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from backend.ai_core.scoring import build_compare_result
 from contracts.models import CompareRequest, CompareResult, ExtractRequest, ExtractResponse
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
@@ -46,5 +47,14 @@ def extract(body: ExtractRequest):
 @router.post("/compare", response_model=CompareResult)
 def compare(body: CompareRequest):
     if mock_mode():
-        return load_fixture("compare.json")
+        # The per-trait judgements are sample data; everything derived from them is
+        # computed from the package that was sent, so editing an importance changes the result.
+        sample = CompareResult(**load_fixture("compare.json"))
+        return build_compare_result(
+            body.package.traits,
+            sample.trait_scores,
+            sample.matches,
+            sample.departures,
+            sample.directions,
+        )
     return not_implemented("Live design comparison")

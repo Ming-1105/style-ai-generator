@@ -85,3 +85,16 @@
 - **Why it matters:** availability of the preferred model varies by hour on a free key; the pinned
   model for the report must be one that actually responds, and the comparison against a Pro model
   needs a paid or higher-quota key.
+
+## 2026-10-07 — Extraction is not repeatable: two runs on identical input differ (Person B)
+
+- **What:** Ran extraction twice on the same 12 images, same model (`gemini-3.5-flash`), same prompt,
+  temperature 0.2. Run 1 returned 6 traits, run 2 returned 5. One trait (exposed cyclone chambers)
+  appeared only in run 1; the other traits came back with reworded names and slightly different
+  evidence sets (e.g. the colour trait cited in 10 images, then 9). Confidence stayed at 0.85–0.95
+  for every trait in both runs.
+- **Why it matters:** The result is a proposal, not a measurement. The designer must be able to edit,
+  remove and add traits (already in the design), and the seen-in count is a more useful signal of
+  reliability than the model's own confidence. Traits that recur across runs are stronger candidates.
+- **Next:** try repeated runs and keep track of which traits recur (script only for now; a change to
+  the endpoint would multiply API calls and needs the team's agreement).

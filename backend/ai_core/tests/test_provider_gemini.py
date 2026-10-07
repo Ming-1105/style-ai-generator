@@ -54,10 +54,36 @@ class RequestTests(unittest.TestCase):
         self.assertIn("gemini-test:generateContent", post.call_args.args[0])
 
 
+class RetryTests(unittest.TestCase):
+    def ask_with(self, *responses):
+        with patch.dict(os.environ, ENV), patch("time.sleep") as sleep, \
+                patch("httpx.post", side_effect=list(responses)) as post:
+            try:
+                return provider_gemini.ask("p", IMAGES), post, sleep
+            except AiCoreError as problem:
+                return problem, post, sleep
+
+    def test_busy_server_is_retried_and_then_succeeds(self):
+        result, post, sleep = self.ask_with(reply(503), reply(503), answer("{}"))
+        self.assertEqual(result, "{}")
+        self.assertEqual(post.call_count, 3)
+        self.assertEqual([c.args[0] for c in sleep.call_args_list], [3, 8])
+
+    def test_gives_up_after_three_attempts(self):
+        result, post, _ = self.ask_with(reply(503), reply(503), reply(503))
+        self.assertEqual(result.code, "vision_error")
+        self.assertEqual(post.call_count, 3)
+
+    def test_other_errors_are_not_retried(self):
+        result, post, _ = self.ask_with(reply(403))
+        self.assertEqual(result.code, "vision_auth")
+        self.assertEqual(post.call_count, 1)
+
+
 class FailureTests(unittest.TestCase):
     def code_for(self, response=None, error=None):
         patcher = patch("httpx.post", return_value=response, side_effect=error)
-        with patch.dict(os.environ, ENV), patcher, self.assertRaises(AiCoreError) as raised:
+        with patch.dict(os.environ, ENV), patcher, patch("time.sleep"), self.assertRaises(AiCoreError) as raised:
             provider_gemini.ask("p", IMAGES)
         return raised.exception.code
 

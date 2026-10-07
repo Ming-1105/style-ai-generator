@@ -8,6 +8,7 @@ Set in .env:
 
 import base64
 import os
+import time
 
 import httpx
 
@@ -17,6 +18,7 @@ from backend.ai_core.images import LoadedImage
 DEFAULT_MODEL = "gemini-3.8-flash"  # 2.5 models are closed to new accounts
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 TIMEOUT_SECONDS = 120
+RETRY_DELAYS = (3, 8)  # seconds to wait before the 2nd and 3rd attempt
 
 
 def ask(prompt: str, images: list[LoadedImage]) -> str:
@@ -29,19 +31,26 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
             "data": base64.b64encode(image.data).decode("ascii"),
         }})
 
-    try:
-        response = httpx.post(
-            ENDPOINT.format(model=model),
-            headers={"x-goog-api-key": os.getenv("VISION_API_KEY", "").strip()},  # never in the URL
-            json={
-                "contents": [{"role": "user", "parts": parts}],
-                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2},
-            },
-            timeout=TIMEOUT_SECONDS,
-        )
-    except httpx.HTTPError:
-        raise AiCoreError("vision_unreachable",
-                          "Could not reach Gemini — check the internet connection and try again.")
+    request = {
+        "url": ENDPOINT.format(model=model),
+        "headers": {"x-goog-api-key": os.getenv("VISION_API_KEY", "").strip()},  # never in the URL
+        "json": {
+            "contents": [{"role": "user", "parts": parts}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2},
+        },
+        "timeout": TIMEOUT_SECONDS,
+    }
+
+    # "High demand" (503) is Google being busy for a moment, so wait and try again.
+    for delay in (*RETRY_DELAYS, None):
+        try:
+            response = httpx.post(**request)
+        except httpx.HTTPError:
+            raise AiCoreError("vision_unreachable",
+                              "Could not reach Gemini — check the internet connection and try again.")
+        if response.status_code != 503 or delay is None:
+            break
+        time.sleep(delay)
 
     if response.status_code in (400, 401, 403):
         raise AiCoreError("vision_auth",

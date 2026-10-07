@@ -22,8 +22,12 @@ from backend.ai_core.images import LoadedImage
 
 VisionProvider = Callable[[str, list[LoadedImage]], str]
 
-# name in VISION_PROVIDER -> function. Empty until we know which provider we have keys for.
-PROVIDERS: dict[str, VisionProvider] = {}
+from backend.ai_core import provider_gemini  # noqa: E402
+
+# name in VISION_PROVIDER -> function.
+PROVIDERS: dict[str, VisionProvider] = {
+    "gemini": provider_gemini.ask,
+}
 
 
 def get_provider() -> VisionProvider:

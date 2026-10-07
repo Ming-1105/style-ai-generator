@@ -62,3 +62,12 @@
   departures greyed out and lets the designer hide them.
 - **Why:** The AI measures and the designer decides: "this doesn't matter to me" should not delete a
   factual observation, only stop it from steering the score and the suggestions.
+
+## 2026-10-07 — First provider: Google Gemini, called over plain HTTPS (Person B)
+
+- **What:** `backend/ai_core/provider_gemini.py` sends the prompt and images to Gemini's REST API
+  with `httpx` and asks for JSON output (`responseMimeType: application/json`, temperature 0.2).
+  Default model `gemini-2.5-flash`, overridable with the optional `VISION_MODEL` variable. The API
+  key is sent in a header, never in the URL.
+- **Why:** A free API key is available through Google AI Studio, and no new dependency is needed.
+  Because the provider is interchangeable, we can compare other models later with the same prompt.

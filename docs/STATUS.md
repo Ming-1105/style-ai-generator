@@ -27,10 +27,9 @@ If you need something from another folder, add a note under that owner's "Needs 
 - **In progress:** Milestone 2 (branch `ai-core/extract`) — trait extraction behind `MOCK_MODE=0`.
   Done: the prompt (`backend/ai_core/prompts/extract_traits.md`), image download, the checks on
   the model's answer (evidence ids, `seen_count`, `low_confidence`), one retry, clear errors, and
-  tests with a fake model. Not done: the connection to a real vision model. Until one is added
-  in `backend/ai_core/providers.py`, live mode answers with a "no vision model is set up" error.
-- **Blocked:** we have no vision API key yet. The provider is interchangeable, so the choice can
-  wait, but milestone 2 cannot be tried on real images until we have one.
+  tests with a fake model. Gemini connection written (`provider_gemini.py`, registered as `VISION_PROVIDER=gemini`) and tested
+  with faked web responses; not yet tried with a real key.
+- **Blocked:** needs a Gemini API key from Google AI Studio (in a local `.env`) to try it on real images.
 - **Needs from others:** A — extraction downloads each included image from its `url`, so `url`
   should point at the image file itself (jpg/png/gif/webp), not at the page it appears on.
 - **Run the tests:** `python -m unittest discover -s backend/ai_core/tests -t .`

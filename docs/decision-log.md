@@ -98,3 +98,18 @@
   reliability than the model's own confidence. Traits that recur across runs are stronger candidates.
 - **Next:** try repeated runs and keep track of which traits recur (script only for now; a change to
   the endpoint would multiply API calls and needs the team's agreement).
+
+## 2026-10-07 — Repeated extraction: evidence is stable, names and weaker traits are not (Person B)
+
+- **What:** Ran extraction 4 times on the same 12 images (`gemini-3.5-flash`), matching traits across runs
+  by the images they cite (`try_extract --runs 4`). Three traits came back in all 4 runs with
+  (nearly) identical evidence images each time: a perforation pattern (6 images, identical in all runs),
+  saturated accent colours on grey (9 images), and transparent cyclone chambers (4 images).
+  A red-controls trait came back in 3 of 4. A hollow-ring trait that appeared in both earlier runs
+  appeared in only 1 of 4 here. Trait names changed in nearly every run.
+- **Caveat:** matching by evidence overlap can merge two different traits that cite the same images
+  (red controls and cyclone clusters share 4 images and were partly merged in the summary).
+- **Takeaway for the design:** the evidence images are a more reliable identity for a trait than its
+  name; a trait seen in every run is a stronger candidate than one seen once. A possible later feature
+  is to run extraction 3 times and show "found in 3/3 runs" next to each trait; it costs 3x the
+  API calls, so it needs the team's agreement.

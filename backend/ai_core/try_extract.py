@@ -126,9 +126,12 @@ def main(argv: list[str]) -> None:
             try:
                 all_runs.append(extract_dna(brand, candidates).traits)
             except AiCoreError as problem:
-                sys.exit(f"\nRun {number} failed ({problem.code}): {problem.message}")
+                print(f"run {number}/{args.runs}: FAILED ({problem.code}): {problem.message}")
+                break
             print(f"run {number}/{args.runs}: {len(all_runs[-1])} traits in {time.time() - started:.0f}s")
-        print_runs_summary(group_runs(all_runs), args.runs)
+        if not all_runs:
+            sys.exit("No run finished, so there is nothing to summarise.")
+        print_runs_summary(group_runs(all_runs), len(all_runs))
         return
 
     started = time.time()

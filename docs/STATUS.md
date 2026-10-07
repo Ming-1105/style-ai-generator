@@ -36,11 +36,20 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## C — Interface (`/frontend/`)
 
-- **Done:**
-- **In progress:**
+- **Done:** Milestone 1 (branch `ui/api-wiring`) — `frontend/index.html` no longer has hard-coded
+  data. One `state` object (brand, candidates, traits, tone words, colors, package, compare result)
+  and every screen renders from it. Brand → `POST /api/sources/search`, Sources →
+  `POST /api/dna/extract` with the included images, Lock builds the `HouseStylePackage` client-side,
+  Compare → `POST /api/compare`. Until upload exists, Compare sends a bundled sample sketch
+  (`frontend/static/sample/design_sample.svg`) as a data URL. Departures whose traits all have
+  importance 0 are greyed out (hide control comes in milestone 3). API errors show `error.message`
+  in a toast. Re-running an earlier step locks the later ones again.
+- **In progress:** next is milestone 2 (loading and error states, honest `null` / `low_confidence`
+  display).
 - **Blocked:**
-- **Needs from others:** from B (agreed with the designer on 2026-10-07) — departures of traits whose
-  importance is 0:
+- **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.
+- **Request from B** (agreed with the designer on 2026-10-07; greying done, hide control still to do) —
+  departures of traits whose importance is 0:
   - `/api/compare` keeps listing them. Each departure has `trait_ids`; look those up in the package
     you sent. If every linked trait has `importance` 0, show the departure **greyed out**.
   - Give the designer a control to **hide** (deselect) such departures, so the list can be reduced to

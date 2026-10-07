@@ -1,4 +1,4 @@
-<title>Vorden Brand DNA</title>
+<title>Brand DNA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -100,6 +100,11 @@
   .thumb.excluded .thumb-caption{text-decoration:line-through;}
   .thumb-media{aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; color:var(--muted); background:var(--bg); border-radius:3px; margin-bottom:6px;}
   .thumb-media svg{width:88%; height:88%;}
+  .thumb-media img{width:100%; height:100%; object-fit:cover; border-radius:3px;}
+  .evidence-thumb img,.mini-thumb img{width:100%; height:100%; object-fit:cover; border-radius:2px;}
+  .sketch-wrap img{width:100%; height:auto; display:block;}
+  .direction-media img{width:100%; height:auto; display:block;}
+  .finding-ignored{color:var(--muted); opacity:.6;}
   .thumb-check{position:absolute; top:8px; left:8px; width:16px; height:16px; border:1px solid var(--ink); border-radius:3px; background:var(--surface); font-size:11px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:700;}
   .flag-chip{position:absolute; top:6px; right:6px; background:var(--surface); border:1px solid var(--warn); color:var(--warn); font-family:'IBM Plex Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.06em; padding:2px 6px; border-radius:3px;}
   .thumb-caption{font-size:12px; font-weight:500; margin-bottom:3px;}
@@ -222,8 +227,8 @@
 <div class="app-shell">
   <header class="topbar">
     <span class="wordmark">Brand DNA</span>
-    <span class="mock-tag">Mockup · sample data</span>
-    <span class="project-name">Project: <b>Vorden</b></span>
+    <span class="mock-tag">Prototype</span>
+    <span class="project-name">Project: <b id="project-name">—</b></span>
   </header>
 
   <nav class="step-rail" id="step-rail" aria-label="Workflow steps"></nav>
@@ -237,12 +242,12 @@
 
       <div class="field">
         <label for="brand-name">Brand name</label>
-        <input type="text" id="brand-name" value="Vorden">
+        <input type="text" id="brand-name">
       </div>
       <div class="field">
         <label for="brand-category">Category</label>
         <select id="brand-category">
-          <option value="automotive" selected>Automotive</option>
+          <option value="automotive">Automotive</option>
           <option value="electronics">Consumer electronics</option>
           <option value="furniture">Furniture</option>
           <option value="footwear">Footwear</option>
@@ -250,7 +255,7 @@
       </div>
       <div class="field">
         <label for="brand-website">Official website</label>
-        <input type="text" id="brand-website" value="vorden-auto.example">
+        <input type="text" id="brand-website" placeholder="brand.example">
       </div>
       <div class="field">
         <label for="keyword-input">Keywords</label>
@@ -262,7 +267,7 @@
       </div>
       <div class="field">
         <label for="brand-values">Brand values</label>
-        <textarea id="brand-values">Precise and restrained — nothing on the car is there without a reason. Should look fast-looking even when parked, through stance and line rather than decoration.</textarea>
+        <textarea id="brand-values"></textarea>
       </div>
       <div class="field">
         <label>Where should the tool look?</label>
@@ -275,7 +280,7 @@
         <div class="dropzone" id="upload-dropzone" tabindex="0" role="button">Drop image files here, or click to browse</div>
       </div>
 
-      <div id="brand-progress" class="progress-box" hidden></div>
+      <div id="brand-progress" class="progress-box" hidden aria-live="polite"></div>
 
       <div class="btn-row">
         <button type="button" class="btn-primary" id="find-images-btn">Find reference images</button>
@@ -283,35 +288,36 @@
     </section>
 
     <!-- STEP 2 — SOURCES -->
-    <section class="panel" id="step-panel-2">
+    <section class="panel" id="step-panel-2" hidden>
       <h2>Sources</h2>
-      <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine Vorden reference before the AI reads them.</p>
+      <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine <span class="js-brand-name"></span> reference before the AI reads them.</p>
 
       <div class="sources-head">
         <span class="sources-count mono" id="sources-count-line"></span>
         <div class="chip-row" id="source-filters">
           <button type="button" class="filter-chip active" data-filter="all">All</button>
-          <button type="button" class="filter-chip" data-filter="Product">Product</button>
-          <button type="button" class="filter-chip" data-filter="Logo">Logo</button>
-          <button type="button" class="filter-chip" data-filter="Packaging">Packaging</button>
-          <button type="button" class="filter-chip" data-filter="Web">Web</button>
-          <button type="button" class="filter-chip" data-filter="Flagged">Flagged</button>
+          <button type="button" class="filter-chip" data-filter="product">Product</button>
+          <button type="button" class="filter-chip" data-filter="logo">Logo</button>
+          <button type="button" class="filter-chip" data-filter="packaging">Packaging</button>
+          <button type="button" class="filter-chip" data-filter="web">Web</button>
+          <button type="button" class="filter-chip" data-filter="other">Other</button>
+          <button type="button" class="filter-chip" data-filter="flagged">Flagged</button>
         </div>
       </div>
 
       <div class="sources-grid" id="sources-grid"></div>
-      <div id="extract-progress" class="progress-box" hidden></div>
+      <div id="extract-progress" class="progress-box" hidden aria-live="polite"></div>
 
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="back-to-brand-btn">← Brand</button>
-        <button type="button" class="btn-primary" id="extract-dna-btn">Extract Style DNA from 13 images</button>
+        <button type="button" class="btn-primary" id="extract-dna-btn">Extract Style DNA</button>
       </div>
     </section>
 
     <!-- STEP 3 — STYLE DNA -->
     <section class="panel" id="step-panel-3" hidden>
       <h2>Style DNA</h2>
-      <p class="panel-intro">The AI found 6 recurring traits. Edit, reweight or remove before locking them into the house style package.</p>
+      <p class="panel-intro" id="traits-intro"></p>
 
       <ul class="traits-list" id="traits-list"></ul>
 
@@ -321,13 +327,8 @@
       </div>
 
       <div class="field" style="margin-top:20px;">
-        <label>Brand tone</label>
-        <div class="chip-row">
-          <button type="button" class="tone-chip active" id="tone-precise">Precise</button>
-          <button type="button" class="tone-chip active" id="tone-restrained">Restrained</button>
-          <button type="button" class="tone-chip" id="tone-fast">Fast</button>
-          <button type="button" class="tone-chip" id="tone-engineered">Engineered</button>
-        </div>
+        <label>Brand tone <span class="muted">— click to include or leave out</span></label>
+        <div class="chip-row" id="tone-chips"></div>
       </div>
 
       <div class="btn-row">
@@ -339,6 +340,7 @@
     <!-- STEP 4 — HOUSE STYLE -->
     <section class="panel" id="step-panel-4" hidden>
       <div class="doc" id="house-style-content"></div>
+      <div id="compare-progress" class="progress-box" hidden aria-live="polite"></div>
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="back-to-traits-btn">← Style DNA</button>
         <button type="button" class="btn-secondary" id="export-pdf-btn">Export PDF</button>
@@ -349,17 +351,19 @@
     <!-- STEP 5 — COMPARE -->
     <section class="panel" id="step-panel-5" hidden>
       <h2>Compare</h2>
-      <p class="panel-intro">Your concept checked against the Vorden house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
+      <p class="panel-intro">Your concept checked against the <span class="js-brand-name"></span> house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
 
       <div class="compare-layout">
         <div class="sketch-panel">
           <span class="label-mono">Your design</span>
           <div class="sketch-wrap" id="compare-sketch"></div>
+          <p class="mono muted" id="compare-sketch-label" style="font-size:11px;margin-top:6px;"></p>
           <div class="dropzone" id="replace-design-dropzone" tabindex="0" role="button" style="margin-top:10px;">Replace design</div>
         </div>
         <div>
           <span class="fit-label">Overall fit</span>
-          <div class="fit-score mono">63%</div>
+          <div class="fit-score mono" id="fit-score">—</div>
+          <p class="mono muted" id="fit-note" style="font-size:11.5px;" hidden></p>
           <div class="score-rows" id="score-rows"></div>
 
           <div class="compare-columns">
@@ -399,172 +403,85 @@
 (function(){
   "use strict";
 
-  /* ---------- SVG builders (parametrised, reused everywhere) ---------- */
-  var clipCounter = 0;
-  var SHIELD_D = "M20,2 L36,8 L36,24 Q36,38 20,44 Q4,38 4,24 L4,8 Z";
+  /* ---------- state: every screen renders from this ---------- */
+  var state = {
+    // Pre-filled with the fictional sample brand so the demo starts quickly; the designer edits it.
+    brand: {
+      name: 'Vorden',
+      category: 'automotive',
+      website: 'vorden-auto.example',
+      keywords: ['GT', 'sports car', 'crest', 'headlight'],
+      values: 'Precise and restrained — nothing on the car is there without a reason. Should look fast-looking even when parked, through stance and line rather than decoration.'
+    },
+    candidates: [],        // ImageCandidate[] from /api/sources/search (designer toggles `included`)
+    traits: [],            // Trait[] from /api/dna/extract, edited by the designer
+    toneWords: [],         // tone words suggested by the AI
+    selectedTones: [],     // the ones the designer keeps
+    colors: [],            // Color[] from /api/dna/extract
+    extractedFrom: 0,      // number of included images sent to extraction
+    package: null,         // HouseStylePackage, built when the designer locks the style
+    design: null,          // { dataUrl, label } — the design sent to /api/compare
+    compare: null,         // CompareResult from /api/compare
+    directionStatus: {}    // direction id → 'accepted' | 'rejected'
+  };
 
-  function crestShape(){
-    clipCounter++;
-    var cid = "crestclip-" + clipCounter;
-    var hatches = "";
-    for (var i = -2; i <= 9; i++){
-      hatches += '<line x1="' + (i*6) + '" y1="-4" x2="' + (i*6-22) + '" y2="48" stroke="currentColor" stroke-width="1.4"/>';
-    }
-    return '<clipPath id="' + cid + '"><path d="' + SHIELD_D + '"/></clipPath>' +
-           '<path d="' + SHIELD_D + '" fill="none" stroke="currentColor" stroke-width="2"/>' +
-           '<g clip-path="url(#' + cid + ')">' + hatches + '</g>';
+  /* ---------- helpers ---------- */
+  function esc(v){
+    return String(v === null || v === undefined ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  function svgCrest(opts){
-    opts = opts || {};
-    var size = opts.size || 40;
-    return '<svg viewBox="0 0 40 46" width="' + size + '" height="' + Math.round(size*1.15) + '" role="img" aria-label="Vorden crest">' + crestShape() + '</svg>';
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function pct(f){ return f === null || f === undefined ? null : Math.round(f * 100); }
+  function capitalise(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function includedCandidates(){ return state.candidates.filter(function(c){ return c.included; }); }
+  function findCandidate(id){
+    for (var i = 0; i < state.candidates.length; i++) if (state.candidates[i].id === id) return state.candidates[i];
+    return null;
   }
-  function svgCarSide(opts){
-    opts = opts || {};
-    var stripe = opts.stripe ? '<rect x="70" y="24" width="60" height="4" fill="var(--accent)"/><rect x="70" y="30" width="60" height="2" fill="var(--accent)"/>' : '';
-    return '<svg viewBox="0 0 200 100" role="img" aria-label="Car side silhouette">' +
-      '<path d="M15,72 L32,44 Q58,22 92,22 L138,24 Q162,27 182,58 L182,72 Z" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      stripe +
-      '<circle cx="55" cy="76" r="13" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      '<circle cx="152" cy="76" r="13" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      '</svg>';
+  function findTrait(id, list){
+    list = list || state.traits;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
   }
-  function svgCarFront(opts){
-    opts = opts || {};
-    var headlight = opts.headlight || 'round';
-    var stripeOffset = opts.stripeOffset || 0;
-    var crest = !!opts.crest;
-    var wideBlock = !!opts.wideBlock;
-    var hl = headlight === 'blade'
-      ? '<polygon points="35,52 68,47 68,58 40,63" fill="currentColor"/><polygon points="165,52 132,47 132,58 160,63" fill="currentColor"/>'
-      : '<circle cx="52" cy="56" r="11" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="148" cy="56" r="11" fill="none" stroke="currentColor" stroke-width="2.5"/>';
-    var stripeX = 92 + stripeOffset;
-    var marking = wideBlock
-      ? '<rect x="65" y="70" width="70" height="9" fill="var(--accent)"/>'
-      : '<rect x="' + stripeX + '" y="8" width="6" height="44" fill="var(--accent)"/><rect x="' + (stripeX+9) + '" y="8" width="3" height="44" fill="var(--accent)"/>';
-    var crestEl = crest ? '<g transform="translate(88,58) scale(0.5)">' + crestShape() + '</g>' : '';
-    return '<svg viewBox="0 0 200 100" role="img" aria-label="Car front silhouette">' +
-      '<path d="M22,92 L28,48 Q55,12 100,12 Q145,12 172,48 L178,92 Z" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      hl + marking + crestEl +
-      '</svg>';
-  }
-  function svgHeadlightClose(){
-    return '<svg viewBox="0 0 100 60" role="img" aria-label="Headlight detail">' +
-      '<rect x="4" y="4" width="92" height="52" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      '<polygon points="14,18 70,14 70,30 20,38" fill="currentColor"/>' +
-      '<line x1="14" y1="46" x2="86" y2="46" stroke="currentColor" stroke-width="1.5"/>' +
-      '</svg>';
-  }
-  function svgShowroom(){
-    return '<svg viewBox="0 0 120 70" role="img" aria-label="Showroom display">' +
-      '<line x1="4" y1="58" x2="116" y2="58" stroke="currentColor" stroke-width="1.5"/>' +
-      '<rect x="30" y="40" width="60" height="18" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      '<circle cx="42" cy="58" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
-      '<circle cx="78" cy="58" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
-      '<circle cx="20" cy="8" r="3" fill="currentColor"/><circle cx="60" cy="8" r="3" fill="currentColor"/><circle cx="100" cy="8" r="3" fill="currentColor"/>' +
-      '</svg>';
-  }
-  function svgStripeDetail(){
-    return '<svg viewBox="0 0 100 60" role="img" aria-label="Stripe detail">' +
-      '<rect x="4" y="4" width="92" height="52" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      '<rect x="38" y="4" width="10" height="52" fill="var(--accent)"/><rect x="52" y="4" width="5" height="52" fill="var(--accent)"/>' +
-      '</svg>';
-  }
-  function svgWebsite(){
-    return '<svg viewBox="0 0 100 60" role="img" aria-label="Website screenshot">' +
-      '<rect x="4" y="4" width="92" height="52" fill="none" stroke="currentColor" stroke-width="2"/>' +
-      '<rect x="4" y="4" width="92" height="10" fill="currentColor" opacity="0.15"/>' +
-      '<circle cx="10" cy="9" r="1.6" fill="currentColor"/><circle cx="15" cy="9" r="1.6" fill="currentColor"/>' +
-      '<line x1="12" y1="24" x2="88" y2="24" stroke="currentColor" stroke-width="1.5"/>' +
-      '<line x1="12" y1="32" x2="70" y2="32" stroke="currentColor" stroke-width="1.5"/>' +
-      '<line x1="12" y1="40" x2="80" y2="40" stroke="currentColor" stroke-width="1.5"/>' +
-      '</svg>';
-  }
-  function thumbSvg(kind){
-    switch(kind){
-      case 'side': return svgCarSide({});
-      case 'front': return svgCarFront({headlight:'round'});
-      case 'crest': return svgCrest({size:40});
-      case 'web': return svgWebsite();
-      case 'headlight': return svgHeadlightClose();
-      case 'stripe': return svgStripeDetail();
-      case 'showroom': return svgShowroom();
-      default: return svgCarSide({});
-    }
+  function imageThumb(id, cls){
+    var c = findCandidate(id);
+    if (!c) return '<div class="' + cls + '" title="' + esc(id) + ' (not in the current source set)">?</div>';
+    return '<div class="' + cls + '" title="' + esc(c.id + ' · ' + c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="' + esc(c.id) + '" loading="lazy"></div>';
   }
 
-  /* ---------- data ---------- */
-  var KEYWORDS = ['GT','sports car','crest','headlight'];
+  /* ---------- API ---------- */
+  // Every call goes through here. On failure it throws an Error whose message is the
+  // API's error.message, which is written for the designer.
+  function api(path, body){
+    return fetch(path, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.json().catch(function(){ return null; }).then(function(data){
+        if (!res.ok){
+          var msg = data && data.error && data.error.message;
+          throw new Error(msg || ('The server answered with an error (HTTP ' + res.status + ').'));
+        }
+        return data;
+      });
+    }, function(){
+      throw new Error('Could not reach the Brand DNA server — is it running on localhost:8000?');
+    });
+  }
 
-  var SOURCES = [
-    {id:1,type:'Product',domain:'vorden-auto.example',caption:"GT3 — three-quarter front",conf:96,svg:'side',flag:null,included:true},
-    {id:2,type:'Product',domain:'vorden-auto.example',caption:'GT3 — front detail',conf:94,svg:'front',flag:null,included:true},
-    {id:3,type:'Logo',domain:'vorden-auto.example',caption:'Crest, brushed steel plate',conf:98,svg:'crest',flag:null,included:true},
-    {id:4,type:'Web',domain:'vorden-auto.example',caption:'Homepage hero banner',conf:90,svg:'web',flag:null,included:true},
-    {id:5,type:'Product',domain:'press.vorden-auto.example',caption:'Headlight macro, press kit',conf:93,svg:'headlight',flag:null,included:true},
-    {id:6,type:'Product',domain:'autoweeklymag.example',caption:'Roadster side profile',conf:88,svg:'side',flag:null,included:true},
-    {id:7,type:'Packaging',domain:'vorden-auto.example',caption:"Owner's manual cover",conf:81,svg:'crest',flag:null,included:true},
-    {id:8,type:'Product',domain:'carfansdaily.example',caption:'Fan render, front 3/4',conf:52,svg:'front',flag:'Fan render — not official',included:false},
-    {id:9,type:'Logo',domain:'vordentools.example',caption:'Vorden Tools BV logo',conf:61,svg:'crest',flag:'Different company: Vorden Tools BV',included:false},
-    {id:10,type:'Product',domain:'usedcarlistings.example',caption:'Listing photo, side view',conf:38,svg:'side',flag:'Low resolution (240px)',included:false},
-    {id:11,type:'Web',domain:'motorpressreview.example',caption:'Group test, three cars',conf:47,svg:'web',flag:'Competitor car in same article',included:false},
-    {id:12,type:'Product',domain:'vorden-auto.example',caption:'GT3 stripe & shoulder line',conf:91,svg:'stripe',flag:null,included:true},
-    {id:13,type:'Web',domain:'vorden-auto.example',caption:'Configurator screenshot',conf:85,svg:'web',flag:null,included:true},
-    {id:14,type:'Product',domain:'showroommilan.example',caption:'Showroom display, Milan',conf:79,svg:'showroom',flag:null,included:true},
-    {id:15,type:'Logo',domain:'press.vorden-auto.example',caption:'Crest, embossed on leather',conf:95,svg:'crest',flag:null,included:true},
-    {id:16,type:'Packaging',domain:'vorden-auto.example',caption:'Press kit folder',conf:74,svg:'crest',flag:null,included:true},
-    {id:17,type:'Product',domain:'vorden-auto.example',caption:'Rear 3/4, studio light',conf:89,svg:'side',flag:null,included:true},
-    {id:18,type:'Product',domain:'autoweeklymag.example',caption:'Interior dash, low relevance',conf:58,svg:'front',flag:null,included:false}
-  ];
+  function showProgress(id, text){
+    var box = document.getElementById(id);
+    box.hidden = false;
+    box.innerHTML = '<div class="progress-line">' + esc(text) + '</div>';
+  }
+  function hideProgress(id){ document.getElementById(id).hidden = true; }
 
-  var TRAITS = [
-    {id:1,name:'Blade headlights',desc:'Sharp, tapered LED graphic that narrows to a point at the outer edge.',conf:92,weight:90,seen:9,evidence:['front','headlight','front'],low:false},
-    {id:2,name:'Twin centre stripe',desc:'Two parallel stripes running the length of the hood and roof, centred.',conf:84,weight:80,seen:8,evidence:['stripe','side','stripe'],low:false},
-    {id:3,name:'Hatched shield crest',desc:'Shield badge with fine diagonal hatching, used on the hood and interior trim.',conf:97,weight:95,seen:12,evidence:['crest','crest','crest'],low:false},
-    {id:4,name:'Rising shoulder line',desc:'A single crease along the body side that lifts gently toward the rear.',conf:71,weight:65,seen:7,evidence:['side','side'],low:false},
-    {id:5,name:'Graphite + single signal color',desc:'Body finished in graphite or silver with exactly one bright accent color.',conf:78,weight:70,seen:9,evidence:['side','front','stripe'],low:false},
-    {id:6,name:'Short front overhang',desc:'Minimal distance between the front axle and the nose of the car.',conf:46,weight:35,seen:4,evidence:['front','side'],low:true}
-  ];
-
-  var SAMPLE_DESIGN = {headlight:'round', stripeOffset:-18, crest:true};
-
-  var PINS = [
-    {num:1,label:'Headlight shape',target:1,top:54,left:26},
-    {num:2,label:'Stripe position',target:2,top:18,left:44},
-    {num:3,label:'Crest placement',target:3,top:62,left:50},
-    {num:4,label:'Shoulder / overhang',target:4,top:88,left:14}
-  ];
-
-  var SCORES = [
-    {trait:'Blade headlights',pct:31,level:'bad'},
-    {trait:'Twin centre stripe',pct:48,level:'warn'},
-    {trait:'Hatched shield crest',pct:88,level:'good'},
-    {trait:'Rising shoulder line',pct:74,level:'good'},
-    {trait:'Graphite + single signal color',pct:66,level:'warn'},
-    {trait:'Short front overhang',pct:null,note:'Not assessable from front view'}
-  ];
-
-  var MATCHES = [
-    'The hatched crest sits correctly on the hood, at the reference angle.',
-    'Body finish reads as graphite with one signal color, matching the house style.',
-    'The shoulder line rises toward the rear the same way it does across the reference set.'
-  ];
-  var DEPARTS = [
-    'Headlights are rounded ovals — the brand signature is a tapered blade shape.',
-    'The centre stripe is offset to one side rather than centred on the hood.',
-    'Front overhang can\'t be judged from a front-only view; a side photo is needed.'
-  ];
-
-  var DIRECTIONS = [
-    {id:'a',title:'Sharpen the lamps',desc:'Replace the round lamp graphic with a tapered blade that narrows toward the badge, matching the reference set.',trait:'Blade headlights',evidence:3,status:'none',svgVariant:{headlight:'blade',stripeOffset:-18,crest:true}},
-    {id:'b',title:'Centre the stripe',desc:'Shift the stripe pair back onto the centreline of the hood so it reads as a single symmetric mark.',trait:'Twin centre stripe',evidence:4,status:'none',svgVariant:{headlight:'round',stripeOffset:0,crest:true}},
-    {id:'c',title:'Push further: new signature',desc:'A single round unit paired with a wide lower colour block — a deliberately different look, worth flagging as an option outside the current DNA.',trait:null,evidence:0,status:'none',svgVariant:{headlight:'round',wideBlock:true,crest:false}}
-  ];
-
-  /* ---------- navigation state ---------- */
+  /* ---------- navigation ---------- */
   var STEP_NAMES = ['Brand','Sources','Style DNA','House style','Compare'];
-  var currentStep = 2;
-  var maxReached = 2;
+  var currentStep = 1;
+  var maxReached = 1;
   var currentFilter = 'all';
 
   function statusOf(i){ return i === currentStep ? 'current' : (i <= maxReached ? 'done' : 'locked'); }
@@ -583,25 +500,28 @@
         '</button>';
     }
     rail.innerHTML = html;
-    var btns = rail.querySelectorAll('.step-btn');
-    for (var j = 0; j < btns.length; j++){
-      btns[j].addEventListener('click', function(){
+    rail.querySelectorAll('.step-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
         var n = parseInt(this.dataset.step, 10);
         if (n <= maxReached) navigateToStep(n);
       });
-    }
+    });
+  }
+
+  function renderBrandName(){
+    document.getElementById('project-name').textContent = state.brand.name || '—';
+    document.querySelectorAll('.js-brand-name').forEach(function(el){ el.textContent = state.brand.name || 'brand'; });
   }
 
   function showPanel(n){
-    for (var i = 1; i <= 5; i++){
-      document.getElementById('step-panel-' + i).hidden = (i !== n);
-    }
+    for (var i = 1; i <= 5; i++) document.getElementById('step-panel-' + i).hidden = (i !== n);
+    renderBrandName();
+    if (n === 1) renderBrand();
     if (n === 2) renderSources();
     if (n === 3) renderTraits();
     if (n === 4) renderHouseStyle();
     if (n === 5) renderCompare();
   }
-
   function navigateToStep(n){
     if (n > maxReached) return;
     currentStep = n;
@@ -610,7 +530,7 @@
     window.scrollTo(0, 0);
   }
   function advanceToStep(n){
-    maxReached = Math.max(maxReached, n);
+    maxReached = n;   // later steps are based on old data, so they lock again
     navigateToStep(n);
   }
 
@@ -621,8 +541,8 @@
     var el = document.createElement('div');
     el.className = 'toast';
     el.setAttribute('role', 'status');
-    var html = '<span>' + msg + '</span>';
-    if (opts.actionLabel) html += '<button type="button" class="toast-action">' + opts.actionLabel + '</button>';
+    var html = '<span>' + esc(msg) + '</span>';
+    if (opts.actionLabel) html += '<button type="button" class="toast-action">' + esc(opts.actionLabel) + '</button>';
     el.innerHTML = html;
     container.appendChild(el);
     if (opts.actionLabel && opts.onAction){
@@ -634,163 +554,198 @@
     setTimeout(function(){ el.remove(); }, opts.duration || 4500);
   }
 
-  /* ---------- fake progress sequences ---------- */
-  function runFakeSequence(container, lines, delays, onDone){
-    container.hidden = false;
-    container.innerHTML = '';
-    var i = 0;
-    function step(){
-      if (i >= lines.length){ if (onDone) onDone(); return; }
-      var p = document.createElement('div');
-      p.className = 'progress-line';
-      p.textContent = lines[i];
-      container.appendChild(p);
-      var wait = delays[i] || 400;
-      i++;
-      setTimeout(step, wait);
-    }
-    step();
-  }
-
   function prefersReducedMotion(){
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   /* ---------- step 1: brand ---------- */
+  function renderBrand(){
+    document.getElementById('brand-name').value = state.brand.name;
+    document.getElementById('brand-category').value = state.brand.category;
+    document.getElementById('brand-website').value = state.brand.website;
+    document.getElementById('brand-values').value = state.brand.values;
+    renderKeywordChips();
+  }
+  function readBrandForm(){
+    state.brand.name = document.getElementById('brand-name').value.trim();
+    state.brand.category = document.getElementById('brand-category').value;
+    state.brand.website = document.getElementById('brand-website').value.trim();
+    state.brand.values = document.getElementById('brand-values').value.trim();
+  }
   function renderKeywordChips(){
     var wrap = document.getElementById('keyword-chips');
-    var html = '';
-    for (var i = 0; i < KEYWORDS.length; i++){
-      html += '<span class="chip keyword-chip">' + KEYWORDS[i] + '<button type="button" class="chip-remove" data-i="' + i + '" aria-label="Remove ' + KEYWORDS[i] + '">×</button></span>';
-    }
-    wrap.innerHTML = html;
-    var btns = wrap.querySelectorAll('.chip-remove');
-    for (var j = 0; j < btns.length; j++){
-      btns[j].addEventListener('click', function(){
-        KEYWORDS.splice(parseInt(this.dataset.i, 10), 1);
+    wrap.innerHTML = state.brand.keywords.map(function(k, i){
+      return '<span class="chip keyword-chip">' + esc(k) + '<button type="button" class="chip-remove" data-i="' + i + '" aria-label="Remove ' + esc(k) + '">×</button></span>';
+    }).join('');
+    wrap.querySelectorAll('.chip-remove').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        state.brand.keywords.splice(parseInt(this.dataset.i, 10), 1);
         renderKeywordChips();
       });
-    }
+    });
   }
   function addKeyword(){
     var input = document.getElementById('keyword-input');
     var v = input.value.trim();
     if (!v) return;
-    KEYWORDS.push(v);
+    state.brand.keywords.push(v);
     input.value = '';
     renderKeywordChips();
+  }
+  function findImages(){
+    readBrandForm();
+    renderBrandName();
+    if (!state.brand.name){
+      showToast('Enter a brand name first.');
+      document.getElementById('brand-name').focus();
+      return;
+    }
+    var btn = document.getElementById('find-images-btn');
+    btn.disabled = true;
+    showProgress('brand-progress', 'Searching for reference images of ' + state.brand.name + '…');
+    api('/api/sources/search', {brand: state.brand}).then(function(data){
+      state.candidates = data.candidates;
+      // new sources make everything downstream stale
+      state.traits = []; state.package = null; state.compare = null; state.directionStatus = {};
+      currentFilter = 'all';
+      setActiveFilterChip();
+      advanceToStep(2);
+    }).catch(function(err){
+      showToast(err.message, {duration: 8000});
+    }).then(function(){
+      btn.disabled = false;
+      hideProgress('brand-progress');
+    });
   }
 
   /* ---------- step 2: sources ---------- */
   function updateSourcesHeader(){
-    var included = 0;
-    for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].included) included++;
-    document.getElementById('sources-count-line').textContent = SOURCES.length + ' candidates · ' + included + ' selected · review before extraction';
+    var included = includedCandidates().length;
+    document.getElementById('sources-count-line').textContent = state.candidates.length + ' candidates · ' + included + ' selected · review before extraction';
     var btn = document.getElementById('extract-dna-btn');
-    btn.textContent = 'Extract Style DNA from ' + included + ' images';
+    btn.textContent = 'Extract Style DNA from ' + included + ' image' + (included === 1 ? '' : 's');
     btn.disabled = included === 0;
   }
-  function thumbCard(s){
-    var html = '<div class="thumb ' + (s.included ? '' : 'excluded') + '" data-id="' + s.id + '" tabindex="0" role="checkbox" aria-checked="' + s.included + '">';
-    html += '<div class="thumb-check" aria-hidden="true">' + (s.included ? '✓' : '') + '</div>';
-    if (s.flag) html += '<div class="flag-chip">flagged</div>';
-    html += '<div class="thumb-media">' + thumbSvg(s.svg) + '</div>';
+  function thumbCard(c){
+    var rel = pct(c.relevance);
+    var html = '<div class="thumb ' + (c.included ? '' : 'excluded') + '" data-id="' + esc(c.id) + '" tabindex="0" role="checkbox" aria-checked="' + c.included + '">';
+    html += '<div class="thumb-check" aria-hidden="true">' + (c.included ? '✓' : '') + '</div>';
+    if (c.flagged) html += '<div class="flag-chip">flagged</div>';
+    html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy"></div>';
     html += '<div class="thumb-body">';
-    html += '<div class="thumb-caption">' + s.caption + '</div>';
-    html += '<div class="thumb-meta"><span class="mono domain">' + s.domain + '</span><span class="type-tag">' + s.type + '</span></div>';
-    html += '<div class="thumb-conf mono">conf ' + s.conf + '%</div>';
-    if (s.flag) html += '<div class="thumb-reason">' + s.flag + '</div>';
+    html += '<div class="thumb-caption mono">' + esc(c.id) + ' · ' + esc(c.source_type) + '</div>';
+    html += '<div class="thumb-meta"><span class="mono domain" title="' + esc(c.source_domain) + '">' + esc(c.source_domain) + '</span><span class="type-tag">' + esc(c.category) + '</span></div>';
+    html += '<div class="thumb-conf mono">' + (rel === null ? 'relevance —' : 'relevance ' + rel + '%') + '</div>';
+    if (c.flagged && c.flag_reason) html += '<div class="thumb-reason">' + esc(c.flag_reason) + '</div>';
     html += '</div></div>';
     return html;
   }
   function renderSources(){
     var grid = document.getElementById('sources-grid');
-    var filtered = [];
-    for (var i = 0; i < SOURCES.length; i++){
-      var s = SOURCES[i];
-      if (currentFilter === 'all') filtered.push(s);
-      else if (currentFilter === 'Flagged'){ if (s.flag) filtered.push(s); }
-      else if (s.type === currentFilter) filtered.push(s);
-    }
-    var html = '';
-    for (var j = 0; j < filtered.length; j++) html += thumbCard(filtered[j]);
+    var filtered = state.candidates.filter(function(c){
+      if (currentFilter === 'all') return true;
+      if (currentFilter === 'flagged') return c.flagged;
+      return c.category === currentFilter;
+    });
+    var html = filtered.map(thumbCard).join('');
     html += '<div class="thumb add-url-tile" tabindex="0" role="button"><div>+ Add image URL</div></div>';
     grid.innerHTML = html;
 
-    var thumbs = grid.querySelectorAll('.thumb:not(.add-url-tile)');
-    for (var k = 0; k < thumbs.length; k++){
-      thumbs[k].addEventListener('click', function(){ toggleSource(parseInt(this.dataset.id, 10)); });
-      thumbs[k].addEventListener('keydown', function(e){
-        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSource(parseInt(this.dataset.id, 10)); }
+    grid.querySelectorAll('.thumb:not(.add-url-tile)').forEach(function(el){
+      el.addEventListener('click', function(){ toggleSource(this.dataset.id); });
+      el.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSource(this.dataset.id); }
       });
-    }
+    });
     var addTile = grid.querySelector('.add-url-tile');
-    if (addTile){
-      addTile.addEventListener('click', function(){ showToast('Mockup — paste a URL to add it as a candidate (not wired).'); });
-      addTile.addEventListener('keydown', function(e){
-        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showToast('Mockup — paste a URL to add it as a candidate (not wired).'); }
-      });
-    }
+    function notWired(){ showToast('Adding your own image URL is not wired yet.'); }
+    addTile.addEventListener('click', notWired);
+    addTile.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); notWired(); }
+    });
     updateSourcesHeader();
   }
   function toggleSource(id){
-    for (var i = 0; i < SOURCES.length; i++){
-      if (SOURCES[i].id === id){ SOURCES[i].included = !SOURCES[i].included; break; }
-    }
+    var c = findCandidate(id);
+    if (c) c.included = !c.included;
     renderSources();
+  }
+  function setActiveFilterChip(){
+    document.querySelectorAll('.filter-chip').forEach(function(chip){
+      chip.classList.toggle('active', chip.dataset.filter === currentFilter);
+    });
+  }
+  function extractDna(){
+    var images = includedCandidates();
+    if (images.length === 0) return;
+    var btn = document.getElementById('extract-dna-btn');
+    btn.disabled = true;
+    showProgress('extract-progress', 'Reading ' + images.length + ' images and looking for recurring traits…');
+    api('/api/dna/extract', {brand: state.brand, images: images}).then(function(data){
+      state.traits = clone(data.traits);
+      state.toneWords = data.tone_words || [];
+      state.selectedTones = state.toneWords.slice();
+      state.colors = data.colors || [];
+      state.extractedFrom = images.length;
+      state.package = null; state.compare = null; state.directionStatus = {};
+      advanceToStep(3);
+    }).catch(function(err){
+      showToast(err.message, {duration: 8000});
+    }).then(function(){
+      hideProgress('extract-progress');
+      updateSourcesHeader();
+    });
   }
 
   /* ---------- step 3: traits ---------- */
   function renderTraits(){
+    document.getElementById('traits-intro').textContent =
+      'The AI found ' + state.traits.filter(function(t){ return t.origin === 'ai'; }).length +
+      ' recurring traits in ' + state.extractedFrom + ' images. Edit, reweight or remove them before locking them into the house style package.';
+
     var list = document.getElementById('traits-list');
-    var html = '';
-    for (var i = 0; i < TRAITS.length; i++){
-      var t = TRAITS[i];
-      var evidenceHtml = '';
-      for (var e = 0; e < t.evidence.length; e++) evidenceHtml += '<div class="evidence-thumb">' + thumbSvg(t.evidence[e]) + '</div>';
-      var confHtml = t.conf === null ? '<span class="mono muted">—</span>' : '<span class="mono ' + (t.low ? 'text-warn' : '') + '">' + t.conf + '%</span>';
-      var evidenceRow = t.manual
+    list.innerHTML = state.traits.map(function(t){
+      var conf = pct(t.confidence);
+      var confHtml = conf === null ? '<span class="mono muted">—</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
+      var evidenceRow = t.origin === 'manual'
         ? '<span class="mono muted evidence-label">Added manually — no evidence linked yet</span>'
-        : '<div class="evidence-thumbs">' + evidenceHtml + '</div><span class="mono muted evidence-label">seen in ' + t.seen + '/13 images</span>';
-      html += '<li class="trait-row" data-id="' + t.id + '">' +
+        : '<div class="evidence-thumbs">' + t.evidence_image_ids.map(function(id){ return imageThumb(id, 'evidence-thumb'); }).join('') + '</div>' +
+          '<span class="mono muted evidence-label">seen in ' + t.seen_count + '/' + state.extractedFrom + ' images</span>';
+      return '<li class="trait-row" data-id="' + esc(t.id) + '">' +
         '<div class="trait-main">' +
           '<div class="trait-name-row">' +
-            '<span class="trait-name" contenteditable="false" id="trait-name-' + t.id + '">' + t.name + '</span>' +
-            (t.low ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
+            '<span class="trait-name" contenteditable="false" data-id="' + esc(t.id) + '">' + esc(t.name) + '</span>' +
+            (t.low_confidence ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
           '</div>' +
-          '<p class="trait-desc">' + t.desc + '</p>' +
+          '<p class="trait-desc">' + esc(t.description) + '</p>' +
           '<div class="evidence-row">' + evidenceRow + '</div>' +
         '</div>' +
         '<div class="trait-side">' +
           '<div class="trait-conf"><span class="label-mono">confidence</span>' + confHtml + '</div>' +
           '<div class="trait-weight">' +
-            '<label class="label-mono" for="trait-weight-' + t.id + '">importance</label>' +
-            '<input type="range" min="0" max="100" value="' + t.weight + '" id="trait-weight-' + t.id + '" data-id="' + t.id + '">' +
-            '<span class="mono weight-val" id="trait-weight-val-' + t.id + '">' + t.weight + '</span>' +
+            '<label class="label-mono" for="trait-weight-' + esc(t.id) + '">importance</label>' +
+            '<input type="range" min="0" max="100" value="' + t.importance + '" id="trait-weight-' + esc(t.id) + '" data-id="' + esc(t.id) + '">' +
+            '<span class="mono weight-val">' + t.importance + '</span>' +
           '</div>' +
           '<div class="trait-actions">' +
-            '<button type="button" class="btn-ghost btn-edit" data-id="' + t.id + '">Edit</button>' +
-            '<button type="button" class="btn-ghost btn-remove" data-id="' + t.id + '">Remove</button>' +
+            '<button type="button" class="btn-ghost btn-edit" data-id="' + esc(t.id) + '">Edit</button>' +
+            '<button type="button" class="btn-ghost btn-remove" data-id="' + esc(t.id) + '">Remove</button>' +
           '</div>' +
         '</div>' +
       '</li>';
-    }
-    list.innerHTML = html;
+    }).join('');
 
-    var ranges = list.querySelectorAll('input[type=range]');
-    for (var r = 0; r < ranges.length; r++){
-      ranges[r].addEventListener('input', function(){
-        var id = parseInt(this.dataset.id, 10);
-        var trait = findTrait(id);
-        trait.weight = parseInt(this.value, 10);
-        document.getElementById('trait-weight-val-' + id).textContent = trait.weight;
+    list.querySelectorAll('input[type=range]').forEach(function(range){
+      range.addEventListener('input', function(){
+        var trait = findTrait(this.dataset.id);
+        trait.importance = parseInt(this.value, 10);
+        this.parentNode.querySelector('.weight-val').textContent = trait.importance;
       });
-    }
-    var editBtns = list.querySelectorAll('.btn-edit');
-    for (var b = 0; b < editBtns.length; b++){
-      editBtns[b].addEventListener('click', function(){
-        var id = parseInt(this.dataset.id, 10);
-        var span = document.getElementById('trait-name-' + id);
+    });
+    list.querySelectorAll('.btn-edit').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = this.dataset.id;
+        var span = list.querySelector('.trait-name[data-id="' + id + '"]');
         span.contentEditable = 'true';
         span.focus();
         var onBlur = function(){
@@ -802,264 +757,302 @@
         };
         span.addEventListener('blur', onBlur);
       });
-    }
-    var removeBtns = list.querySelectorAll('.btn-remove');
-    for (var rm = 0; rm < removeBtns.length; rm++){
-      removeBtns[rm].addEventListener('click', function(){
-        removeTrait(parseInt(this.dataset.id, 10));
-      });
-    }
+    });
+    list.querySelectorAll('.btn-remove').forEach(function(btn){
+      btn.addEventListener('click', function(){ removeTrait(this.dataset.id); });
+    });
+
+    renderToneChips();
   }
-  function findTrait(id){
-    for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id === id) return TRAITS[i];
-    return null;
+  function renderToneChips(){
+    var wrap = document.getElementById('tone-chips');
+    if (state.toneWords.length === 0){
+      wrap.innerHTML = '<span class="mono muted" style="font-size:11.5px;">The AI suggested no tone words.</span>';
+      return;
+    }
+    wrap.innerHTML = state.toneWords.map(function(w){
+      var on = state.selectedTones.indexOf(w) !== -1;
+      return '<button type="button" class="tone-chip' + (on ? ' active' : '') + '" aria-pressed="' + on + '" data-word="' + esc(w) + '">' + esc(w) + '</button>';
+    }).join('');
+    wrap.querySelectorAll('.tone-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        var w = this.dataset.word;
+        var i = state.selectedTones.indexOf(w);
+        if (i === -1) state.selectedTones.push(w); else state.selectedTones.splice(i, 1);
+        renderToneChips();
+      });
+    });
   }
   function removeTrait(id){
     var idx = -1;
-    for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id === id){ idx = i; break; }
+    for (var i = 0; i < state.traits.length; i++) if (state.traits[i].id === id){ idx = i; break; }
     if (idx === -1) return;
-    var removed = TRAITS.splice(idx, 1)[0];
+    var removed = state.traits.splice(idx, 1)[0];
     renderTraits();
     showToast('Removed "' + removed.name + '"', {
       actionLabel: 'Undo',
-      onAction: function(){ TRAITS.splice(idx, 0, removed); renderTraits(); }
+      onAction: function(){ state.traits.splice(idx, 0, removed); renderTraits(); }
     });
   }
+  var manualCounter = 0;
   function addTraitManually(){
     var input = document.getElementById('add-trait-input');
     var name = input.value.trim();
     if (!name) return;
-    var maxId = 0;
-    for (var i = 0; i < TRAITS.length; i++) if (TRAITS[i].id > maxId) maxId = TRAITS[i].id;
-    TRAITS.push({id: maxId + 1, name: name, desc: 'Added manually by the designer.', conf: null, weight: 50, seen: 0, evidence: [], low: false, manual: true});
+    manualCounter++;
+    state.traits.push({
+      id: 'tr_m' + manualCounter, name: name, description: 'Added manually by the designer.',
+      evidence_image_ids: [], seen_count: 0, confidence: null, importance: 50,
+      low_confidence: false, origin: 'manual'
+    });
     input.value = '';
     renderTraits();
+  }
+  function lockPackage(){
+    if (state.traits.length === 0){
+      showToast('Keep or add at least one trait before locking the house style.');
+      return;
+    }
+    state.package = {
+      version: 1,
+      created_at: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+      brand: clone(state.brand),
+      traits: clone(state.traits),
+      tone_words: state.selectedTones.slice(),
+      colors: clone(state.colors),
+      do_dont: [],   // no endpoint produces these yet — see docs/contract-changes.md
+      source_image_ids: includedCandidates().map(function(c){ return c.id; })
+    };
+    state.compare = null; state.directionStatus = {};
+    advanceToStep(4);
   }
 
   /* ---------- step 4: house style ---------- */
   function renderHouseStyle(){
+    var pkg = state.package;
     var el = document.getElementById('house-style-content');
-    var included = 0;
-    for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].included) included++;
-    var featuresHtml = '';
-    for (var t = 0; t < TRAITS.length; t++){
-      var tr = TRAITS[t];
-      featuresHtml += '<div class="feature-row"><span class="feature-name">' + tr.name + '</span>' +
-        '<div class="weight-bar"><div class="weight-bar-fill" style="width:' + tr.weight + '%"></div></div>' +
-        '<span class="mono">' + tr.weight + '</span></div>';
-    }
-    var colors = [
-      {name:'Graphite', hex:'#2B2F33'},
-      {name:'Silver', hex:'#C9CDD0'},
-      {name:'Signal yellow', hex:'#E8C21A'},
-      {name:'White', hex:'#FFFFFF'}
-    ];
-    var colorsHtml = '';
-    for (var c = 0; c < colors.length; c++){
-      colorsHtml += '<div class="swatch"><div class="swatch-color" style="background:' + colors[c].hex + '"></div>' +
-        '<div class="swatch-label">' + colors[c].name + '<span class="mono muted">' + colors[c].hex + '</span></div></div>';
-    }
-    var pairs = [
-      {doT:'Taper light graphics to a point', dontT:'Round or oval lamp shapes'},
-      {doT:'Keep the body graphite or silver with one signal accent', dontT:'Multiple bright accent colors on one surface'},
-      {doT:'One crisp crease along the shoulder', dontT:'Several soft, blended character lines'}
-    ];
-    var pairsHtml = '';
-    for (var p = 0; p < pairs.length; p++){
-      pairsHtml += '<div class="dodont-row"><div><span class="label-mono text-good">Do</span>' + pairs[p].doT + '</div>' +
-        '<div><span class="label-mono text-bad">Don\'t</span>' + pairs[p].dontT + '</div></div>';
-    }
-    var sourcesHtml = '';
-    var shown = 0;
-    for (var s = 0; s < SOURCES.length && shown < 13; s++){
-      if (SOURCES[s].included){ sourcesHtml += '<div class="mini-thumb" title="' + SOURCES[s].caption + '">' + thumbSvg(SOURCES[s].svg) + '</div>'; shown++; }
-    }
-    var dateStr = 'Locked ' + new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+    if (!pkg){ el.innerHTML = '<p class="muted">Lock the Style DNA first.</p>'; return; }
+
+    var featuresHtml = pkg.traits.map(function(t){
+      return '<div class="feature-row"><span class="feature-name">' + esc(t.name) + '</span>' +
+        '<div class="weight-bar"><div class="weight-bar-fill" style="width:' + t.importance + '%"></div></div>' +
+        '<span class="mono">' + t.importance + '</span></div>';
+    }).join('');
+    var toneHtml = pkg.tone_words.length
+      ? '<div class="chip-row" style="margin-top:10px;">' + pkg.tone_words.map(function(w){ return '<span class="chip">' + esc(w) + '</span>'; }).join('') + '</div>'
+      : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">No tone words selected.</p>';
+    var colorsHtml = pkg.colors.length
+      ? '<div class="swatch-row">' + pkg.colors.map(function(c){
+          return '<div class="swatch"><div class="swatch-color" style="background:' + esc(c.hex) + '"></div>' +
+            '<div class="swatch-label">' + esc(c.name) + '<span class="mono muted">' + esc(c.hex) + '</span></div></div>';
+        }).join('') + '</div>'
+      : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">The AI found no brand colors.</p>';
+    var pairsHtml = pkg.do_dont.length
+      ? '<div class="dodont-list">' + pkg.do_dont.map(function(p){
+          return '<div class="dodont-row"><div><span class="label-mono text-good">Do</span>' + esc(p.do) + '</div>' +
+            '<div><span class="label-mono text-bad">Don\'t</span>' + esc(p.dont) + '</div></div>';
+        }).join('') + '</div>'
+      : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">No do/don\'t rules yet.</p>';
+    var sourcesHtml = pkg.source_image_ids.map(function(id){ return imageThumb(id, 'mini-thumb'); }).join('');
+    var domains = [];
+    pkg.source_image_ids.forEach(function(id){
+      var c = findCandidate(id);
+      if (c && domains.indexOf(c.source_domain) === -1) domains.push(c.source_domain);
+    });
+    var dateStr = 'Locked ' + new Date(pkg.created_at).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+
     el.innerHTML =
-      '<h2>Vorden — House Style Package v1</h2>' +
-      '<p class="mono muted doc-meta">' + dateStr + ' · ' + TRAITS.length + ' traits · ' + included + ' sources</p>' +
+      '<h2>' + esc(pkg.brand.name) + ' — House Style Package v' + pkg.version + '</h2>' +
+      '<p class="mono muted doc-meta">' + dateStr + ' · ' + pkg.traits.length + ' traits · ' + pkg.source_image_ids.length + ' sources</p>' +
       '<section><h3>Signature features</h3><div class="features-list">' + featuresHtml + '</div></section>' +
-      '<section><h3>Color</h3><div class="swatch-row">' + colorsHtml + '</div></section>' +
-      '<section><h3>Form language</h3><div class="dodont-list">' + pairsHtml + '</div></section>' +
-      '<section><h3>Sources</h3><div class="mini-thumb-row">' + sourcesHtml + '</div></section>';
+      '<section><h3>Tone</h3>' + toneHtml + '</section>' +
+      '<section><h3>Color</h3>' + colorsHtml + '</section>' +
+      '<section><h3>Form language</h3>' + pairsHtml + '</section>' +
+      '<section><h3>Sources</h3><div class="mini-thumb-row">' + sourcesHtml + '</div>' +
+        '<p class="mono muted" style="font-size:11px;margin-top:8px;">From: ' + esc(domains.join(', ')) + '</p></section>';
   }
 
   /* ---------- step 5: compare ---------- */
-  function pinsHtml(){
-    var html = '';
-    for (var i = 0; i < PINS.length; i++){
-      var p = PINS[i];
-      html += '<button type="button" class="pin" style="top:' + p.top + '%;left:' + p.left + '%" data-target="score-' + p.target + '" aria-label="Pin ' + p.num + ': ' + p.label + '">' + p.num + '</button>';
-    }
-    return html;
+  // Until upload is built (milestone 4) we compare a bundled sample sketch, sent as a data URL
+  // exactly like an upload will be.
+  function loadSampleDesign(){
+    return fetch('/static/sample/design_sample.svg').then(function(res){ return res.blob(); }).then(function(blob){
+      return new Promise(function(resolve, reject){
+        var reader = new FileReader();
+        reader.onload = function(){ resolve(reader.result); };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }).then(function(dataUrl){
+      return {dataUrl: dataUrl, label: 'Sample sketch (upload comes later)'};
+    });
+  }
+  function runCompare(){
+    if (!state.package) return;
+    var btn = document.getElementById('compare-btn');
+    btn.disabled = true;
+    showProgress('compare-progress', 'Comparing the design with the house style…');
+    var designReady = state.design ? Promise.resolve(state.design) : loadSampleDesign();
+    designReady.then(function(design){
+      state.design = design;
+      return api('/api/compare', {package: state.package, design_image: design.dataUrl});
+    }).then(function(data){
+      state.compare = data;
+      state.directionStatus = {};
+      advanceToStep(5);
+    }).catch(function(err){
+      showToast(err.message, {duration: 8000});
+    }).then(function(){
+      btn.disabled = false;
+      hideProgress('compare-progress');
+    });
+  }
+  function scoreLevel(score){ return score >= 70 ? 'good' : score >= 40 ? 'warn' : 'bad'; }
+  function traitNames(ids){
+    return ids.map(function(id){
+      var t = findTrait(id, state.package.traits);
+      return t ? t.name : id;
+    });
+  }
+  // A finding is greyed out when every trait it points to has importance 0 (agreed with B).
+  function isIgnored(finding){
+    if (!finding.trait_ids || finding.trait_ids.length === 0) return false;
+    return finding.trait_ids.every(function(id){
+      var t = findTrait(id, state.package.traits);
+      return t && t.importance === 0;
+    });
+  }
+  function findingItem(f){
+    var ignored = isIgnored(f);
+    return '<li class="' + (ignored ? 'finding-ignored' : '') + '"' + (ignored ? ' title="All linked traits have importance 0"' : '') + '>' + esc(f.text) + '</li>';
   }
   function renderCompare(){
-    var sketchWrap = document.getElementById('compare-sketch');
-    sketchWrap.innerHTML = svgCarFront(SAMPLE_DESIGN) + pinsHtml();
+    var r = state.compare;
+    if (!r || !state.package) return;
 
-    var rowsHtml = '';
-    for (var i = 0; i < SCORES.length; i++){
-      var s = SCORES[i];
-      if (s.pct === null){
-        rowsHtml += '<div class="score-row" id="score-' + (i+1) + '"><span class="score-name">' + s.trait + '</span><span class="score-na mono muted">' + s.note + '</span></div>';
-      } else {
-        rowsHtml += '<div class="score-row" id="score-' + (i+1) + '">' +
-          '<span class="score-name">' + s.trait + '</span>' +
-          '<div class="score-bar"><div class="score-bar-fill level-' + s.level + '" style="width:' + s.pct + '%"></div></div>' +
-          '<span class="mono score-pct level-' + s.level + '-text">' + s.pct + '%</span>' +
-          '</div>';
-      }
+    document.getElementById('compare-sketch').innerHTML = state.design
+      ? '<img src="' + esc(state.design.dataUrl) + '" alt="Your design">'
+      : '';
+    document.getElementById('compare-sketch-label').textContent = state.design ? state.design.label : '';
+
+    var fitEl = document.getElementById('fit-score');
+    var fitNote = document.getElementById('fit-note');
+    if (r.overall_fit === null){
+      fitEl.textContent = '—';
+      fitNote.hidden = false;
+      fitNote.textContent = 'No trait could be assessed from this design.';
+    } else {
+      fitEl.textContent = r.overall_fit + '%';
+      fitNote.hidden = true;
     }
-    document.getElementById('score-rows').innerHTML = rowsHtml;
 
-    var matchesHtml = '';
-    for (var m = 0; m < MATCHES.length; m++) matchesHtml += '<li>' + MATCHES[m] + '</li>';
-    document.getElementById('matches-list').innerHTML = matchesHtml;
-    var departsHtml = '';
-    for (var d = 0; d < DEPARTS.length; d++) departsHtml += '<li>' + DEPARTS[d] + '</li>';
-    document.getElementById('departs-list').innerHTML = departsHtml;
+    document.getElementById('score-rows').innerHTML = r.trait_scores.map(function(s){
+      var name = esc(traitNames([s.trait_id])[0]);
+      var note = s.note ? ' title="' + esc(s.note) + '"' : '';
+      if (s.score === null || s.status === 'not_assessable'){
+        return '<div class="score-row" id="score-' + esc(s.trait_id) + '"><span class="score-name">' + name + '</span>' +
+          '<span class="score-na mono muted">' + esc(s.note || 'Not assessable') + '</span></div>';
+      }
+      var level = scoreLevel(s.score);
+      return '<div class="score-row" id="score-' + esc(s.trait_id) + '"' + note + '>' +
+        '<span class="score-name">' + name + (s.status === 'low_confidence' ? ' <span class="chip chip-warn">low conf.</span>' : '') + '</span>' +
+        '<div class="score-bar"><div class="score-bar-fill level-' + level + '" style="width:' + s.score + '%"></div></div>' +
+        '<span class="mono score-pct level-' + level + '-text">' + s.score + '%</span>' +
+        '</div>';
+    }).join('');
 
-    var dirHtml = '';
-    for (var k = 0; k < DIRECTIONS.length; k++){
-      var dir = DIRECTIONS[k];
-      var refLine = dir.trait
-        ? '<div class="direction-ref mono muted">↳ ' + dir.trait + ' · evidence ' + dir.evidence + ' images</div>'
-        : '<div class="direction-ref mono muted">↳ New direction · outside current DNA</div>';
-      dirHtml += '<div class="direction-tile" data-id="' + dir.id + '">' +
-        '<div class="direction-media">' + svgCarFront(dir.svgVariant) + '</div>' +
-        '<div class="direction-title">' + dir.title + '</div>' +
-        '<p class="direction-desc">' + dir.desc + '</p>' +
+    document.getElementById('matches-list').innerHTML = r.matches.map(findingItem).join('') ||
+      '<li class="muted">Nothing reported.</li>';
+    document.getElementById('departs-list').innerHTML = r.departures.map(findingItem).join('') ||
+      '<li class="muted">Nothing reported.</li>';
+
+    document.getElementById('directions-grid').innerHTML = r.directions.map(function(dir){
+      var status = state.directionStatus[dir.id] || 'none';
+      var refLine;
+      if (dir.trait_ids.length){
+        var evidence = [];
+        dir.trait_ids.forEach(function(id){
+          var t = findTrait(id, state.package.traits);
+          if (t) t.evidence_image_ids.forEach(function(img){ if (evidence.indexOf(img) === -1) evidence.push(img); });
+        });
+        refLine = '<div class="direction-ref mono muted">↳ ' + esc(traitNames(dir.trait_ids).join(', ')) + ' · evidence ' + evidence.length + ' images</div>';
+      } else {
+        refLine = '<div class="direction-ref mono muted">↳ New direction · outside current DNA</div>';
+      }
+      return '<div class="direction-tile" data-id="' + esc(dir.id) + '">' +
+        (dir.image_url ? '<div class="direction-media"><img src="' + esc(dir.image_url) + '" alt="' + esc(dir.title) + '"></div>' : '') +
+        '<div class="direction-title">' + esc(dir.title) + '</div>' +
+        '<p class="direction-desc">' + esc(dir.rationale) + '</p>' +
         refLine +
         '<div class="direction-actions">' +
-          '<button type="button" class="btn-toggle btn-accept" data-id="' + dir.id + '" aria-pressed="' + (dir.status === 'accepted') + '">Accept</button>' +
-          '<button type="button" class="btn-toggle btn-reject" data-id="' + dir.id + '" aria-pressed="' + (dir.status === 'rejected') + '">Reject</button>' +
+          '<button type="button" class="btn-toggle btn-accept" data-id="' + esc(dir.id) + '" aria-pressed="' + (status === 'accepted') + '">Accept</button>' +
+          '<button type="button" class="btn-toggle btn-reject" data-id="' + esc(dir.id) + '" aria-pressed="' + (status === 'rejected') + '">Reject</button>' +
         '</div>' +
       '</div>';
-    }
-    document.getElementById('directions-grid').innerHTML = dirHtml;
+    }).join('') || '<p class="muted">No directions suggested.</p>';
 
-    var pins = sketchWrap.querySelectorAll('.pin');
-    for (var pi = 0; pi < pins.length; pi++){
-      pins[pi].addEventListener('click', function(){
-        var target = document.getElementById(this.dataset.target);
-        if (!target) return;
-        target.scrollIntoView({behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center'});
-        target.classList.add('flash');
-        setTimeout(function(){ target.classList.remove('flash'); }, 1200);
-      });
+    function toggleStatus(id, value){
+      state.directionStatus[id] = state.directionStatus[id] === value ? 'none' : value;
+      renderCompare();
     }
-    var acceptBtns = document.querySelectorAll('.btn-accept');
-    for (var ab = 0; ab < acceptBtns.length; ab++){
-      acceptBtns[ab].addEventListener('click', function(){
-        var dd = findDirection(this.dataset.id);
-        dd.status = dd.status === 'accepted' ? 'none' : 'accepted';
-        renderCompare();
-      });
-    }
-    var rejectBtns = document.querySelectorAll('.btn-reject');
-    for (var rb = 0; rb < rejectBtns.length; rb++){
-      rejectBtns[rb].addEventListener('click', function(){
-        var dd = findDirection(this.dataset.id);
-        dd.status = dd.status === 'rejected' ? 'none' : 'rejected';
-        renderCompare();
-      });
-    }
+    document.querySelectorAll('.btn-accept').forEach(function(b){
+      b.addEventListener('click', function(){ toggleStatus(this.dataset.id, 'accepted'); });
+    });
+    document.querySelectorAll('.btn-reject').forEach(function(b){
+      b.addEventListener('click', function(){ toggleStatus(this.dataset.id, 'rejected'); });
+    });
     updateDesignNotes();
-  }
-  function findDirection(id){
-    for (var i = 0; i < DIRECTIONS.length; i++) if (DIRECTIONS[i].id === id) return DIRECTIONS[i];
-    return null;
   }
   function updateDesignNotes(){
     var list = document.getElementById('design-notes-list');
     var empty = document.getElementById('design-notes-empty');
-    var accepted = [];
-    for (var i = 0; i < DIRECTIONS.length; i++) if (DIRECTIONS[i].status === 'accepted') accepted.push(DIRECTIONS[i]);
-    if (accepted.length === 0){
-      list.innerHTML = '';
-      empty.hidden = false;
-    } else {
-      empty.hidden = true;
-      var html = '';
-      for (var a = 0; a < accepted.length; a++){
-        html += '<li contenteditable="true" spellcheck="false">' + accepted[a].title + ' — ' + accepted[a].desc + '</li>';
-      }
-      list.innerHTML = html;
-    }
+    var accepted = state.compare.directions.filter(function(d){ return state.directionStatus[d.id] === 'accepted'; });
+    empty.hidden = accepted.length > 0;
+    list.innerHTML = accepted.map(function(d){
+      return '<li contenteditable="true" spellcheck="false">' + esc(d.title) + ' — ' + esc(d.rationale) + '</li>';
+    }).join('');
   }
 
   /* ---------- wire-up ---------- */
+  function onActivate(el, fn){
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fn(); }
+    });
+  }
   function init(){
     renderStepRail();
-    renderKeywordChips();
     showPanel(currentStep);
 
     document.getElementById('add-keyword-btn').addEventListener('click', addKeyword);
     document.getElementById('keyword-input').addEventListener('keydown', function(e){
       if (e.key === 'Enter'){ e.preventDefault(); addKeyword(); }
     });
-    document.getElementById('upload-dropzone').addEventListener('click', function(){
-      showToast('Mockup — file upload not wired.');
-    });
-    document.getElementById('upload-dropzone').addEventListener('keydown', function(e){
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showToast('Mockup — file upload not wired.'); }
-    });
-    document.getElementById('find-images-btn').addEventListener('click', function(){
-      var btn = this;
-      btn.disabled = true;
-      var prog = document.getElementById('brand-progress');
-      runFakeSequence(prog, ['Searching images… 24 found', 'Scraping vorden-auto.example… 9 found', 'Removing duplicates…'], [500, 500, 500], function(){
-        btn.disabled = false;
-        prog.hidden = true;
-        advanceToStep(2);
-      });
-    });
+    onActivate(document.getElementById('upload-dropzone'), function(){ showToast('Uploading your own reference images is not wired yet.'); });
+    document.getElementById('find-images-btn').addEventListener('click', findImages);
 
-    var filterChips = document.querySelectorAll('.filter-chip');
-    for (var f = 0; f < filterChips.length; f++){
-      filterChips[f].addEventListener('click', function(){
+    document.querySelectorAll('.filter-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
         currentFilter = this.dataset.filter;
-        for (var g = 0; g < filterChips.length; g++) filterChips[g].classList.remove('active');
-        this.classList.add('active');
+        setActiveFilterChip();
         renderSources();
       });
-    }
-    document.getElementById('back-to-brand-btn').addEventListener('click', function(){ navigateToStep(1); });
-    document.getElementById('extract-dna-btn').addEventListener('click', function(){
-      var included = 0;
-      for (var i = 0; i < SOURCES.length; i++) if (SOURCES[i].included) included++;
-      if (included === 0) return;
-      var btn = this;
-      btn.disabled = true;
-      var prog = document.getElementById('extract-progress');
-      runFakeSequence(prog, ['Embedding images…', 'Detecting recurring features…', 'Grouping traits…'], [700, 700, 600], function(){
-        btn.disabled = false;
-        prog.hidden = true;
-        advanceToStep(3);
-      });
     });
+    document.getElementById('back-to-brand-btn').addEventListener('click', function(){ navigateToStep(1); });
+    document.getElementById('extract-dna-btn').addEventListener('click', extractDna);
 
     document.getElementById('add-trait-btn').addEventListener('click', addTraitManually);
     document.getElementById('add-trait-input').addEventListener('keydown', function(e){
       if (e.key === 'Enter'){ e.preventDefault(); addTraitManually(); }
     });
-    var toneChips = document.querySelectorAll('.tone-chip');
-    for (var tc = 0; tc < toneChips.length; tc++){
-      toneChips[tc].addEventListener('click', function(){ this.classList.toggle('active'); });
-    }
     document.getElementById('back-to-sources-btn').addEventListener('click', function(){ navigateToStep(2); });
-    document.getElementById('lock-style-btn').addEventListener('click', function(){ advanceToStep(4); });
+    document.getElementById('lock-style-btn').addEventListener('click', lockPackage);
 
     document.getElementById('back-to-traits-btn').addEventListener('click', function(){ navigateToStep(3); });
-    document.getElementById('export-pdf-btn').addEventListener('click', function(){ showToast('Mockup — export not wired yet.'); });
-    document.getElementById('compare-btn').addEventListener('click', function(){ advanceToStep(5); });
+    document.getElementById('export-pdf-btn').addEventListener('click', function(){ showToast('Export is not wired yet.'); });
+    document.getElementById('compare-btn').addEventListener('click', runCompare);
 
-    document.getElementById('replace-design-dropzone').addEventListener('click', function(){
-      showToast('Mockup — new upload not wired, sample design shown.');
-    });
-    document.getElementById('replace-design-dropzone').addEventListener('keydown', function(e){
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); showToast('Mockup — new upload not wired, sample design shown.'); }
-    });
+    onActivate(document.getElementById('replace-design-dropzone'), function(){ showToast('Uploading your own design is not wired yet — the sample sketch is used.'); });
     document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(4); });
   }
 

@@ -113,3 +113,14 @@
   name; a trait seen in every run is a stronger candidate than one seen once. A possible later feature
   is to run extraction 3 times and show "found in 3/3 runs" next to each trait; it costs 3x the
   API calls, so it needs the team's agreement.
+
+## 2026-10-07 — The interface only shows what the API returned (Person C)
+
+- **What:** Milestone 1 replaced all hard-coded mockup data with the three API calls. Where the
+  mockup showed things the contract does not provide, the interface now leaves them out instead of
+  inventing them: no image captions (shows id, source type and domain instead), no hand-placed pins
+  on the design, no sketched variant per direction (only `image_url` when the API sends one), no
+  do/don't rules (none returned yet — proposed in contract-changes.md).
+- **Why:** "the AI measures and suggests, the designer decides" only works if what the designer
+  sees is what the AI actually produced. Departures whose traits all have importance 0 are shown
+  greyed out, as agreed with B.

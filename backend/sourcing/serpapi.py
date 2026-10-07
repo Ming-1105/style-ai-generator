@@ -33,7 +33,7 @@ def valid_url(value):
         return False
 
 
-def search_images(brand: Brand, dimensions=None) -> SearchResponse:
+def search_images(brand: Brand, dimensions=None, metadata=None) -> SearchResponse:
     if not brand.name.strip():
         raise SearchError(400, "brand_required", "Enter a brand name to search for reference images.")
     if os.getenv("IMAGE_SEARCH_PROVIDER", "").strip().lower() != "serpapi":
@@ -86,6 +86,8 @@ def search_images(brand: Brand, dimensions=None) -> SearchResponse:
             if any(value is not None for value in size):
                 dimensions[image] = size
         thumbnail = item.get("thumbnail")
+        if metadata is not None:
+            metadata[image] = str(item.get("title") or "")
         candidates.append(ImageCandidate(
             id="img_" + hashlib.sha256(image.encode()).hexdigest()[:16],
             url=image, thumbnail_url=thumbnail if valid_url(thumbnail) else image,

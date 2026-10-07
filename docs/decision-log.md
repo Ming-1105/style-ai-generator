@@ -31,3 +31,8 @@
 
 - **What:** Deduplicate URLs across search and scrape candidates, normalizing hostname/default ports and removing fragments while preserving query parameters. Drop images with a known side below 128 pixels. Use SerpAPI original dimensions or HTML declared dimensions; retain unknown sizes. Return a clear error if no images remain.
 - **Why:** Remove repeated evidence and small icons without new dependencies or downloading source images. HTML dimensions describe display size, not verified intrinsic resolution. Visually similar images at different URLs remain; perceptual hashing is not implemented.
+
+## 2026-10-07 — Review clues, not authenticity verdicts (Person A)
+
+- **What:** Flag reported image sides below 512px, source domains differing from the supplied official website (or brand tokens when no website is supplied), and explicit fan-art/unofficial/render/CGI words in title, alt text or URL. Keep flagged candidates visible with included=false and combine all reasons. Unknown dimensions cause no size flag.
+- **Why:** Let the designer judge questionable evidence. Domain mismatches can be legitimate third-party coverage, and renders can be official. Reasons state this uncertainty. HTML dimensions reflect declared display size, not verified file resolution. No vision model or new dependency is used.

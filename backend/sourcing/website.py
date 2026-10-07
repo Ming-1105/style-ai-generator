@@ -50,6 +50,7 @@ class PageImages(HTMLParser):
         self.images = []
         self.has_base = False
         self.dimensions = {}
+        self.metadata = {}
 
     def handle_starttag(self, tag, attributes):
         attrs = dict(attributes)
@@ -65,6 +66,7 @@ class PageImages(HTMLParser):
                 url = urljoin(self.base_url, value.strip())
                 if valid_url(url):
                     self.images.append(url)
+                    self.metadata[url] = " ".join(str(attrs.get(field) or "") for field in ("alt", "title"))
                     from .filtering import positive_dimension
                     # HTML dimensions describe the displayed image; do not claim
                     # that they measure the original file's intrinsic resolution.
@@ -73,7 +75,7 @@ class PageImages(HTMLParser):
                     break
 
 
-def scrape_website(website, dimensions=None):
+def scrape_website(website, dimensions=None, metadata=None):
     page_url = public_website(website.strip())
     parsed = urlsplit(page_url)
     robots_url = urlunsplit((parsed.scheme, parsed.netloc, "/robots.txt", "", ""))
@@ -105,6 +107,8 @@ def scrape_website(website, dimensions=None):
         raise SearchError(502, "website_unavailable", "Could not connect to the official website — try again or clear the website field.") from None
     parser = PageImages(page_url)
     parser.feed(html)
+    if metadata is not None:
+        metadata.update(parser.metadata)
     if dimensions is not None:
         # Preserve SerpAPI original dimensions if this URL is also on the page.
         for url, size in parser.dimensions.items():

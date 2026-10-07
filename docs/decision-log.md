@@ -124,3 +124,7 @@
 - **Why:** "the AI measures and suggests, the designer decides" only works if what the designer
   sees is what the AI actually produced. Departures whose traits all have importance 0 are shown
   greyed out, as agreed with B.
+
+## 2026-10-07 — Interface: failures stay visible (milestone 2)
+- **What:** API errors are shown inline in the step with a retry button, and empty AI/search results are treated as an error with advice. The overall fit explains how many traits were left out or low confidence.
+- **Why:** The core principle is that the AI must report honestly when it cannot judge. A toast disappears and an empty screen looks like a bug; designers need to see what failed and why.

@@ -44,8 +44,13 @@ If you need something from another folder, add a note under that owner's "Needs 
   (`frontend/static/sample/design_sample.svg`) as a data URL. Departures whose traits all have
   importance 0 are greyed out (hide control comes in milestone 3). API errors show `error.message`
   in a toast. Re-running an earlier step locks the later ones again.
-- **In progress:** next is milestone 2 (loading and error states, honest `null` / `low_confidence`
-  display).
+- **Done (milestone 2):** loading state on all three API calls (spinner + seconds counter). Errors now
+  stay in the step as an inline box with `error.message` and a "Try again" button (they used to be a
+  toast that vanished). Empty results (0 candidates, 0 traits) are shown as a clear message instead of
+  an empty screen. Honest display: `confidence: null` shows "not rated", and the overall fit shows a
+  note when traits were left out (`not_assessable`) or scored with low confidence. Broken images hide
+  instead of showing the browser's broken icon.
+- **In progress:** next is milestone 3 (hide control for greyed-out departures, per B's request).
 - **Blocked:**
 - **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.
 - **Request from B** (agreed with the designer on 2026-10-07; greying done, hide control still to do) —

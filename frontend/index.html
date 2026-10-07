@@ -70,6 +70,11 @@
   .btn-ghost:hover{color:var(--ink); border-color:var(--ink);}
 
   .progress-box{margin-top:14px; border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; background:var(--surface); max-width:420px;}
+  .progress-box.error{border-color:var(--bad, #b3261e);}
+  .progress-error{font-size:13px; color:var(--bad, #b3261e); margin:0 0 10px;}
+  .spinner{display:inline-block; width:11px; height:11px; margin-right:8px; vertical-align:-1px; border:2px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .spinner{animation:none;} }
   .progress-line{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); padding:3px 0;}
 
   /* chips */
@@ -460,7 +465,7 @@
   function imageThumb(id, cls){
     var c = findCandidate(id);
     if (!c) return '<div class="' + cls + '" title="' + esc(id) + ' (not in the current source set)">?</div>';
-    return '<div class="' + cls + '" title="' + esc(c.id + ' · ' + c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="' + esc(c.id) + '" loading="lazy"></div>';
+    return '<div class="' + cls + '" title="' + esc(c.id + ' · ' + c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="' + esc(c.id) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"></div>';
   }
 
   /* ---------- API ---------- */
@@ -484,12 +489,38 @@
     });
   }
 
+  // Loading: a spinner and a seconds counter, so a slow AI call does not look frozen.
+  // Error: the message stays in the box (a toast would vanish) with a Retry button.
+  var progressTimers = {};
+  function stopTimer(id){
+    if (progressTimers[id]){ clearInterval(progressTimers[id]); delete progressTimers[id]; }
+  }
   function showProgress(id, text){
+    stopTimer(id);
     var box = document.getElementById(id);
     box.hidden = false;
-    box.innerHTML = '<div class="progress-line">' + esc(text) + '</div>';
+    box.classList.remove('error');
+    box.innerHTML = '<div class="progress-line"><span class="spinner" aria-hidden="true"></span>' + esc(text) +
+      ' <span class="progress-elapsed">0s</span></div>';
+    var started = Date.now();
+    progressTimers[id] = setInterval(function(){
+      var el = box.querySelector('.progress-elapsed');
+      if (el) el.textContent = Math.round((Date.now() - started) / 1000) + 's';
+    }, 1000);
   }
-  function hideProgress(id){ document.getElementById(id).hidden = true; }
+  function hideProgress(id){
+    stopTimer(id);
+    document.getElementById(id).hidden = true;
+  }
+  function showError(id, message, retry){
+    stopTimer(id);
+    var box = document.getElementById(id);
+    box.hidden = false;
+    box.classList.add('error');
+    box.innerHTML = '<p class="progress-error" role="alert">' + esc(message) + '</p>' +
+      (retry ? '<button type="button" class="btn-secondary progress-retry">Try again</button>' : '');
+    if (retry) box.querySelector('.progress-retry').addEventListener('click', retry);
+  }
 
   /* ---------- navigation ---------- */
   var STEP_NAMES = ['Brand','Sources','Style DNA','House style','Compare'];
@@ -617,17 +648,20 @@
     btn.disabled = true;
     showProgress('brand-progress', 'Searching for reference images of ' + state.brand.name + '…');
     api('/api/sources/search', {brand: state.brand}).then(function(data){
+      if (!data.candidates || data.candidates.length === 0){
+        throw new Error('No reference images were found for ' + state.brand.name + '. Try adding the official website or more keywords.');
+      }
       state.candidates = data.candidates;
       // new sources make everything downstream stale
       state.traits = []; state.package = null; state.compare = null; state.directionStatus = {};
       currentFilter = 'all';
       setActiveFilterChip();
+      hideProgress('brand-progress');
       advanceToStep(2);
     }).catch(function(err){
-      showToast(err.message, {duration: 8000});
+      showError('brand-progress', err.message, findImages);
     }).then(function(){
       btn.disabled = false;
-      hideProgress('brand-progress');
     });
   }
 
@@ -644,7 +678,7 @@
     var html = '<div class="thumb ' + (c.included ? '' : 'excluded') + '" data-id="' + esc(c.id) + '" tabindex="0" role="checkbox" aria-checked="' + c.included + '">';
     html += '<div class="thumb-check" aria-hidden="true">' + (c.included ? '✓' : '') + '</div>';
     if (c.flagged) html += '<div class="flag-chip">flagged</div>';
-    html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy"></div>';
+    html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"></div>';
     html += '<div class="thumb-body">';
     html += '<div class="thumb-caption mono">' + esc(c.id) + ' · ' + esc(c.source_type) + '</div>';
     html += '<div class="thumb-meta"><span class="mono domain" title="' + esc(c.source_domain) + '">' + esc(c.source_domain) + '</span><span class="type-tag">' + esc(c.category) + '</span></div>';
@@ -695,17 +729,20 @@
     btn.disabled = true;
     showProgress('extract-progress', 'Reading ' + images.length + ' images and looking for recurring traits…');
     api('/api/dna/extract', {brand: state.brand, images: images}).then(function(data){
+      if (!data.traits || data.traits.length === 0){
+        throw new Error('No recurring traits could be found in these images. Try selecting more images of the same product line.');
+      }
       state.traits = clone(data.traits);
       state.toneWords = data.tone_words || [];
       state.selectedTones = state.toneWords.slice();
       state.colors = data.colors || [];
       state.extractedFrom = images.length;
       state.package = null; state.compare = null; state.directionStatus = {};
+      hideProgress('extract-progress');
       advanceToStep(3);
     }).catch(function(err){
-      showToast(err.message, {duration: 8000});
+      showError('extract-progress', err.message, extractDna);
     }).then(function(){
-      hideProgress('extract-progress');
       updateSourcesHeader();
     });
   }
@@ -719,7 +756,7 @@
     var list = document.getElementById('traits-list');
     list.innerHTML = state.traits.map(function(t){
       var conf = pct(t.confidence);
-      var confHtml = conf === null ? '<span class="mono muted">—</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
+      var confHtml = conf === null ? '<span class="mono muted" title="The AI did not report a confidence for this trait">not rated</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
       var evidenceRow = t.origin === 'manual'
         ? '<span class="mono muted evidence-label">Added manually — no evidence linked yet</span>'
         : '<div class="evidence-thumbs">' + t.evidence_image_ids.map(function(id){ return imageThumb(id, 'evidence-thumb'); }).join('') + '</div>' +
@@ -967,12 +1004,12 @@
     }).then(function(data){
       state.compare = data;
       state.directionStatus = {};
+      hideProgress('compare-progress');
       advanceToStep(5);
     }).catch(function(err){
-      showToast(err.message, {duration: 8000});
+      showError('compare-progress', err.message, runCompare);
     }).then(function(){
       btn.disabled = false;
-      hideProgress('compare-progress');
     });
   }
   function scoreLevel(score){ return score >= 70 ? 'good' : score >= 40 ? 'warn' : 'bad'; }
@@ -1011,7 +1048,13 @@
       fitNote.textContent = 'No trait could be assessed from this design.';
     } else {
       fitEl.textContent = r.overall_fit + '%';
-      fitNote.hidden = true;
+      var skipped = r.trait_scores.filter(function(x){ return x.score === null || x.status === 'not_assessable'; }).length;
+      var shaky = r.trait_scores.filter(function(x){ return x.status === 'low_confidence'; }).length;
+      var parts = [];
+      if (skipped) parts.push(skipped + ' trait' + (skipped === 1 ? '' : 's') + ' could not be assessed and ' + (skipped === 1 ? 'is' : 'are') + ' left out');
+      if (shaky) parts.push(shaky + ' score' + (shaky === 1 ? ' is' : 's are') + ' low confidence');
+      fitNote.hidden = parts.length === 0;
+      fitNote.textContent = capitalise(parts.join('; ')) + '.';
     }
 
     document.getElementById('score-rows').innerHTML = r.trait_scores.map(function(s){

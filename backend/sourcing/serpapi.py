@@ -87,7 +87,7 @@ def search_images(brand: Brand, dimensions=None, metadata=None) -> SearchRespons
                 dimensions[image] = size
         thumbnail = item.get("thumbnail")
         if metadata is not None:
-            metadata[image] = str(item.get("title") or "")
+            metadata[image] = " ".join([metadata.get(image, ""), str(item.get("title") or "")]).strip()
         candidates.append(ImageCandidate(
             id="img_" + hashlib.sha256(image.encode()).hexdigest()[:16],
             url=image, thumbnail_url=thumbnail if valid_url(thumbnail) else image,

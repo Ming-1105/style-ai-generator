@@ -13,10 +13,10 @@ If you need something from another folder, add a note under that owner's "Needs 
 ## A — Sourcing (`/backend/sourcing/`)
 
 - **Done:** Milestone 1 — SerpAPI live image search using existing httpx; mock path preserved. One request per search, up to 30 candidates, and clear configuration/provider errors. Five unittest checks pass; a live search returned 30 candidates with HTTP 200.
-- **In progress:** Milestones 1–4 ready for review on `sourcing/serpapi` (PR #3). Added review flags for reported sides below 512px, mismatching source domains, and explicit fan-art/render clues in title/alt/URL. Flagged images remain visible with included=false. Twenty-eight tests pass; live endpoint returned 49 candidates, 20 flagged, all flagged excluded.
+- **In progress:** Milestones 1–5 ready for review and integration on `sourcing/serpapi` (PR #3). Added keyword categories and weighted text relevance from title/alt/URL and official source. Review flags and inclusion are preserved. Thirty-four tests pass; live endpoint returned 49 candidates with categories and relevance scores.
 - **Blocked:**
 - **Needs from others:**
-- **Run the tests:** `python -m unittest backend.sourcing.test_search backend.sourcing.test_website backend.sourcing.test_filtering backend.sourcing.test_flagging`
+- **Run the tests:** `python -m unittest backend.sourcing.test_search backend.sourcing.test_website backend.sourcing.test_filtering backend.sourcing.test_flagging backend.sourcing.test_classification`
 
 ## B — AI core (`/backend/ai_core/`)
 

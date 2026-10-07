@@ -15,6 +15,13 @@ from .serpapi import SearchError, search_images
 from .website import scrape_website
 from .filtering import filter_candidates
 from .flagging import flag_candidates
+from .classification import classify_candidates
+
+
+def prepare_candidates(candidates, brand, dimensions, metadata):
+    filtered = filter_candidates(candidates, dimensions)
+    flagged = flag_candidates(filtered, brand, dimensions, metadata)
+    return classify_candidates(flagged, brand, metadata)
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures"
 
@@ -45,9 +52,9 @@ def search(body: SearchRequest):
             # A genuine empty search may still have images from the supplied page.
             # Configuration, quota and provider errors must remain visible.
             if exc.code == "no_results" and website_images:
-                return SearchResponse(candidates=flag_candidates(filter_candidates(website_images, dimensions), body.brand, dimensions, metadata))
+                return SearchResponse(candidates=prepare_candidates(website_images, body.brand, dimensions, metadata))
             raise
-        return SearchResponse(candidates=flag_candidates(filter_candidates(result.candidates + website_images, dimensions), body.brand, dimensions, metadata))
+        return SearchResponse(candidates=prepare_candidates(result.candidates + website_images, body.brand, dimensions, metadata))
     except SearchError as exc:
         return JSONResponse(status_code=exc.status, content={"error": {
             "code": exc.code, "message": exc.message,

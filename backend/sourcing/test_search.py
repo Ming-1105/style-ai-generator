@@ -40,7 +40,7 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(result.status_code, 200)
         image = result.json()["candidates"][0]
         self.assertEqual(image["source_domain"], "vorden.example")
-        self.assertIsNone(image["relevance"])
+        self.assertEqual(image["relevance"], 0.0)
         self.assertEqual(len(result.json()["candidates"]), 1)
         provider.return_value.__enter__.return_value.get.assert_called_once()
 

@@ -36,3 +36,8 @@
 
 - **What:** Flag reported image sides below 512px, source domains differing from the supplied official website (or brand tokens when no website is supplied), and explicit fan-art/unofficial/render/CGI words in title, alt text or URL. Keep flagged candidates visible with included=false and combine all reasons. Unknown dimensions cause no size flag.
 - **Why:** Let the designer judge questionable evidence. Domain mismatches can be legitimate third-party coverage, and renders can be official. Reasons state this uncertainty. HTML dimensions reflect declared display size, not verified file resolution. No vision model or new dependency is used.
+
+## 2026-10-07 — Keyword category and relevance estimates (Person A)
+
+- **What:** Classify title/alt/URL tokens using ordered keyword dictionaries: logo, packaging, web, product, otherwise other. Relevance weights brand tokens 50%, category 20%, keyword groups 20%, official source 10%, renormalized for absent optional fields. Missing all text yields null; available text with no match yields 0. Preserve flags and inclusion.
+- **Why:** An inspectable first version without vision costs. Scores are text match estimates, not probabilities or visual style scores. CDN hostnames are not category evidence; unrecognized product types remain other. Metadata cannot verify visible content. No new dependencies.

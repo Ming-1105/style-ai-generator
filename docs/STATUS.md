@@ -19,10 +19,15 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## B — AI core (`/backend/ai_core/`)
 
-- **Done:**
-- **In progress:**
-- **Blocked:**
+- **Done:** Milestone 1 (branch `ai-core/scoring`) — scoring rules as pure functions in
+  `backend/ai_core/scoring.py` (overall fit, gap ranking, signature-trait rule), with unit tests
+  in `backend/ai_core/tests/`. Mock `/api/compare` now computes overall fit, departures and
+  direction order from the package in the request, so changing an importance changes the result.
+  The per-trait scores themselves are still the Vorden sample data.
+- **In progress:** nothing — next is milestone 2 (trait extraction behind `MOCK_MODE=0`).
+- **Blocked:** milestone 2 needs to know which vision provider we have API keys for.
 - **Needs from others:**
+- **Run the tests:** `python -m unittest discover -s backend/ai_core/tests -t .`
 
 ## C — Interface (`/frontend/`)
 

@@ -131,3 +131,23 @@
 - **Known limits:** reference images are not used yet (the request has no way to carry them; contract
   change agreed, not yet applied); scores will vary between runs like extraction does (to be measured
   with `try_compare --runs`); directions stay empty in live mode until milestone 5.
+
+## 2026-10-13 — First comparison of hand-drawn sketches against a brand's traits (Person B)
+
+- **What:** Compared three pencil sketches of new product ideas (made by the designer, in the style of one
+  real brand, kept local) against five traits extracted from 12 of that brand's product screenshots,
+  with `gemini-3.5-flash-lite`. One run each, about a minute per run including retries when the model
+  was busy. Overall fit came out at 41, 50 and 58.
+- **Observed (good):** the two colour and material traits, which carry the highest importance (95 and 90),
+  were reported as not assessable on all three sketches ("needs colour"), with no invented score. The notes
+  were concrete ("square grid instead of circular perforations"). A square mesh scored 30 on a
+  circular-perforation trait, vertical slots scored 90.
+- **Observed (weak):** the transparent-enclosure trait was handled inconsistently: scored 5 and 10 ("opaque,
+  monochrome pencil") on two sketches, which a pencil drawing cannot show either way, and 85 on a third
+  because internal parts were outlined. The slots-versus-circles score of 90 looks generous.
+- **Consequence:** with the two heaviest traits not assessable, the overall fit describes only the traits
+  that could be judged (here about 56% of the total importance on the first sketch), so the number must be
+  shown together with that coverage. Traits that could not be judged are listed under departures, which
+  reads as "departs from the brand"; the interface should show them as a separate group using the trait status.
+- **Next:** repeat one sketch several times to see how much scores move, tighten the prompt on traits about
+  material or transparency (judge them only when the drawing shows a clear cue), and try the larger model.

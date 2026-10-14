@@ -57,3 +57,17 @@
 
 - **Decision needed:** the team agrees on the field name `reference_images` and that C sends it.
   If agreed, one person updates `AGENTS.md`, `contracts/models.py` and this file in a single PR.
+
+## Proposal (Person B, 2026-10-14): `coverage` on the compare result
+
+- **What:** add an optional integer `coverage` (0-100, or `null`) to `CompareResult`: the share of the
+  designer's total trait importance that could be judged (traits with status `ok` or `low_confidence`, weighed by
+  importance, divided by the importance of all traits). `scoring.coverage` in `backend/ai_core/scoring.py`
+  is the reference implementation.
+- **Why:** `overall_fit` only describes the traits that could be assessed. A fit of 45 based on 39% of the
+  importance (a pencil sketch with no colour) means something very different from a 45 based on 100%.
+  Every screen should show the two together; computing it once in the backend keeps the three screens
+  from drifting.
+- **Who is affected:** B returns it, C displays it as "based on N% of the importance" (and can suggest what to
+  add when it is low). Optional field, nothing breaks without it. Until agreed, a screen can compute it from
+  `trait_scores` and the package's importance values with the same formula.

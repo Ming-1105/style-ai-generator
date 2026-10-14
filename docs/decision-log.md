@@ -151,3 +151,25 @@
   reads as "departs from the brand"; the interface should show them as a separate group using the trait status.
 - **Next:** repeat one sketch several times to see how much scores move, tighten the prompt on traits about
   material or transparency (judge them only when the drawing shows a clear cue), and try the larger model.
+
+## 2026-10-14 — Stricter compare prompt, and the fit is shown with its coverage (Person B)
+
+- **What:** Two prompt rules were added to `prompts/compare_traits.md`: colour, material, finish and
+  transparency are judged only when the drawing shows a clear cue (otherwise `not_assessable`, and the
+  absence of a feature in a monochrome sketch is never read as proof it is missing); and a different form
+  from the one a trait names (slots or squares instead of round holes) counts as a deviation. A new
+  function `scoring.coverage` gives the share of the total importance that could be judged, and the test
+  page shows it next to the fit and puts "could not be judged" in its own group.
+- **Result (same three sketches, same model, one run each):** overall fit 41 / 50 / 58 became
+  54 / 45 (52 in a later batch) / 46. Transparency went from scores of 5, 10 and 85 to "not assessable" on all
+  three; the slot pattern went from 90 to 30. The fit now rests on 39% of the total importance on every sketch,
+  because the three traits about colour, material and transparency (the heaviest ones) cannot be judged from
+  pencil. Three repeated runs of one sketch gave identical scores (30 / 75, fit 52), but the same trait scored
+  60 in the earlier separate run, so the spread over separate runs is at least 15 points.
+- **Caveat:** the stricter rule may be too strict: one sketch outlines the parts inside its head, which the
+  first prompt read as a see-through enclosure (85) and the second as not assessable. Whether that counts as a
+  clear cue is a judgement the designer should be able to make.
+- **Why:** The fit of 41 to 58 looked comparable between sketches but rested on different, partly unjustified
+  scores. Showing how much of the importance was judged, and refusing to score what a pencil outline cannot
+  show, keeps the number honest. For sketches the tool should tell the designer what to add (colour fills,
+  material notes, see-through parts) so that the heaviest traits can be judged.

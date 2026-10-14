@@ -54,3 +54,7 @@ If you need something from another folder, add a note under that owner's "Needs 
   - Give the designer a control to **hide** (deselect) such departures, so the list can be reduced to
     what they care about. Nothing needs to be sent back to the backend for this.
   - The same trait never produces a direction and does not count towards `overall_fit`.
+  - From B, 2026-10-14: show `overall_fit` together with how much of the importance could be judged ("based on
+    39% of the importance"; formula in `scoring.coverage`, contract proposal in `docs/contract-changes.md`), and show
+    traits with status `not_assessable` as their own group ("could not be judged"), not under "departs from the
+    brand". The test page in `backend/ai_core/devtools/` does both and can serve as the example.

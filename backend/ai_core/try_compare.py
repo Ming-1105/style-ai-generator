@@ -27,6 +27,7 @@ from dotenv import load_dotenv
 
 from backend.ai_core.compare import compare_design
 from backend.ai_core.errors import AiCoreError
+from backend.ai_core.scoring import coverage
 from contracts.models import CompareResult, HouseStylePackage
 
 
@@ -40,7 +41,9 @@ def design_as_url(source: str) -> str:
 
 def print_result(result: CompareResult, package: HouseStylePackage) -> None:
     traits = {t.id: t for t in package.traits}
-    print(f"\nOVERALL FIT: {result.overall_fit}\n")
+    share = coverage(package.traits, result.trait_scores)
+    basis = "" if share is None else f"   (based on {share}% of the total importance)"
+    print(f"\nOVERALL FIT: {result.overall_fit}{basis}\n")
     print(f"{'trait':<7}{'name':<36}{'importance':>10}{'score':>7}  status / note")
     for s in result.trait_scores:
         shown = "-" if s.score is None else s.score

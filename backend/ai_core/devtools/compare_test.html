@@ -113,6 +113,10 @@
       </div>
     </div>
 
+    <h3>Could not be judged</h3>
+    <p class="note" style="margin-top:0;">The AI could not see enough in this design to judge these traits. They are not counted in the fit.</p>
+    <ul id="unjudged"></ul>
+
     <h3>Suggested directions</h3>
     <div id="directions"></div>
   </section>
@@ -182,13 +186,27 @@ function setPackage(data, label) {
   updateRunButton();
 }
 
+// Same formula as scoring.coverage in the backend: the share of the total importance that could be judged.
+function coverageOf(scores) {
+  const total = Object.values(sentImportance).reduce((a, b) => a + b, 0);
+  if (total === 0) return null;
+  const judged = scores
+    .filter((s) => s.score !== null && (s.status === "ok" || s.status === "low_confidence"))
+    .reduce((sum, s) => sum + (sentImportance[s.trait_id] || 0), 0);
+  return Math.round((judged / total) * 100);
+}
+
 function levelOf(score) { return score >= 70 ? "good" : score >= 50 ? "warn" : "bad"; }
 
 function render(result) {
   const names = Object.fromEntries(pkg.traits.map((t) => [t.id, t.name]));
   $("results").hidden = false;
   $("fit").textContent = result.overall_fit === null ? "—" : String(result.overall_fit);
-  $("fit-note").textContent = result.overall_fit === null ? "No trait could be assessed, so there is no overall fit." : "";
+  const judged = result.trait_scores.filter((s) => s.score !== null && (s.status === "ok" || s.status === "low_confidence")).length;
+  const share = coverageOf(result.trait_scores);
+  $("fit-note").textContent = result.overall_fit === null
+    ? "No trait could be assessed, so there is no overall fit."
+    : `Based on ${share}% of the total importance (${judged} of ${result.trait_scores.length} traits could be judged).`;
 
   const scores = $("scores");
   scores.replaceChildren();
@@ -224,7 +242,11 @@ function render(result) {
     }
   };
   fill("matches", result.matches, false);
-  fill("departures", result.departures, true);
+  // Traits the AI could not judge are not "departures from the brand": show them as their own group.
+  const unjudgedIds = new Set(result.trait_scores.filter((s) => s.status === "not_assessable").map((s) => s.trait_id));
+  const isUnjudged = (item) => item.trait_ids.length > 0 && item.trait_ids.every((id) => unjudgedIds.has(id));
+  fill("departures", result.departures.filter((d) => !isUnjudged(d)), true);
+  fill("unjudged", result.departures.filter(isUnjudged), false);
   applyHide();
 
   const dirs = $("directions"); dirs.replaceChildren();

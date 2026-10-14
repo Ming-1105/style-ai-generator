@@ -117,6 +117,8 @@
   .lightbox-caption{color:#fff; font-family:'IBM Plex Mono',monospace; font-size:12px;}
   .lightbox-close{position:absolute; top:16px; right:16px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:var(--radius); padding:6px 12px;}
   .finding-ignored{color:var(--muted); opacity:.6;}
+  .finding-hide{margin-left:8px; padding:1px 7px; font-size:11px;}
+  .hidden-toggle{margin-top:8px; padding:3px 9px; font-size:11px;}
   .thumb-check{position:absolute; top:8px; left:8px; width:16px; height:16px; border:1px solid var(--ink); border-radius:3px; background:var(--surface); font-size:11px; display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:700;}
   .flag-chip{position:absolute; top:6px; right:6px; background:var(--surface); border:1px solid var(--warn); color:var(--warn); font-family:'IBM Plex Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.06em; padding:2px 6px; border-radius:3px;}
   .thumb-caption{font-size:12px; font-weight:500; margin-bottom:3px;}
@@ -386,6 +388,7 @@
             <div>
               <h3 style="border-top:none;padding-top:0;">Departs from the brand</h3>
               <ul id="departs-list"></ul>
+              <button type="button" class="btn-ghost hidden-toggle" id="hidden-toggle" hidden></button>
             </div>
           </div>
 
@@ -440,6 +443,8 @@
     package: null,         // HouseStylePackage, built when the designer locks the style
     design: null,          // { dataUrl, label } — the design sent to /api/compare
     compare: null,         // CompareResult from /api/compare
+    hiddenDeparts: {},     // departure text -> true, for departures the designer hid
+    showHidden: false,
     directionStatus: {}    // direction id → 'accepted' | 'rejected'
   };
 
@@ -653,7 +658,7 @@
       }
       state.candidates = data.candidates;
       // new sources make everything downstream stale
-      state.traits = []; state.package = null; state.compare = null; state.directionStatus = {};
+      state.traits = []; state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
       currentFilter = 'all';
       setActiveFilterChip();
       hideProgress('brand-progress');
@@ -737,7 +742,7 @@
       state.selectedTones = state.toneWords.slice();
       state.colors = data.colors || [];
       state.extractedFrom = images.length;
-      state.package = null; state.compare = null; state.directionStatus = {};
+      state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
       hideProgress('extract-progress');
       advanceToStep(3);
     }).catch(function(err){
@@ -873,7 +878,7 @@
       do_dont: [],   // no endpoint produces these yet — see docs/contract-changes.md
       source_image_ids: includedCandidates().map(function(c){ return c.id; })
     };
-    state.compare = null; state.directionStatus = {};
+    state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
     advanceToStep(4);
   }
 
@@ -1003,7 +1008,7 @@
       return api('/api/compare', {package: state.package, design_image: design.dataUrl});
     }).then(function(data){
       state.compare = data;
-      state.directionStatus = {};
+      state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
       hideProgress('compare-progress');
       advanceToStep(5);
     }).catch(function(err){
@@ -1027,9 +1032,15 @@
       return t && t.importance === 0;
     });
   }
-  function findingItem(f){
+  // Departures of importance-0 traits can be hidden by the designer. Frontend only; keyed by text.
+  function findingItem(f, canHide){
     var ignored = isIgnored(f);
-    return '<li class="' + (ignored ? 'finding-ignored' : '') + '"' + (ignored ? ' title="All linked traits have importance 0"' : '') + '>' + esc(f.text) + '</li>';
+    var hidden = ignored && canHide && state.hiddenDeparts[f.text];
+    var btn = '';
+    if (ignored && canHide){
+      btn = ' <button type="button" class="btn-ghost finding-hide" data-text="' + esc(f.text) + '">' + (hidden ? 'Show' : 'Hide') + '</button>';
+    }
+    return '<li class="' + (ignored ? 'finding-ignored' : '') + '"' + (ignored ? ' title="All linked traits have importance 0"' : '') + '>' + esc(f.text) + btn + '</li>';
   }
   function renderCompare(){
     var r = state.compare;
@@ -1072,10 +1083,24 @@
         '</div>';
     }).join('');
 
-    document.getElementById('matches-list').innerHTML = r.matches.map(findingItem).join('') ||
+    document.getElementById('matches-list').innerHTML = r.matches.map(function(f){ return findingItem(f, false); }).join('') ||
       '<li class="muted">Nothing reported.</li>';
-    document.getElementById('departs-list').innerHTML = r.departures.map(findingItem).join('') ||
-      '<li class="muted">Nothing reported.</li>';
+    var hiddenCount = r.departures.filter(function(f){ return isIgnored(f) && state.hiddenDeparts[f.text]; }).length;
+    var shownDeparts = r.departures.filter(function(f){
+      return state.showHidden || !(isIgnored(f) && state.hiddenDeparts[f.text]);
+    });
+    document.getElementById('departs-list').innerHTML = shownDeparts.map(function(f){ return findingItem(f, true); }).join('') ||
+      '<li class="muted">' + (hiddenCount ? 'All departures hidden.' : 'Nothing reported.') + '</li>';
+    var toggle = document.getElementById('hidden-toggle');
+    toggle.hidden = hiddenCount === 0;
+    toggle.textContent = state.showHidden ? 'Hide the ' + hiddenCount + ' hidden again' : hiddenCount + ' hidden — show';
+    document.querySelectorAll('#departs-list .finding-hide').forEach(function(b){
+      b.addEventListener('click', function(){
+        var t = this.dataset.text;
+        state.hiddenDeparts[t] = !state.hiddenDeparts[t];
+        renderCompare();
+      });
+    });
 
     document.getElementById('directions-grid').innerHTML = r.directions.map(function(dir){
       var status = state.directionStatus[dir.id] || 'none';
@@ -1132,6 +1157,10 @@
     });
   }
   function init(){
+    document.getElementById('hidden-toggle').addEventListener('click', function(){
+      state.showHidden = !state.showHidden;
+      renderCompare();
+    });
     renderStepRail();
     showPanel(currentStep);
 

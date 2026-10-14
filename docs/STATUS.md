@@ -50,10 +50,13 @@ If you need something from another folder, add a note under that owner's "Needs 
   an empty screen. Honest display: `confidence: null` shows "not rated", and the overall fit shows a
   note when traits were left out (`not_assessable`) or scored with low confidence. Broken images hide
   instead of showing the browser's broken icon.
-- **In progress:** next is milestone 3 (hide control for greyed-out departures, per B's request).
+- **Done (milestone 3):** greyed-out departures (all linked traits importance 0) have a Hide button;
+  hidden ones leave the list and a "N hidden — show" toggle brings them back. Frontend only, nothing
+  sent to the backend. Resets when sources, DNA, package or compare change.
+- **In progress:** next is milestone 4 (design upload to replace the sample sketch).
 - **Blocked:**
 - **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.
-- **Request from B** (agreed with the designer on 2026-10-07; greying done, hide control still to do) —
+- **Request from B** (agreed with the designer on 2026-10-07; greying and hide control done) —
   departures of traits whose importance is 0:
   - `/api/compare` keeps listing them. Each departure has `trait_ids`; look those up in the package
     you sent. If every linked trait has `importance` 0, show the departure **greyed out**.

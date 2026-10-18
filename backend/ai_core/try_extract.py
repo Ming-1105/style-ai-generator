@@ -96,6 +96,7 @@ def main(argv: list[str]) -> None:
     parser.add_argument("--keywords", default="", help="comma-separated")
     parser.add_argument("--values", default="")
     parser.add_argument("--model", help="overrides VISION_MODEL from .env for this run")
+    parser.add_argument("--detail", choices=["low", "medium", "high"], help="image detail for this run (VISION_IMAGE_DETAIL)")
     parser.add_argument("--save-package", metavar="FILE",
                         help="write the result as a House Style Package JSON, for try_compare "
                              "(keep it in local_test_images/: it contains the brand name)")
@@ -108,6 +109,8 @@ def main(argv: list[str]) -> None:
     load_dotenv(".env")
     if args.model:
         os.environ["VISION_MODEL"] = args.model
+    if args.detail:
+        os.environ["VISION_IMAGE_DETAIL"] = args.detail
     logging.basicConfig(level=logging.WARNING, format="  note: %(message)s")
 
     missing = [s for s in args.images if not s.startswith("http") and not Path(s).is_file()]

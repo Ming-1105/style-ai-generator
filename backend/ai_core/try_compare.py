@@ -83,12 +83,15 @@ def main(argv: list[str]) -> None:
     parser.add_argument("design", help="design image: file path or web address")
     parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--model")
+    parser.add_argument("--detail", choices=["low", "medium", "high"], help="image detail for this run (VISION_IMAGE_DETAIL)")
     parser.add_argument("--importance", nargs="*", default=[], metavar="TRAIT=VALUE")
     args = parser.parse_args(argv)
 
     load_dotenv(".env")
     if args.model:
         os.environ["VISION_MODEL"] = args.model
+    if args.detail:
+        os.environ["VISION_IMAGE_DETAIL"] = args.detail
     logging.basicConfig(level=logging.WARNING, format="  note: %(message)s")
 
     package = HouseStylePackage.model_validate_json(Path(args.package).read_text(encoding="utf-8"))

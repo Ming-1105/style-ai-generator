@@ -54,6 +54,27 @@ class RequestTests(unittest.TestCase):
         self.assertIn("gemini-test:generateContent", post.call_args.kwargs["url"])
 
 
+class ImageDetailTests(unittest.TestCase):
+    def config_sent(self, env):
+        with patch.dict(os.environ, {**ENV, **env}), patch("httpx.post", return_value=answer("{}")) as post:
+            provider_gemini.ask("p", IMAGES)
+        return post.call_args.kwargs["json"]["generationConfig"]
+
+    def test_unset_leaves_googles_default(self):
+        self.assertNotIn("mediaResolution", self.config_sent({"VISION_IMAGE_DETAIL": ""}))
+
+    def test_levels_are_sent_as_media_resolution(self):
+        for level in ("low", "medium", "high"):
+            config = self.config_sent({"VISION_IMAGE_DETAIL": level.upper()})  # case does not matter
+            self.assertEqual(config["mediaResolution"], f"MEDIA_RESOLUTION_{level.upper()}")
+
+    def test_an_unknown_level_is_refused_before_any_request(self):
+        with patch.dict(os.environ, {**ENV, "VISION_IMAGE_DETAIL": "ultra"}), patch("httpx.post") as post,                 self.assertRaises(AiCoreError) as raised:
+            provider_gemini.ask("p", IMAGES)
+        self.assertEqual(raised.exception.code, "vision_not_configured")
+        post.assert_not_called()
+
+
 class RetryTests(unittest.TestCase):
     def ask_with(self, *responses):
         with patch.dict(os.environ, ENV), patch("time.sleep") as sleep, \

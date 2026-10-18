@@ -16,6 +16,8 @@ from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import LoadedImage
 
 DEFAULT_MODEL = "gemini-3.8-flash"  # 2.5 models are closed to new accounts
+# VISION_IMAGE_DETAIL: how many tokens (and how much detail) each image gets. Unset = Google's default.
+IMAGE_DETAIL = {"low": "MEDIA_RESOLUTION_LOW", "medium": "MEDIA_RESOLUTION_MEDIUM", "high": "MEDIA_RESOLUTION_HIGH"}
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 TIMEOUT_SECONDS = 120
 RETRY_DELAYS = (3, 8)  # seconds to wait before the 2nd and 3rd attempt
@@ -31,12 +33,21 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
             "data": base64.b64encode(image.data).decode("ascii"),
         }})
 
+    generation_config = {"responseMimeType": "application/json", "temperature": 0.2}
+    detail = os.getenv("VISION_IMAGE_DETAIL", "").strip().lower()
+    if detail:
+        if detail not in IMAGE_DETAIL:
+            raise AiCoreError("vision_not_configured",
+                              f"VISION_IMAGE_DETAIL is \"{detail}\" but must be low, medium or high (or empty).",
+                              status=503)
+        generation_config["mediaResolution"] = IMAGE_DETAIL[detail]
+
     request = {
         "url": ENDPOINT.format(model=model),
         "headers": {"x-goog-api-key": os.getenv("VISION_API_KEY", "").strip()},  # never in the URL
         "json": {
             "contents": [{"role": "user", "parts": parts}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2},
+            "generationConfig": generation_config,
         },
         "timeout": TIMEOUT_SECONDS,
     }

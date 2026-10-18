@@ -127,6 +127,7 @@ class ExtractResponse(BaseModel):
 class CompareRequest(BaseModel):
     package: HouseStylePackage
     design_image: str  # data URL or https URL
+    reference_images: list[ImageCandidate] = []  # the images cited as evidence by the traits (optional)
 
 
 # ---------- Errors ----------

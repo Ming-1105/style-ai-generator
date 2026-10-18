@@ -46,8 +46,11 @@ SAMPLE = {"view": "front view", "traits": [
 ]}
 
 
+NO_DIRECTIONS = {"directions": []}  # the second model request (directions): nothing to suggest
+
+
 def run(answer, pkg=None, load=fake_load):
-    model = FakeModel(answer)
+    model = FakeModel(answer, NO_DIRECTIONS)
     return compare_design(pkg or package(), DESIGN, ask=model, load=load), model
 
 
@@ -79,7 +82,7 @@ class ResultFromJudgementsTests(unittest.TestCase):
             self.assertEqual(bool(result.matches), listed == "matches", score)
             self.assertEqual(bool(result.departures), listed == "departures", score)
 
-    def test_directions_stay_empty_until_milestone_5(self):
+    def test_no_directions_when_the_model_suggests_none(self):
         self.assertEqual(run(SAMPLE)[0].directions, [])
 
     def test_a_signature_trait_scoring_low_is_listed_once(self):
@@ -151,13 +154,13 @@ class WhatIsSentTests(unittest.TestCase):
 
 class HonestFailureTests(unittest.TestCase):
     def test_retries_once_on_invalid_json(self):
-        model = FakeModel("Sure! Scores below.", SAMPLE)
+        model = FakeModel("Sure! Scores below.", SAMPLE, NO_DIRECTIONS)
         result = compare_design(package(), DESIGN, ask=model, load=fake_load)
         self.assertEqual(result.overall_fit, 61)
-        self.assertEqual(len(model.calls), 2)
+        self.assertEqual(len(model.calls), 3)  # unreadable answer, the retry, then the directions
 
     def test_retries_once_when_a_score_is_out_of_range(self):
-        model = FakeModel({"traits": [judgement("tr_01", 150)]}, SAMPLE)
+        model = FakeModel({"traits": [judgement("tr_01", 150)]}, SAMPLE, NO_DIRECTIONS)
         self.assertEqual(compare_design(package(), DESIGN, ask=model, load=fake_load).overall_fit, 61)
 
     def test_clear_error_after_two_unusable_answers(self):
@@ -197,7 +200,7 @@ class EndpointTests(unittest.TestCase):
         self.assertEqual(response.json()["error"]["code"], "vision_not_configured")
 
     def test_live_mode_runs_the_pipeline_with_a_registered_provider(self):
-        model = FakeModel(SAMPLE)
+        model = FakeModel(SAMPLE, NO_DIRECTIONS)
         env = {"MOCK_MODE": "0", "VISION_PROVIDER": "fake", "VISION_API_KEY": "test"}
         with patch.dict(providers.PROVIDERS, {"fake": model}), \
                 patch("backend.ai_core.compare.load_image", fake_load):

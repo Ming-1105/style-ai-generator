@@ -12,6 +12,7 @@ from typing import Callable, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from backend.ai_core.directions import generate_directions
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
 from backend.ai_core.model_call import ask_and_parse, read_json_object
@@ -75,8 +76,14 @@ def compare_design(
 
     scores = to_trait_scores(package.traits, answer)
     matches, departures = findings_from(package.traits, scores)
-    # Directions come from the top gaps in milestone 5; until then none are made up.
-    return build_compare_result(package.traits, scores, matches, departures, directions=[])
+    # A second request words concrete directions for the biggest gaps. If it fails, the scores are
+    # still returned: the designer loses the suggestions, not the whole comparison.
+    try:
+        directions = generate_directions(ask, package.brand.name, design, package.traits, scores)
+    except AiCoreError as problem:
+        log.warning("No directions this time: %s", problem.message)
+        directions = []
+    return build_compare_result(package.traits, scores, matches, departures, directions)
 
 
 def build_prompt(package: HouseStylePackage, design: LoadedImage) -> str:

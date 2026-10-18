@@ -173,3 +173,44 @@
   scores. Showing how much of the importance was judged, and refusing to score what a pencil outline cannot
   show, keeps the number honest. For sketches the tool should tell the designer what to add (colour fills,
   material notes, see-through parts) so that the heaviest traits can be judged.
+
+## 2026-10-18 — Directions: a second request, chosen by code, worded by the model (Person B)
+
+- **What:** After the per-trait judgements, code picks the traits with the biggest gap (importance x (100 - score);
+  importance 0 and traits that could not be judged never count) and a second model request words up to 3
+  concrete directions for them, each tied to trait ids. The model sees each trait's name, description, score and
+  observation, never the importance. Code drops directions that name no trait we sent, orders them by gap and
+  numbers them. If the directions request fails, the scores are still returned (with no directions).
+- **Why:** The ranking stays traceable to the designer's own importance values, and a failed suggestion step does
+  not throw away a successful comparison. It costs one extra request per comparison. A direction is only ever
+  tied to a trait that was actually judged, so a pencil sketch gets no direction about colour it could not be
+  judged on.
+- **Seen on real sketches:** two or three concrete, drawable suggestions per sketch (for example "replace the
+  slots with a dense pattern of small round holes"); none for traits that were not assessable.
+
+## 2026-10-18 — Image detail: low gives the same traits as high on this test (Person B)
+
+- **What:** Added the optional `VISION_IMAGE_DETAIL` setting (low, medium, high; sent to Gemini as mediaResolution).
+  Ran extraction on the same 12 product screenshots (one real brand, kept local) at each level, twice each, and
+  matched the traits by the images they cite. The five core traits came back in both runs at low detail, as they
+  did at high; the only trait that differed between levels was a stray one that appeared twice at medium and
+  never at high or low. Every run found 5 traits and took 5 to 7 seconds.
+- **Why it matters:** low detail costs about a quarter of the image tokens (264 instead of 1,100 per image in an
+  earlier measurement), so repeated runs and the reference images in the compare step get cheaper without an
+  obvious loss for this kind of material. Caveat: one brand, one image set, two runs per level, and fine
+  detail (very small holes) may need medium or high on other material. The default stays unset (Google's default).
+
+## 2026-10-18 — Reference images in the compare step (Person B)
+
+- **What:** With the agreed `reference_images` field the compare request carries the images the traits cite. Per
+  trait up to 3 of its evidence images (most relevant first), at most 12 distinct per request, are downloaded
+  into memory and shown to the model next to the design; the model judges the image labelled "design" only.
+  A reference that cannot be downloaded is skipped, and without the field the step works as before.
+- **Result on three sketches (single runs, same model):** scores moved by 5 to 15 points compared with the run
+  without references (toaster fit 52 became 64; fly swatter 54 became 52), which is within the run-to-run
+  noise we measured earlier, so there is no evidence yet that the references make the scores more accurate.
+  The honest gain is inspectability: the same pictures the designer sees as evidence are the ones the AI used.
+- **A warning sign:** on the third sketch the perforation trait became "not assessable", leaving only one judged
+  trait, and the overall fit showed 92 based on 19% of the total importance. A high fit resting on a small share
+  of the importance is misleading, so screens should show a warning when coverage is low (for example below 50%)
+  and tell the designer what to add.

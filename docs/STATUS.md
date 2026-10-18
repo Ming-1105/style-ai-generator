@@ -20,27 +20,27 @@ If you need something from another folder, add a note under that owner's "Needs 
 ## B — AI core (`/backend/ai_core/`)
 
 - **Done:**
-  - Milestone 1 (merged): scoring rules (`scoring.py`) — overall fit, gap ranking, signature-trait rule.
-  - Milestone 2 (merged): trait extraction behind `MOCK_MODE=0` (`extract.py`, prompt in
-    `prompts/extract_traits.md`), Gemini connection (`provider_gemini.py`, `VISION_PROVIDER=gemini`).
-    Tried on real images; see the decision log for how repeatable it is.
-- **In progress:** Milestone 3 (branch `ai-core/compare-live`): design comparison behind `MOCK_MODE=0`
-  (`compare.py`, prompt in `prompts/compare_traits.md`). Built and tested with a fake model; not yet
-  tried on a real design. For now the model sees the design image and the trait descriptions only.
-  Live mode returns no directions until milestone 5.
-- **Blocked:** reference images in compare wait for the contract change in `docs/contract-changes.md`
-  ("send the reference images with `POST /api/compare`", agreed by the team). Someone needs to update
-  `AGENTS.md` and `contracts/models.py` in one PR; B then reads the new field.
+  - Milestone 1 (merged): scoring rules (`scoring.py`): overall fit, gap ranking, signature-trait rule, coverage.
+  - Milestone 2 (merged): trait extraction behind `MOCK_MODE=0`, Gemini connection (`VISION_PROVIDER=gemini`).
+  - Milestone 3 (merged): design comparison behind `MOCK_MODE=0` (`compare.py`, prompt `prompts/compare_traits.md`).
+  - Milestone 5 (branch `ai-core/directions`): up to 3 suggested directions from the biggest gaps (`directions.py`).
+  - `VISION_IMAGE_DETAIL` setting (branch `ai-core/image-detail`): fewer tokens per image; low detail matched high on
+    our test.
+  - Reference images in compare (branch `ai-core/references`): reads the new optional `reference_images` field.
+  - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
+- **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
+  `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `docs/timeline`,
+  `chore/ignore-loose-notes`.
+- **In progress:** nothing. Milestone 4 (image embeddings) needs a large new package and is skipped unless the
+  team approves the dependency.
+- **Blocked:** nothing on my side. A real end-to-end test needs Person A's search merged and Person C's screen connected.
 - **Needs from others:**
-  - C: when `reference_images` is in the contract, send the candidates behind the traits' evidence ids
-    with `/api/compare`. See also the note on importance-0 departures (greyed out + hide option).
+  - C: send `reference_images` (the candidates cited by the traits' `evidence_image_ids`) with `/api/compare`; show
+    `overall_fit` together with how much of the importance could be judged and warn when that share is low; show traits
+    that could not be judged as their own group; greyed-out/hide option for importance-0 departures (see below).
   - A: `url` on each candidate must point at the image file itself, not the page it was found on.
-- **Test page:** with the server running, open `http://localhost:8000/api/dev/compare` to try the compare step
-  with your own package and design image (scores as bars, matches/departures, importance sliders, greyed-out
-  departures for importance 0 with a hide option). Developer tool in `backend/ai_core/devtools/`, not the app's
-  real screen; C can copy the idea for the real compare screen.
-- **Try it yourself:** `python -m backend.ai_core.try_extract` and `python -m backend.ai_core.try_compare`
-  (read the top of each file). Tests: `python -m unittest discover -s backend/ai_core/tests -t .`
+- **Try it yourself:** `python -m backend.ai_core.try_extract` and `python -m backend.ai_core.try_compare` (read the top
+  of each file; `--detail`, `--runs`, `--references` options). Tests: `python -m unittest discover -s backend/ai_core/tests -t .`
 
 ## C — Interface (`/frontend/`)
 

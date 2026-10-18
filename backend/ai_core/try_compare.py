@@ -54,6 +54,11 @@ def print_result(result: CompareResult, package: HouseStylePackage) -> None:
     print("\nDEPARTURES")
     for d in result.departures:
         print(f"  - {d.text}  {d.trait_ids}")
+    print("\nSUGGESTED DIRECTIONS")
+    for d in result.directions:
+        print(f"  {d.id}. {d.title}  {d.trait_ids}\n       {d.rationale}")
+    if not result.directions:
+        print("  (none)")
     print()
 
 

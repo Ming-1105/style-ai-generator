@@ -86,6 +86,11 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
                           f"key, that the model \"{model}\" exists (VISION_MODEL), and that this model accepts "
                           "VISION_THINKING and VISION_IMAGE_DETAIL (set them to default to use the model's own settings).",
                           status=502)
+    if response.status_code == 402:
+        raise AiCoreError("vision_no_credit",
+                          "Google says the prepaid credit for this project is used up or was never added. Buy credit at "
+                          "https://aistudio.google.com/billing, or put a key from a project that is still on the free "
+                          "tier in VISION_API_KEY.", status=502)
     if response.status_code == 404:
         raise AiCoreError("vision_model_unavailable",
                           f"Gemini does not offer the model \"{model}\" to this account — "

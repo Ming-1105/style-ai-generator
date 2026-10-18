@@ -31,6 +31,17 @@ class DevToolsTests(unittest.TestCase):
     def test_sample_package_is_the_fixture(self):
         self.assertEqual(self.get("/api/dev/sample-package").json(), load("house_style_package.json"))
 
+    def test_pipeline_page_is_served(self):
+        response = self.get("/api/dev/pipeline")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers["content-type"])
+        self.assertIn("Pipeline test", response.text)
+
+    def test_usage_reports_a_summary_line(self):
+        response = self.get("/api/dev/usage")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.json()["summary"], str)
+
     def test_dev_routes_are_not_listed_in_the_api_docs(self):
         paths = TestClient(app).get("/openapi.json").json()["paths"]
         self.assertFalse([p for p in paths if p.startswith("/api/dev")])

@@ -32,7 +32,7 @@ If you need something from another folder, add a note under that owner's "Needs 
     on Flash-Lite.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
-  `ai-core/cost-controls`, `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `docs/timeline`,
+  `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `ai-core/cost-controls`, `docs/timeline`,
   `chore/ignore-loose-notes`.
 - **In progress:** nothing. Milestone 4 (image embeddings) needs a large new package and is skipped unless the
   team approves the dependency.

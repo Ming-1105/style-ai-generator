@@ -10,6 +10,11 @@ If you need something from another folder, add a note under that owner's "Needs 
 - **Note:** `frontend/index.html` is still the static mockup with its data hard-coded; it does not
   call the API yet.
 
+- **Timeline (everyone):** each of us keeps a CSV of our own events in `docs/timeline/` (`A.csv`, `B.csv`, `C.csv`,
+  same format, see `docs/timeline/FORMAT.md`). `docs/timeline/PROMPT.md` is a prompt to give your coding agent to
+  write yours after the fact. `python -m http.server 8080 --directory docs/timeline` shows the master flowchart.
+  B.csv is done as the example; A and C still to add.
+
 ## A — Sourcing (`/backend/sourcing/`)
 
 - **Done:**

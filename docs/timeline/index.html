@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project timeline</title>
+<style>
+  :root{
+    --bg:#EEF0EC; --surface:#FAFBF8; --ink:#1B2024; --muted:#5D666C; --line:#D3D8D2; --lane:#F3F5F1;
+    --milestone:#2447C4; --milestone-soft:#DDE4FA;
+    --decision:#6B4FBB;  --decision-soft:#E8E2F7;
+    --problem:#B0432F;   --problem-soft:#F6E1DC;
+    --experiment:#B8730F; --experiment-soft:#F7EBD3;
+    --radius:5px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#14181B; --surface:#1D2226; --ink:#E7EAE6; --muted:#98A1A6; --line:#30373C; --lane:#191E21;
+      --milestone:#7E9BFF; --milestone-soft:#22304F;
+      --decision:#B7A2F5;  --decision-soft:#2D2742;
+      --problem:#E07A63;   --problem-soft:#42251F;
+      --experiment:#E0A247; --experiment-soft:#3E3016;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .mono{font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums;}
+  .muted{color:var(--muted);}
+  header{padding:18px 24px 12px; background:var(--surface); border-bottom:1px solid var(--line);}
+  h1{margin:0 0 2px; font-size:20px;}
+  .sub{max-width:760px;}
+  main{padding:16px 24px 60px;}
+  .bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-bottom:12px;}
+  .chip{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:20px; padding:3px 10px; background:var(--surface); font-size:12px;}
+  .chip.missing{border-style:dashed; color:var(--muted);}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--muted); display:inline-block;}
+  .live .dot{background:#2E7D4F; animation:pulse 2s infinite;}
+  @keyframes pulse{50%{opacity:.3;}}
+  @media (prefers-reduced-motion: reduce){ .live .dot{animation:none;} }
+  label.f{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; cursor:pointer;}
+  input[type=search]{font:inherit; padding:5px 9px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); color:var(--ink); width:200px;}
+  button{font:inherit; font-size:12.5px; cursor:pointer; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:var(--radius); padding:5px 11px;}
+  :focus-visible{outline:2px solid var(--milestone); outline-offset:2px;}
+  .legend{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:12px; color:var(--muted); margin:2px 0 10px;}
+  .legend svg{vertical-align:middle; margin-right:5px;}
+  .chart{display:flex; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); overflow:hidden;}
+  .lane-labels{flex:none; width:96px; border-right:1px solid var(--line);}
+  .lane-label{display:flex; flex-direction:column; justify-content:center; padding:0 10px; border-bottom:1px solid var(--line); font-size:12px;}
+  .lane-label b{font-size:15px;}
+  .scroll{overflow-x:auto; flex:1;}
+  svg text{font:11.5px system-ui,-apple-system,"Segoe UI",sans-serif; fill:var(--ink);}
+  svg .day{font:10px ui-monospace,Consolas,monospace; fill:var(--muted); text-transform:uppercase;}
+  svg .lane-bg{fill:var(--lane);}
+  svg .edge{fill:none; stroke:var(--muted); stroke-width:1.4; opacity:.55;}
+  svg .edge.dep{stroke-dasharray:5 4; stroke:var(--ink); opacity:.6;}
+  svg .edge.hot{stroke:var(--milestone); stroke-width:2.4; opacity:1;}
+  svg .node{cursor:pointer;}
+  svg .node .shape{stroke-width:1.6;}
+  svg .node.milestone .shape{fill:var(--milestone-soft); stroke:var(--milestone);}
+  svg .node.decision .shape{fill:var(--decision-soft); stroke:var(--decision);}
+  svg .node.problem .shape{fill:var(--problem-soft); stroke:var(--problem);}
+  svg .node.experiment .shape{fill:var(--experiment-soft); stroke:var(--experiment); stroke-dasharray:5 3;}
+  svg .node .bar-mark{fill:var(--problem);}
+  svg .node.selected .shape{stroke-width:3.4;}
+  svg .node.dim{opacity:.18;}
+  svg .node:focus-visible .shape{stroke-width:3.4;}
+  svg .node .time{font:9.5px ui-monospace,Consolas,monospace; fill:var(--muted);}
+  .detail{margin-top:14px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:14px 16px; min-height:90px;}
+  .detail h2{margin:0 0 4px; font-size:16px;}
+  .tag{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; border:1px solid currentColor; border-radius:3px; padding:1px 6px; margin-right:6px;}
+  .tag.milestone{color:var(--milestone);} .tag.decision{color:var(--decision);} .tag.problem{color:var(--problem);} .tag.experiment{color:var(--experiment);}
+  .detail .lbl{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-top:10px;}
+  .detail p{margin:2px 0; max-width:820px;}
+  .detail a, .detail button.link{color:var(--milestone);}
+  button.link{border:none; background:none; padding:0 8px 0 0; text-decoration:underline; font-size:inherit;}
+  h3{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:24px 0 8px;}
+  table{width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); font-size:13px;}
+  th,td{text-align:left; padding:6px 9px; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  tbody tr{cursor:pointer;} tbody tr:hover{background:var(--lane);} tbody tr.selected{background:var(--lane); outline:2px solid var(--milestone); outline-offset:-2px;}
+  .warn{border:1px solid var(--experiment); color:var(--experiment); border-radius:var(--radius); padding:8px 12px; margin:10px 0; font-size:12.5px;}
+  .warn ul{margin:4px 0 0; padding-left:18px;}
+  .fatal{border:1px solid var(--problem); color:var(--problem); border-radius:var(--radius); padding:12px 14px; margin:14px 0;}
+  code{font-family:ui-monospace,Consolas,monospace; background:var(--lane); padding:1px 5px; border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Project timeline</h1>
+  <p class="sub muted" style="margin:0;">How we built the project, who did what, and why. Each person keeps their own file (<code>A.csv</code>, <code>B.csv</code>, <code>C.csv</code>); this page merges them into one master flowchart and refreshes itself when a file changes. Click any box for details.</p>
+</header>
+
+<main>
+  <div id="fatal" class="fatal" hidden></div>
+
+  <div class="bar">
+    <span id="live" class="chip live"><span class="dot"></span><span id="live-text">loading…</span></span>
+    <span id="files" class="bar" style="margin:0; gap:6px;"></span>
+  </div>
+
+  <div class="bar" id="filters">
+    <span class="muted" style="font-size:12px;">Show:</span>
+    <span id="type-filters" class="bar" style="margin:0; gap:4px 12px;"></span>
+    <input id="search" type="search" placeholder="Search the timeline" aria-label="Search the timeline">
+    <button id="download" type="button">Download master.csv</button>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <div id="problems" class="warn" hidden></div>
+
+  <div class="chart">
+    <div class="lane-labels" id="lane-labels"></div>
+    <div class="scroll"><svg id="chart" role="img" aria-label="Project flowchart"></svg></div>
+  </div>
+
+  <div class="detail" id="detail"><span class="muted">Click a box in the flowchart (or a row below) to read what happened and why.</span></div>
+
+  <h3>All events, in order</h3>
+  <table>
+    <thead><tr><th>When</th><th>Who</th><th>Type</th><th>Title</th></tr></thead>
+    <tbody id="table"></tbody>
+  </table>
+</main>
+
+<script>
+"use strict";
+const PEOPLE = ["A", "B", "C"];
+const ROLES = { A: "Sourcing", B: "AI core", C: "Interface" };
+const TYPES = ["milestone", "decision", "problem", "experiment"];
+const TYPE_LABEL = { milestone: "Milestone", decision: "Decision", problem: "Problem", experiment: "Experiment" };
+const COLUMNS = ["id", "datetime", "person", "type", "title", "what", "why", "links", "after"];
+const POLL_MS = 4000;
+
+const NODE_W = 176, NODE_H = 74, PITCH = 200, LANE_H = 116, TOP = 34, LEFT = 18;
+const NS = "http://www.w3.org/2000/svg";
+
+const $ = (id) => document.getElementById(id);
+let raw = {};          // letter -> csv text (or null when the file does not exist)
+let events = [];       // merged, sorted
+let problems = [];
+let selected = null;
+let hiddenTypes = new Set();
+let query = "";
+
+// ---------- small helpers (all text goes in via textContent, never innerHTML) ----------
+function h(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
+function s(tag, attrs, text) {
+  const n = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) n.setAttribute(k, v);
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+function parseCsv(text) {
+  const rows = []; let row = [], field = "", quoted = false;
+  text = text.replace(/^﻿/, "");
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else quoted = false; }
+      else field += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(field); rows.push(row); row = []; field = ""; }
+    else field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows.filter((r) => r.some((x) => x.trim() !== ""));
+}
+
+function toCsv(rows) {
+  const cell = (v) => /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  return rows.map((r) => r.map(cell).join(",")).join("\n") + "\n";
+}
+
+function wrap(text, maxChars, maxLines) {
+  const lines = []; let cur = "";
+  for (const word of text.split(/\s+/)) {
+    const next = cur ? cur + " " + word : word;
+    if (next.length <= maxChars || !cur) cur = next; else { lines.push(cur); cur = word; }
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > maxLines) {
+    lines.length = maxLines;
+    lines[maxLines - 1] = lines[maxLines - 1].slice(0, maxChars - 1).replace(/\s+\S*$/, "") + "…";
+  }
+  return lines;
+}
+
+// ---------- loading and merging ----------
+async function fetchAll() {
+  const result = {};
+  for (const letter of PEOPLE) {
+    const response = await fetch(`${letter}.csv?ts=${Date.now()}`, { cache: "no-store" });
+    result[letter] = response.ok ? await response.text() : null;
+  }
+  return result;
+}
+
+function build(rawFiles) {
+  const list = [], issues = [], seen = new Map();
+  for (const letter of PEOPLE) {
+    const text = rawFiles[letter];
+    if (text === null) continue;
+    const rows = parseCsv(text);
+    if (!rows.length || rows[0].map((x) => x.trim()).join(",") !== COLUMNS.join(",")) {
+      issues.push(`${letter}.csv: the first line must be exactly ${COLUMNS.join(",")}`); continue;
+    }
+    rows.slice(1).forEach((cells, index) => {
+      const where = `${letter}.csv row ${index + 2}`;
+      if (cells.length !== COLUMNS.length) { issues.push(`${where}: ${cells.length} columns instead of ${COLUMNS.length}`); return; }
+      const e = Object.fromEntries(COLUMNS.map((c, i) => [c, cells[i].trim()]));
+      e.file = letter; e.order = list.length;
+      if (!/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}$/.test(e.datetime)) issues.push(`${where}: datetime "${e.datetime}" is not YYYY-MM-DD HH:MM`);
+      if (!PEOPLE.includes(e.person)) issues.push(`${where}: person "${e.person}" is not A, B or C`);
+      else if (e.person !== letter) issues.push(`${where}: person ${e.person} does not match the file ${letter}.csv`);
+      if (!TYPES.includes(e.type)) issues.push(`${where}: type "${e.type}" is not one of ${TYPES.join(", ")}`);
+      if (!e.id || !e.title) { issues.push(`${where}: id and title are required`); return; }
+      if (seen.has(e.id)) { issues.push(`${where}: id ${e.id} is already used in ${seen.get(e.id)}.csv`); return; }
+      seen.set(e.id, letter);
+      e.datetime = e.datetime.replace("T", " ");
+      e.after = e.after ? e.after.split(";").map((x) => x.trim()).filter(Boolean) : [];
+      e.links = e.links ? e.links.split(";").map((x) => x.trim()).filter(Boolean) : [];
+      list.push(e);
+    });
+  }
+  for (const e of list) {
+    for (const ref of e.after) if (!seen.has(ref)) {
+      const owner = ref.charAt(0);
+      if (!(PEOPLE.includes(owner) && rawFiles[owner] === null)) issues.push(`${e.id}: "after" points to ${ref}, which does not exist`);
+    }
+  }
+  list.sort((a, b) => a.datetime.localeCompare(b.datetime) || a.order - b.order);
+  return { list, issues };
+}
+
+// ---------- layout: columns follow time order, lanes are people ----------
+function layout(visible) {
+  const lanes = PEOPLE.filter((p) => raw[p] !== null);
+  const laneY = Object.fromEntries(lanes.map((p, i) => [p, TOP + i * LANE_H]));
+  const col = new Map(), laneLast = {};
+  let prevCol = 0;
+  for (const e of visible) {
+    let c = Math.max(prevCol, (laneLast[e.person] ?? -1) + 1);
+    for (const ref of e.after) if (col.has(ref)) c = Math.max(c, col.get(ref) + 1);
+    col.set(e.id, c); laneLast[e.person] = c; prevCol = c;
+  }
+  const pos = new Map(visible.map((e) => [e.id, { x: LEFT + col.get(e.id) * PITCH, y: laneY[e.person] + (LANE_H - NODE_H) / 2, col: col.get(e.id) }]));
+  const columns = Math.max(0, ...[...col.values()]) + 1;
+  return { lanes, laneY, pos, width: LEFT * 2 + columns * PITCH, height: TOP + lanes.length * LANE_H + 8 };
+}
+
+function nodeShape(e) {
+  const w = NODE_W, hgt = NODE_H;
+  if (e.type === "decision") {
+    const t = 16; // hexagon: the usual flowchart shape for a choice
+    return s("polygon", { class: "shape", points: `${t},0 ${w - t},0 ${w},${hgt / 2} ${w - t},${hgt} ${t},${hgt} 0,${hgt / 2}` });
+  }
+  return s("rect", { class: "shape", width: w, height: hgt, rx: e.type === "milestone" ? 10 : 4 });
+}
+
+function drawChart() {
+  const svg = $("chart");
+  svg.replaceChildren();
+  const q = query.trim().toLowerCase();
+  const visible = events.filter((e) => !hiddenTypes.has(e.type));
+  const L = layout(visible);
+  svg.setAttribute("width", Math.max(L.width, 300));
+  svg.setAttribute("height", L.height);
+
+  const defs = s("defs");
+  const marker = s("marker", { id: "arrow", viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" });
+  marker.append(s("path", { d: "M0,0 L10,5 L0,10 z", fill: "currentColor", style: "color:var(--muted)" }));
+  defs.append(marker); svg.append(defs);
+
+  L.lanes.forEach((p, i) => svg.append(s("rect", { class: "lane-bg", x: 0, y: L.laneY[p], width: Math.max(L.width, 300), height: LANE_H, opacity: i % 2 ? 0 : 1 })));
+
+  // day labels above the first column of each new day
+  let lastDay = "";
+  const firstOfCol = new Map();
+  for (const e of visible) { const c = L.pos.get(e.id).col; if (!firstOfCol.has(c)) firstOfCol.set(c, e); }
+  for (const [c, e] of [...firstOfCol].sort((a, b) => a[0] - b[0])) {
+    const day = e.datetime.slice(0, 10);
+    if (day !== lastDay) { svg.append(s("text", { class: "day", x: LEFT + c * PITCH, y: 20 }, day)); lastDay = day; }
+  }
+
+  // edges: faint line along each person's lane, dashed curves for "after" links
+  const edgeEls = [];
+  const edge = (from, to, dep, ids) => {
+    const a = L.pos.get(from.id), b = L.pos.get(to.id);
+    let d;
+    if (a.col < b.col) {
+      const x1 = a.x + NODE_W, y1 = a.y + NODE_H / 2, x2 = b.x, y2 = b.y + NODE_H / 2, dx = Math.max(24, (x2 - x1) / 2);
+      d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+    } else {
+      const x1 = a.x + NODE_W / 2, y1 = a.y + (b.y > a.y ? NODE_H : 0), x2 = b.x + NODE_W / 2, y2 = b.y + (b.y > a.y ? 0 : NODE_H);
+      d = `M${x1},${y1} C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2}`;
+    }
+    const path = s("path", { class: "edge" + (dep ? " dep" : ""), d, "marker-end": "url(#arrow)" });
+    path.dataset.ids = ids.join(" ");
+    svg.append(path); edgeEls.push(path);
+  };
+  const lastInLane = {};
+  for (const e of visible) {
+    const prev = lastInLane[e.person];
+    if (prev && !e.after.includes(prev.id)) edge(prev, e, false, [prev.id, e.id]);
+    lastInLane[e.person] = e;
+    for (const ref of e.after) { const from = visible.find((x) => x.id === ref); if (from) edge(from, e, from.person !== e.person || ref !== prev?.id, [ref, e.id]); }
+  }
+
+  for (const e of visible) {
+    const p = L.pos.get(e.id);
+    const group = s("g", { class: `node ${e.type}${selected === e.id ? " selected" : ""}`, transform: `translate(${p.x},${p.y})`, tabindex: 0, role: "button", "aria-label": `${e.datetime} ${e.person}: ${e.title}` });
+    const hit = q && !(e.title + " " + e.what + " " + e.why + " " + e.id).toLowerCase().includes(q);
+    if (hit) group.classList.add("dim");
+    group.append(s("title", {}, `${e.title} — ${e.datetime} (${e.id})`), nodeShape(e));
+    if (e.type === "problem") group.append(s("rect", { class: "bar-mark", x: 0, y: 0, width: 6, height: NODE_H, rx: 2 }));
+    const maxChars = e.type === "decision" ? 21 : 25;
+    const lines = wrap(e.title, maxChars, 3);
+    const top = (NODE_H - 14) / 2 - (lines.length - 1) * 7 - 2;
+    lines.forEach((line, i) => group.append(s("text", { x: NODE_W / 2, y: top + i * 14 + 11, "text-anchor": "middle" }, line)));
+    group.append(s("text", { class: "time", x: NODE_W / 2, y: NODE_H - 6, "text-anchor": "middle" }, `${e.id} · ${e.datetime.slice(5, 16)}`));
+    group.addEventListener("click", () => select(e.id));
+    group.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(e.id); } });
+    svg.append(group);
+  }
+  edgeEls.forEach((el) => el.classList.toggle("hot", !!selected && el.dataset.ids.split(" ").includes(selected)));
+
+  const labels = $("lane-labels");
+  labels.replaceChildren();
+  const spacer = h("div"); spacer.style.height = TOP + "px"; spacer.style.borderBottom = "1px solid var(--line)"; labels.append(spacer);
+  for (const p of L.lanes) {
+    const el = h("div", "lane-label"); el.style.height = LANE_H + "px";
+    el.append(h("b", "", p), h("span", "muted", ROLES[p]));
+    labels.append(el);
+  }
+}
+
+// ---------- the rest of the page ----------
+function drawFiles() {
+  const box = $("files"); box.replaceChildren();
+  for (const p of PEOPLE) {
+    const count = events.filter((e) => e.file === p).length;
+    const chip = h("span", "chip" + (raw[p] === null ? " missing" : ""), raw[p] === null ? `${p}.csv: not added yet` : `${p}.csv: ${count} events`);
+    box.append(chip);
+  }
+}
+
+function drawTable() {
+  const body = $("table"); body.replaceChildren();
+  for (const e of events) {
+    const tr = document.createElement("tr");
+    tr.dataset.id = e.id;
+    if (e.id === selected) tr.className = "selected";
+    const type = h("td"); type.append(h("span", `tag ${e.type}`, TYPE_LABEL[e.type]));
+    tr.append(h("td", "mono", e.datetime), h("td", "", `${e.person} · ${ROLES[e.person]}`), type, h("td", "", e.title));
+    tr.addEventListener("click", () => select(e.id));
+    body.append(tr);
+  }
+}
+
+function drawDetail() {
+  const box = $("detail"); box.replaceChildren();
+  const e = events.find((x) => x.id === selected);
+  if (!e) { box.append(h("span", "muted", "Click a box in the flowchart (or a row below) to read what happened and why.")); return; }
+  box.append(h("h2", "", e.title));
+  const meta = h("div", "muted"); meta.append(h("span", `tag ${e.type}`, TYPE_LABEL[e.type]), document.createTextNode(`${e.datetime} · Person ${e.person} (${ROLES[e.person]}) · ${e.id}`));
+  box.append(meta, h("div", "lbl", "What happened"), h("p", "", e.what));
+  if (e.why) box.append(h("div", "lbl", e.type === "decision" ? "Why, and what we rejected" : e.type === "problem" ? "Why it matters / how it was handled" : "Why it matters"), h("p", "", e.why));
+  if (e.after.length) {
+    box.append(h("div", "lbl", "Follows from"));
+    const p = h("p");
+    for (const ref of e.after) {
+      const target = events.find((x) => x.id === ref);
+      const b = h("button", "link", target ? `${ref} ${target.title}` : ref); b.type = "button";
+      if (target) b.addEventListener("click", () => select(ref)); else b.disabled = true;
+      p.append(b);
+    }
+    box.append(p);
+  }
+  if (e.links.length) {
+    box.append(h("div", "lbl", "Evidence"));
+    const p = h("p", "mono");
+    for (const link of e.links) {
+      if (/^https?:\/\//.test(link)) { const a = h("a", "", link.replace(/^https?:\/\//, "")); a.href = link; a.target = "_blank"; a.rel = "noopener"; p.append(a, document.createTextNode("   ")); }
+      else p.append(document.createTextNode(link + "   "));
+    }
+    box.append(p);
+  }
+}
+
+function select(id) {
+  selected = id;
+  drawChart(); drawTable(); drawDetail();
+  const el = document.querySelector(".node.selected");
+  if (el) el.scrollIntoView({ block: "nearest", inline: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
+function drawLegend() {
+  const box = $("legend"); box.replaceChildren();
+  const swatch = (type) => {
+    const svg = s("svg", { width: 26, height: 16, viewBox: "0 0 26 16" });
+    const style = `fill:var(--${type}-soft);stroke:var(--${type});stroke-width:1.6;` + (type === "experiment" ? "stroke-dasharray:4 2;" : "");
+    svg.append(type === "decision" ? s("polygon", { points: "5,1 21,1 25,8 21,15 5,15 1,8", style }) : s("rect", { x: 1, y: 1, width: 24, height: 14, rx: type === "milestone" ? 5 : 2, style }));
+    if (type === "problem") svg.append(s("rect", { x: 1, y: 1, width: 4, height: 14, style: "fill:var(--problem)" }));
+    return svg;
+  };
+  const notes = { milestone: "something works or was merged", decision: "we chose between options", problem: "something broke or surprised us", experiment: "we tried it to find out" };
+  for (const t of TYPES) { const span = h("span"); span.append(swatch(t), document.createTextNode(`${TYPE_LABEL[t]}: ${notes[t]}`)); box.append(span); }
+  const dashed = h("span"); const svg = s("svg", { width: 26, height: 10 }); svg.append(s("path", { d: "M1,5 L25,5", style: "stroke:var(--ink);stroke-width:1.4;stroke-dasharray:5 4" })); dashed.append(svg, document.createTextNode("follows from another event (also across people)")); box.append(dashed);
+}
+
+function drawFilters() {
+  const box = $("type-filters"); box.replaceChildren();
+  for (const t of TYPES) {
+    const label = h("label", "f"); const input = document.createElement("input");
+    input.type = "checkbox"; input.checked = !hiddenTypes.has(t);
+    input.addEventListener("change", () => { input.checked ? hiddenTypes.delete(t) : hiddenTypes.add(t); drawChart(); });
+    label.append(input, document.createTextNode(TYPE_LABEL[t] + "s")); box.append(label);
+  }
+}
+
+function render() {
+  const { list, issues } = build(raw);
+  events = list; problems = issues;
+  if (selected && !events.some((e) => e.id === selected)) selected = null;
+  const box = $("problems");
+  box.hidden = !problems.length;
+  if (problems.length) { box.replaceChildren(h("b", "", "Problems in the data files (the rest is still shown):")); const ul = h("ul"); problems.forEach((m) => ul.append(h("li", "", m))); box.append(ul); }
+  drawFiles(); drawChart(); drawTable(); drawDetail();
+}
+
+async function refresh() {
+  try {
+    const next = await fetchAll();
+    $("fatal").hidden = true;
+    if (JSON.stringify(next) !== JSON.stringify(raw)) { raw = next; render(); }
+    $("live-text").textContent = "live · checked " + new Date().toLocaleTimeString();
+    $("live").classList.add("live");
+  } catch {
+    $("live").classList.remove("live");
+    $("live-text").textContent = "not connected";
+    const box = $("fatal"); box.hidden = false;
+    box.replaceChildren(h("b", "", "This page cannot read the CSV files."),
+      h("p", "", "Browsers block that when the page is opened by double-click. Start a small web server from the repository folder and open the address below:"),
+      h("code", "", "python -m http.server 8080 --directory docs/timeline"), h("p"), h("code", "", "http://localhost:8080"));
+  }
+}
+
+$("search").addEventListener("input", (ev) => { query = ev.target.value; drawChart(); });
+$("download").addEventListener("click", () => {
+  const rows = [COLUMNS, ...events.map((e) => [e.id, e.datetime, e.person, e.type, e.title, e.what, e.why, e.links.join(";"), e.after.join(";")])];
+  const url = URL.createObjectURL(new Blob([toCsv(rows)], { type: "text/csv" }));
+  const a = document.createElement("a"); a.href = url; a.download = "master.csv"; a.click(); URL.revokeObjectURL(url);
+});
+
+drawLegend(); drawFilters();
+refresh();
+setInterval(refresh, POLL_MS);
+</script>
+</body>
+</html>

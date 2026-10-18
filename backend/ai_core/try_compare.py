@@ -28,6 +28,7 @@ from dotenv import load_dotenv
 from backend.ai_core.compare import compare_design
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.scoring import coverage
+from backend.ai_core.try_extract import build_candidates
 from contracts.models import CompareResult, HouseStylePackage
 
 
@@ -82,6 +83,9 @@ def main(argv: list[str]) -> None:
     parser.add_argument("package", help="House Style Package JSON (from try_extract --save-package)")
     parser.add_argument("design", help="design image: file path or web address")
     parser.add_argument("--runs", type=int, default=1)
+    parser.add_argument("--references", metavar="FOLDER",
+                        help="folder with the reference images the package was extracted from, in the same "
+                             "order as at extraction (img_01, img_02, ...); sent along so the AI can compare")
     parser.add_argument("--model")
     parser.add_argument("--detail", choices=["low", "medium", "high"], help="image detail for this run (VISION_IMAGE_DETAIL)")
     parser.add_argument("--importance", nargs="*", default=[], metavar="TRAIT=VALUE")
@@ -104,13 +108,19 @@ def main(argv: list[str]) -> None:
     if not args.design.startswith("http") and not Path(args.design).is_file():
         sys.exit(f"Design file not found: {args.design}")
 
+    reference_images = []
+    if args.references:
+        kinds = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+        files = sorted(f for f in Path(args.references).iterdir() if f.suffix.lower() in kinds)
+        reference_images = build_candidates([str(f) for f in files])
+        print(f"Sending {len(files)} reference images from {args.references} along")
     design = design_as_url(args.design)
     print(f"\nModel: {os.getenv('VISION_PROVIDER')} / {os.getenv('VISION_MODEL') or '(default)'}")
     results = []
     for number in range(1, args.runs + 1):
         started = time.time()
         try:
-            results.append(compare_design(package, design))
+            results.append(compare_design(package, design, reference_images=reference_images))
         except AiCoreError as problem:
             print(f"run {number}/{args.runs}: FAILED ({problem.code}): {problem.message}")
             break

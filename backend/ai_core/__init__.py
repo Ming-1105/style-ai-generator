@@ -55,7 +55,7 @@ def compare(body: CompareRequest):
             sample.directions,
         )
     try:
-        return compare_design(body.package, body.design_image)
+        return compare_design(body.package, body.design_image, reference_images=body.reference_images)
     except AiCoreError as problem:
         return problem.to_response()
 

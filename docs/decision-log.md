@@ -214,3 +214,23 @@
   trait, and the overall fit showed 92 based on 19% of the total importance. A high fit resting on a small share
   of the importance is misleading, so screens should show a warning when coverage is low (for example below 50%)
   and tell the designer what to add.
+
+## 2026-10-18 — Cost controls: cheap defaults, a ceiling per request, a spending limit (Person B)
+
+- **What:** The Gemini connection now (1) defaults to low image detail and minimal thinking (both can be changed in
+  .env, or set to "default" to leave the choice to Google), (2) caps every request at 8,192 output tokens, thinking
+  included, (3) records the tokens Google reports for each request and an estimated cost in `usage_ledger.jsonl`
+  (kept out of git), and (4) refuses further requests once the recorded spend reaches `VISION_BUDGET_USD`.
+  The try scripts print a one-line summary of tokens and cost per run.
+- **Measured (one sketch comparison, one real request):** on Flash-Lite thinking was already 0, and low image detail
+  cut the input from 2,139 to 1,303 tokens. On the larger Flash model the default used 1,229 thinking tokens
+  (billed as output, about 1.7 cents in total); thinking set to minimal removed them and brought the request to about
+  0.5 cents. With the new defaults: extraction on 12 screenshots 4,010 tokens in and 733 out, about 0.3 cents; a
+  comparison including directions about 0.2 cents on Flash-Lite and 0.8 cents on Flash.
+- **Why:** A $5 prepaid budget should cover thousands of Flash-Lite comparisons or several hundred on Flash, and a
+  bug or a loop must not be able to spend it. The limit counts only what this code records, as an estimate with
+  Google's published prices (checked 2026-10-13), so it complements the spending cap in Google AI Studio rather
+  than replacing it.
+- **Side result for the report:** on the same sketch the larger Flash model scored the perforation trait 60 where
+  Flash-Lite scored 30 (overall fit 67 against 52, both based on 39% of the importance), so the choice of model
+  moves the numbers more than the settings above do.

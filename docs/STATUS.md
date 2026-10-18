@@ -27,9 +27,12 @@ If you need something from another folder, add a note under that owner's "Needs 
   - `VISION_IMAGE_DETAIL` setting (branch `ai-core/image-detail`): fewer tokens per image; low detail matched high on
     our test.
   - Reference images in compare (branch `ai-core/references`): reads the new optional `reference_images` field.
+  - Cost controls (branch `ai-core/cost-controls`): cheap defaults (low image detail, minimal thinking), a per-request
+    ceiling, a token/cost ledger and an optional spending limit (`VISION_BUDGET_USD`). A comparison costs about 0.2 cents
+    on Flash-Lite.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
-  `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `docs/timeline`,
+  `ai-core/cost-controls`, `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `docs/timeline`,
   `chore/ignore-loose-notes`.
 - **In progress:** nothing. Milestone 4 (image embeddings) needs a large new package and is skipped unless the
   team approves the dependency.

@@ -24,6 +24,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from backend.ai_core import usage
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
 from contracts.models import Brand, HouseStylePackage, ImageCandidate, Trait
@@ -139,6 +140,7 @@ def main(argv: list[str]) -> None:
         if not all_runs:
             sys.exit("No run finished, so there is nothing to summarise.")
         print_runs_summary(group_runs(all_runs), len(all_runs))
+        print(usage.session_summary())
         return
 
     started = time.time()
@@ -166,6 +168,7 @@ def main(argv: list[str]) -> None:
         )
         Path(args.save_package).write_text(package.model_dump_json(indent=2), encoding="utf-8")
         print(f"Saved package to {args.save_package}\n")
+    print(usage.session_summary())
 
 
 if __name__ == "__main__":

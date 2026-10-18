@@ -26,6 +26,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from backend.ai_core.compare import compare_design
+from backend.ai_core import usage
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.scoring import coverage
 from backend.ai_core.try_extract import build_candidates
@@ -131,6 +132,7 @@ def main(argv: list[str]) -> None:
     print_result(results[0], package)
     if len(results) > 1:
         print_spread(results, package)
+    print(usage.session_summary())
 
 
 if __name__ == "__main__":

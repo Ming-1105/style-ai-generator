@@ -60,8 +60,11 @@ class ImageDetailTests(unittest.TestCase):
             provider_gemini.ask("p", IMAGES)
         return post.call_args.kwargs["json"]["generationConfig"]
 
-    def test_unset_leaves_googles_default(self):
-        self.assertNotIn("mediaResolution", self.config_sent({"VISION_IMAGE_DETAIL": ""}))
+    def test_unset_means_low_detail_to_save_tokens(self):
+        self.assertEqual(self.config_sent({"VISION_IMAGE_DETAIL": ""})["mediaResolution"], "MEDIA_RESOLUTION_LOW")
+
+    def test_default_leaves_the_choice_to_google(self):
+        self.assertNotIn("mediaResolution", self.config_sent({"VISION_IMAGE_DETAIL": "default"}))
 
     def test_levels_are_sent_as_media_resolution(self):
         for level in ("low", "medium", "high"):
@@ -73,6 +76,29 @@ class ImageDetailTests(unittest.TestCase):
             provider_gemini.ask("p", IMAGES)
         self.assertEqual(raised.exception.code, "vision_not_configured")
         post.assert_not_called()
+
+
+class CostSettingsTests(unittest.TestCase):
+    config_sent = ImageDetailTests.config_sent
+
+    def test_thinking_is_minimal_unless_set(self):
+        self.assertEqual(self.config_sent({"VISION_THINKING": ""})["thinkingConfig"], {"thinkingLevel": "minimal"})
+
+    def test_thinking_levels_are_passed_on(self):
+        for level in ("minimal", "low", "medium", "high"):
+            self.assertEqual(self.config_sent({"VISION_THINKING": level.upper()})["thinkingConfig"], {"thinkingLevel": level})
+
+    def test_thinking_default_leaves_the_choice_to_google(self):
+        self.assertNotIn("thinkingConfig", self.config_sent({"VISION_THINKING": "default"}))
+
+    def test_an_unknown_thinking_level_is_refused_before_any_request(self):
+        with patch.dict(os.environ, {**ENV, "VISION_THINKING": "deep"}), patch("httpx.post") as post,                 self.assertRaises(AiCoreError) as raised:
+            provider_gemini.ask("p", IMAGES)
+        self.assertEqual(raised.exception.code, "vision_not_configured")
+        post.assert_not_called()
+
+    def test_every_request_has_an_output_ceiling(self):
+        self.assertEqual(self.config_sent({})["maxOutputTokens"], provider_gemini.MAX_OUTPUT_TOKENS)
 
 
 class RetryTests(unittest.TestCase):

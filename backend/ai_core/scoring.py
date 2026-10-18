@@ -32,6 +32,21 @@ def overall_fit(traits: list[Trait], trait_scores: list[TraitScore]) -> Optional
     return int(weighted / total_importance + 0.5)  # round half up
 
 
+def coverage(traits: list[Trait], trait_scores: list[TraitScore]) -> Optional[int]:
+    """Share (0-100) of the designer's total importance that could actually be judged.
+
+    The overall fit only describes the traits that were assessable. A fit of 41 based on 56 of the
+    importance means something different from a 41 based on 100, so screens show the two together.
+    Returns None when every importance is 0.
+    """
+    importance = {t.id: t.importance for t in traits}
+    total = sum(importance.values())
+    if total == 0:
+        return None
+    judged = sum(importance[s.trait_id] for s in trait_scores if is_assessed(s) and s.trait_id in importance)
+    return int(judged / total * 100 + 0.5)
+
+
 def rank_gaps(traits: list[Trait], trait_scores: list[TraitScore]) -> list[tuple[str, int]]:
     """(trait_id, gap) pairs, largest gap first, where gap = importance × (100 − score).
 

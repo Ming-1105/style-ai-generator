@@ -10,6 +10,8 @@
 
 ## Proposal (Person B, 2026-10-07): send the reference images with `POST /api/compare`
 
+- **Status:** agreed by the team and applied on 2026-10-18 (`AGENTS.md` API table, `contracts/models.py`).
+
 - **What:** add one optional field to the request of `POST /api/compare`:
 
   ```jsonc

@@ -1,7 +1,7 @@
-"""AI core (Person B): trait extraction, embeddings, scoring, directions.
+"""AI core (Person B): trait extraction, design comparison, scoring, directions.
 
-Right now this is only the mock path: it returns the fixtures. Build the real
-implementation behind the MOCK_MODE check and keep the mock path working.
+With MOCK_MODE=1 the endpoints return the fixtures; otherwise they call the vision model
+chosen by VISION_PROVIDER (extract.py, compare.py). Keep the mock path working.
 """
 
 import json
@@ -9,8 +9,8 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
 
+from backend.ai_core.compare import compare_design
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
 from backend.ai_core.scoring import build_compare_result
@@ -27,16 +27,6 @@ def mock_mode() -> bool:
 
 def load_fixture(name: str) -> dict:
     return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
-
-
-def not_implemented(what: str) -> JSONResponse:
-    return JSONResponse(
-        status_code=501,
-        content={"error": {
-            "code": "not_implemented",
-            "message": f"{what} is not built yet — set MOCK_MODE=1 to use the sample data.",
-        }},
-    )
 
 
 @router.post("/dna/extract", response_model=ExtractResponse)
@@ -62,4 +52,7 @@ def compare(body: CompareRequest):
             sample.departures,
             sample.directions,
         )
-    return not_implemented("Live design comparison")
+    try:
+        return compare_design(body.package, body.design_image)
+    except AiCoreError as problem:
+        return problem.to_response()

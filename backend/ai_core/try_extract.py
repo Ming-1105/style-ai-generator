@@ -19,13 +19,14 @@ import mimetypes
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
-from contracts.models import Brand, ImageCandidate, Trait
+from contracts.models import Brand, HouseStylePackage, ImageCandidate, Trait
 
 
 def build_candidates(sources: list[str]) -> list[ImageCandidate]:
@@ -95,6 +96,9 @@ def main(argv: list[str]) -> None:
     parser.add_argument("--keywords", default="", help="comma-separated")
     parser.add_argument("--values", default="")
     parser.add_argument("--model", help="overrides VISION_MODEL from .env for this run")
+    parser.add_argument("--save-package", metavar="FILE",
+                        help="write the result as a House Style Package JSON, for try_compare "
+                             "(keep it in local_test_images/: it contains the brand name)")
     parser.add_argument("--runs", type=int, default=1,
                         help="run extraction this many times and show which traits keep coming back "
                              "(each run is one API request)")
@@ -150,6 +154,15 @@ def main(argv: list[str]) -> None:
     print("\nTone words:", ", ".join(result.tone_words) or "-")
     print("Colors:    ", ", ".join(f"{c.name} {c.hex}" for c in result.colors) or "-")
     print()
+
+    if args.save_package:
+        package = HouseStylePackage(
+            created_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            brand=brand, traits=result.traits, tone_words=result.tone_words, colors=result.colors,
+            source_image_ids=[c.id for c in candidates],
+        )
+        Path(args.save_package).write_text(package.model_dump_json(indent=2), encoding="utf-8")
+        print(f"Saved package to {args.save_package}\n")
 
 
 if __name__ == "__main__":

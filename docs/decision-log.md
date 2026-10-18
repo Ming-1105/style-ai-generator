@@ -113,3 +113,21 @@
   name; a trait seen in every run is a stronger candidate than one seen once. A possible later feature
   is to run extraction 3 times and show "found in 3/3 runs" next to each trait; it costs 3x the
   API calls, so it needs the team's agreement.
+
+## 2026-10-07 — Comparison: the model judges, the code decides everything else (Person B)
+
+- **What:** `POST /api/compare` sends the design image and each trait's name and description to the
+  vision model in one request and asks for a score (0-100 with written anchors), a status and a one-
+  sentence note per trait. In code: a trait the model skipped, or marked not assessable, or scored
+  without a number, becomes `not_assessable` with a null score (never 0); `low_confidence` is set
+  from the package, not by the model; unknown trait ids are ignored. Overall fit and the signature
+  rule come from `scoring.py`. Matches (score >= 70) and departures (< 50, plus traits that could
+  not be judged) are taken from the model's per-trait notes, with no second model call.
+- **Why:** The model never sees the importance values, so it cannot bend scores towards what the
+  designer cares about; the weighting stays visible and editable in one place. One request for all
+  traits (instead of one per trait) keeps us inside the free-tier quota and fails less often when the
+  model is busy. Scores for traits whose feature is not visible are reported as not assessable so the
+  designer sees what is missing instead of a made-up number.
+- **Known limits:** reference images are not used yet (the request has no way to carry them; contract
+  change agreed, not yet applied); scores will vary between runs like extraction does (to be measured
+  with `try_compare --runs`); directions stay empty in live mode until milestone 5.

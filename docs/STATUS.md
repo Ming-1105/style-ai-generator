@@ -35,13 +35,17 @@ If you need something from another folder, add a note under that owner's "Needs 
   - Cost controls (branch `ai-core/cost-controls`): cheap defaults (low image detail, minimal thinking), a per-request
     ceiling, a token/cost ledger and an optional spending limit (`VISION_BUDGET_USD`). A comparison costs about 0.2 cents
     on Flash-Lite.
+  - Full-pipeline test page (branch `ai-core/pipeline-page`): `http://localhost:8000/api/dev/pipeline` walks brand and reference
+    images, extraction, editing the traits, a design and the comparison on one screen, with the running cost. Developer tool.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
   `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `ai-core/cost-controls`, `docs/timeline`,
   `chore/ignore-loose-notes`.
 - **In progress:** nothing. Milestone 4 (image embeddings) needs a large new package and is skipped unless the
   team approves the dependency.
-- **Blocked:** nothing on my side. A real end-to-end test needs Person A's search merged and Person C's screen connected.
+- **Blocked:** the Google project behind the API key was switched to the prepaid tier while setting up billing and now answers
+  402 "prepayment credits are depleted" until $5 of credit is bought (or a key from a project still on the free tier is used).
+  The code now explains this. Otherwise nothing on my side. A real end-to-end test needs Person A's search merged and Person C's screen connected.
 - **Needs from others:**
   - C: send `reference_images` (the candidates cited by the traits' `evidence_image_ids`) with `/api/compare`; show
     `overall_fit` together with how much of the importance could be judged and warn when that share is low; show traits

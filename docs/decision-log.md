@@ -234,3 +234,13 @@
 - **Side result for the report:** on the same sketch the larger Flash model scored the perforation trait 60 where
   Flash-Lite scored 30 (overall fit 67 against 52, both based on 39% of the importance), so the choice of model
   moves the numbers more than the settings above do.
+
+## 2026-10-18 — Setting up billing moved the project to prepaid with no credit (Person B)
+
+- **What:** While adding a payment method in Google AI Studio (the card was refused), the project behind our key was
+  switched to the prepaid tier. From then on every request answers 402 "Your prepayment credits are depleted" even
+  though the free tier had worked an hour earlier. The Gemini connection now maps a 402 to a clear message
+  (`vision_no_credit`) instead of a generic "try again".
+- **Why it matters:** starting the billing set-up is not harmless: the free allowance is replaced by the prepaid balance,
+  so the project is unusable until credit is bought. Before changing billing on a project that is in use, keep a second
+  key from a project that stays on the free tier.

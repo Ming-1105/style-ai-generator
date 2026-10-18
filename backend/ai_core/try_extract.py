@@ -24,6 +24,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from backend.ai_core import usage
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
 from contracts.models import Brand, HouseStylePackage, ImageCandidate, Trait
@@ -96,6 +97,7 @@ def main(argv: list[str]) -> None:
     parser.add_argument("--keywords", default="", help="comma-separated")
     parser.add_argument("--values", default="")
     parser.add_argument("--model", help="overrides VISION_MODEL from .env for this run")
+    parser.add_argument("--detail", choices=["low", "medium", "high"], help="image detail for this run (VISION_IMAGE_DETAIL)")
     parser.add_argument("--save-package", metavar="FILE",
                         help="write the result as a House Style Package JSON, for try_compare "
                              "(keep it in local_test_images/: it contains the brand name)")
@@ -108,6 +110,8 @@ def main(argv: list[str]) -> None:
     load_dotenv(".env")
     if args.model:
         os.environ["VISION_MODEL"] = args.model
+    if args.detail:
+        os.environ["VISION_IMAGE_DETAIL"] = args.detail
     logging.basicConfig(level=logging.WARNING, format="  note: %(message)s")
 
     missing = [s for s in args.images if not s.startswith("http") and not Path(s).is_file()]
@@ -136,6 +140,7 @@ def main(argv: list[str]) -> None:
         if not all_runs:
             sys.exit("No run finished, so there is nothing to summarise.")
         print_runs_summary(group_runs(all_runs), len(all_runs))
+        print(usage.session_summary())
         return
 
     started = time.time()
@@ -163,6 +168,7 @@ def main(argv: list[str]) -> None:
         )
         Path(args.save_package).write_text(package.model_dump_json(indent=2), encoding="utf-8")
         print(f"Saved package to {args.save_package}\n")
+    print(usage.session_summary())
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 Run from the repo root:
 
-    python -m backend.ai_core.demo                 # the Vorden example as it is
+    python -m backend.ai_core.demo                 # the Acme example as it is
     python -m backend.ai_core.demo tr_01=30        # set the importance of tr_01 to 30
     python -m backend.ai_core.demo tr_01=0 tr_03=50
 
@@ -31,7 +31,7 @@ def main(args: list[str]) -> None:
             sys.exit(f"Could not read '{arg}'. Use e.g. tr_01=30 (traits: {', '.join(traits)}; importance 0-100).")
         traits[trait_id]["importance"] = int(value)
 
-    body = {"package": package, "design_image": "https://vorden-auto.example/design.png"}
+    body = {"package": package, "design_image": "https://acme-auto.example/design.png"}
     response = TestClient(app).post("/api/compare", json=body)
     result = response.json()
     if response.status_code != 200:

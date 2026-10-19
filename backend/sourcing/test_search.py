@@ -12,7 +12,7 @@ from contracts.models import Brand
 
 
 class SearchTests(unittest.TestCase):
-    def call(self, response=None, mode="0", key="test-key", name="Vorden"):
+    def call(self, response=None, mode="0", key="test-key", name="Acme"):
         with patch.dict(os.environ, {"MOCK_MODE": mode, "IMAGE_SEARCH_PROVIDER": "serpapi", "IMAGE_SEARCH_API_KEY": key}):
             with patch("backend.sourcing.serpapi.httpx.Client") as provider:
                 if isinstance(response, Exception):
@@ -29,17 +29,17 @@ class SearchTests(unittest.TestCase):
         provider.assert_not_called()
 
     def test_query(self):
-        self.assertEqual(build_query(Brand(name="Vorden", category="automotive", keywords=["SUV", "electric"])), "Vorden automotive SUV electric official")
+        self.assertEqual(build_query(Brand(name="Acme", category="automotive", keywords=["SUV", "electric"])), "Acme automotive SUV electric official")
 
     def test_live_mapping_and_invalid_rows(self):
         response = httpx.Response(200, json={"images_results": [
-            {"original": "https://cdn.example/car.jpg", "link": "https://vorden.example/cars", "thumbnail": "https://cdn.example/small.jpg"},
-            {"original": "javascript:bad", "link": "https://vorden.example"},
+            {"original": "https://cdn.example/car.jpg", "link": "https://acme.example/cars", "thumbnail": "https://cdn.example/small.jpg"},
+            {"original": "javascript:bad", "link": "https://acme.example"},
         ]})
         result, provider = self.call(response)
         self.assertEqual(result.status_code, 200)
         image = result.json()["candidates"][0]
-        self.assertEqual(image["source_domain"], "vorden.example")
+        self.assertEqual(image["source_domain"], "acme.example")
         self.assertEqual(image["relevance"], 0.0)
         self.assertEqual(len(result.json()["candidates"]), 1)
         provider.return_value.__enter__.return_value.get.assert_called_once()

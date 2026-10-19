@@ -308,3 +308,13 @@
 - **Trade-off:** images of a different company with a similar name (for example a tool maker with the same name as a
   car brand) are no longer flagged by their domain. The relevance estimate still uses the brand words, and the
   designer reviews the images before extraction. Person A can add a lighter signal for this if it becomes a problem.
+
+## 2026-10-19 — The fictional example brand is now called Acme (decided in the integration session)
+
+- **What:** The made-up brand used in the fixtures, the mock mode, the interface, the tests and the docs was renamed to
+  "Acme" (with "Acme Tools BV" for the different-company example and `acme-auto.example` for its website). It is a
+  plain search-and-replace over 21 files owned by all three of us; no behaviour changed and all tests still pass
+  (A 37, B 143).
+- **Why:** The earlier invented name looked odd in demos and screenshots. "Acme" is the usual placeholder name, a
+  single word like before, so the tests and the brand-word matching behave the same. It is not a real brand, so the
+  rule against real brand names in committed files still holds.

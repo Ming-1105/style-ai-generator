@@ -1,4 +1,4 @@
-<title>Vorden Brand DNA</title>
+<title>Acme Brand DNA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -223,7 +223,7 @@
   <header class="topbar">
     <span class="wordmark">Brand DNA</span>
     <span class="mock-tag">Mockup · sample data</span>
-    <span class="project-name">Project: <b>Vorden</b></span>
+    <span class="project-name">Project: <b>Acme</b></span>
   </header>
 
   <nav class="step-rail" id="step-rail" aria-label="Workflow steps"></nav>
@@ -237,7 +237,7 @@
 
       <div class="field">
         <label for="brand-name">Brand name</label>
-        <input type="text" id="brand-name" value="Vorden">
+        <input type="text" id="brand-name" value="Acme">
       </div>
       <div class="field">
         <label for="brand-category">Category</label>
@@ -250,7 +250,7 @@
       </div>
       <div class="field">
         <label for="brand-website">Official website</label>
-        <input type="text" id="brand-website" value="vorden-auto.example">
+        <input type="text" id="brand-website" value="acme-auto.example">
       </div>
       <div class="field">
         <label for="keyword-input">Keywords</label>
@@ -285,7 +285,7 @@
     <!-- STEP 2 — SOURCES -->
     <section class="panel" id="step-panel-2">
       <h2>Sources</h2>
-      <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine Vorden reference before the AI reads them.</p>
+      <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine Acme reference before the AI reads them.</p>
 
       <div class="sources-head">
         <span class="sources-count mono" id="sources-count-line"></span>
@@ -349,7 +349,7 @@
     <!-- STEP 5 — COMPARE -->
     <section class="panel" id="step-panel-5" hidden>
       <h2>Compare</h2>
-      <p class="panel-intro">Your concept checked against the Vorden house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
+      <p class="panel-intro">Your concept checked against the Acme house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
 
       <div class="compare-layout">
         <div class="sketch-panel">
@@ -417,7 +417,7 @@
   function svgCrest(opts){
     opts = opts || {};
     var size = opts.size || 40;
-    return '<svg viewBox="0 0 40 46" width="' + size + '" height="' + Math.round(size*1.15) + '" role="img" aria-label="Vorden crest">' + crestShape() + '</svg>';
+    return '<svg viewBox="0 0 40 46" width="' + size + '" height="' + Math.round(size*1.15) + '" role="img" aria-label="Acme crest">' + crestShape() + '</svg>';
   }
   function svgCarSide(opts){
     opts = opts || {};
@@ -497,23 +497,23 @@
   var KEYWORDS = ['GT','sports car','crest','headlight'];
 
   var SOURCES = [
-    {id:1,type:'Product',domain:'vorden-auto.example',caption:"GT3 — three-quarter front",conf:96,svg:'side',flag:null,included:true},
-    {id:2,type:'Product',domain:'vorden-auto.example',caption:'GT3 — front detail',conf:94,svg:'front',flag:null,included:true},
-    {id:3,type:'Logo',domain:'vorden-auto.example',caption:'Crest, brushed steel plate',conf:98,svg:'crest',flag:null,included:true},
-    {id:4,type:'Web',domain:'vorden-auto.example',caption:'Homepage hero banner',conf:90,svg:'web',flag:null,included:true},
-    {id:5,type:'Product',domain:'press.vorden-auto.example',caption:'Headlight macro, press kit',conf:93,svg:'headlight',flag:null,included:true},
+    {id:1,type:'Product',domain:'acme-auto.example',caption:"GT3 — three-quarter front",conf:96,svg:'side',flag:null,included:true},
+    {id:2,type:'Product',domain:'acme-auto.example',caption:'GT3 — front detail',conf:94,svg:'front',flag:null,included:true},
+    {id:3,type:'Logo',domain:'acme-auto.example',caption:'Crest, brushed steel plate',conf:98,svg:'crest',flag:null,included:true},
+    {id:4,type:'Web',domain:'acme-auto.example',caption:'Homepage hero banner',conf:90,svg:'web',flag:null,included:true},
+    {id:5,type:'Product',domain:'press.acme-auto.example',caption:'Headlight macro, press kit',conf:93,svg:'headlight',flag:null,included:true},
     {id:6,type:'Product',domain:'autoweeklymag.example',caption:'Roadster side profile',conf:88,svg:'side',flag:null,included:true},
-    {id:7,type:'Packaging',domain:'vorden-auto.example',caption:"Owner's manual cover",conf:81,svg:'crest',flag:null,included:true},
+    {id:7,type:'Packaging',domain:'acme-auto.example',caption:"Owner's manual cover",conf:81,svg:'crest',flag:null,included:true},
     {id:8,type:'Product',domain:'carfansdaily.example',caption:'Fan render, front 3/4',conf:52,svg:'front',flag:'Fan render — not official',included:false},
-    {id:9,type:'Logo',domain:'vordentools.example',caption:'Vorden Tools BV logo',conf:61,svg:'crest',flag:'Different company: Vorden Tools BV',included:false},
+    {id:9,type:'Logo',domain:'acmetools.example',caption:'Acme Tools BV logo',conf:61,svg:'crest',flag:'Different company: Acme Tools BV',included:false},
     {id:10,type:'Product',domain:'usedcarlistings.example',caption:'Listing photo, side view',conf:38,svg:'side',flag:'Low resolution (240px)',included:false},
     {id:11,type:'Web',domain:'motorpressreview.example',caption:'Group test, three cars',conf:47,svg:'web',flag:'Competitor car in same article',included:false},
-    {id:12,type:'Product',domain:'vorden-auto.example',caption:'GT3 stripe & shoulder line',conf:91,svg:'stripe',flag:null,included:true},
-    {id:13,type:'Web',domain:'vorden-auto.example',caption:'Configurator screenshot',conf:85,svg:'web',flag:null,included:true},
+    {id:12,type:'Product',domain:'acme-auto.example',caption:'GT3 stripe & shoulder line',conf:91,svg:'stripe',flag:null,included:true},
+    {id:13,type:'Web',domain:'acme-auto.example',caption:'Configurator screenshot',conf:85,svg:'web',flag:null,included:true},
     {id:14,type:'Product',domain:'showroommilan.example',caption:'Showroom display, Milan',conf:79,svg:'showroom',flag:null,included:true},
-    {id:15,type:'Logo',domain:'press.vorden-auto.example',caption:'Crest, embossed on leather',conf:95,svg:'crest',flag:null,included:true},
-    {id:16,type:'Packaging',domain:'vorden-auto.example',caption:'Press kit folder',conf:74,svg:'crest',flag:null,included:true},
-    {id:17,type:'Product',domain:'vorden-auto.example',caption:'Rear 3/4, studio light',conf:89,svg:'side',flag:null,included:true},
+    {id:15,type:'Logo',domain:'press.acme-auto.example',caption:'Crest, embossed on leather',conf:95,svg:'crest',flag:null,included:true},
+    {id:16,type:'Packaging',domain:'acme-auto.example',caption:'Press kit folder',conf:74,svg:'crest',flag:null,included:true},
+    {id:17,type:'Product',domain:'acme-auto.example',caption:'Rear 3/4, studio light',conf:89,svg:'side',flag:null,included:true},
     {id:18,type:'Product',domain:'autoweeklymag.example',caption:'Interior dash, low relevance',conf:58,svg:'front',flag:null,included:false}
   ];
 
@@ -876,7 +876,7 @@
     }
     var dateStr = 'Locked ' + new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
     el.innerHTML =
-      '<h2>Vorden — House Style Package v1</h2>' +
+      '<h2>Acme — House Style Package v1</h2>' +
       '<p class="mono muted doc-meta">' + dateStr + ' · ' + TRAITS.length + ' traits · ' + included + ' sources</p>' +
       '<section><h3>Signature features</h3><div class="features-list">' + featuresHtml + '</div></section>' +
       '<section><h3>Color</h3><div class="swatch-row">' + colorsHtml + '</div></section>' +
@@ -1008,7 +1008,7 @@
       var btn = this;
       btn.disabled = true;
       var prog = document.getElementById('brand-progress');
-      runFakeSequence(prog, ['Searching images… 24 found', 'Scraping vorden-auto.example… 9 found', 'Removing duplicates…'], [500, 500, 500], function(){
+      runFakeSequence(prog, ['Searching images… 24 found', 'Scraping acme-auto.example… 9 found', 'Removing duplicates…'], [500, 500, 500], function(){
         btn.disabled = false;
         prog.hidden = true;
         advanceToStep(2);

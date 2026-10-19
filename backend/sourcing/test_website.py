@@ -10,7 +10,7 @@ from contracts.models import SearchResponse
 from .serpapi import SearchError
 from .website import scrape_website
 
-PAGE = "https://vorden.example/products"
+PAGE = "https://acme.example/products"
 PUBLIC_DNS = [(2, 1, 6, "", ("93.184.216.34", 443))]
 
 
@@ -29,9 +29,9 @@ class WebsiteTests(unittest.TestCase):
                 return httpx.Response(200, text="User-agent: *\nDisallow: /private")
             return httpx.Response(200, headers={"content-type": "text/html"}, text='<img src="/car.jpg"><img src="data:image/png;base64,x" data-src="//cdn.example/logo.png"><a href="/other">Other</a>')
         candidates = self.collect(handler)
-        self.assertEqual(requests, ["https://vorden.example/robots.txt", PAGE])
-        self.assertEqual([item.url for item in candidates], ["https://vorden.example/car.jpg", "https://cdn.example/logo.png"])
-        self.assertTrue(all(item.source_type == "scrape" and item.source_domain == "vorden.example" for item in candidates))
+        self.assertEqual(requests, ["https://acme.example/robots.txt", PAGE])
+        self.assertEqual([item.url for item in candidates], ["https://acme.example/car.jpg", "https://cdn.example/logo.png"])
+        self.assertTrue(all(item.source_type == "scrape" and item.source_domain == "acme.example" for item in candidates))
 
     def test_robots_refusal_never_requests_page(self):
         requests = []
@@ -48,7 +48,7 @@ class WebsiteTests(unittest.TestCase):
             if request.url.path == "/robots.txt":
                 return httpx.Response(404)
             return httpx.Response(200, headers={"content-type": "text/html"}, text='<base href="/assets/"><img src="car.jpg">')
-        self.assertEqual(self.collect(handler)[0].url, "https://vorden.example/assets/car.jpg")
+        self.assertEqual(self.collect(handler)[0].url, "https://acme.example/assets/car.jpg")
 
     def test_failures(self):
         cases = [(503, "", "robots_unavailable"), (403, "", "scraping_disallowed"),
@@ -75,11 +75,11 @@ class WebsiteTests(unittest.TestCase):
     def test_endpoint_combines_sources_and_keeps_mock_isolated(self):
         image = self.collect(lambda request: httpx.Response(404) if request.url.path == "/robots.txt" else httpx.Response(200, headers={"content-type": "text/html"}, text='<img src="/car.jpg">'))
         with patch.dict(os.environ, {"MOCK_MODE": "0"}), patch("backend.sourcing.scrape_website", return_value=image), patch("backend.sourcing.search_images", return_value=SearchResponse(candidates=[])):
-            result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Vorden", "website": PAGE}})
+            result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Acme", "website": PAGE}})
             self.assertEqual(result.status_code, 200)
             self.assertEqual(result.json()["candidates"][0]["source_type"], "scrape")
         with patch.dict(os.environ, {"MOCK_MODE": "1"}), patch("backend.sourcing.scrape_website") as scrape:
-            result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Vorden", "website": PAGE}})
+            result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Acme", "website": PAGE}})
             self.assertEqual(len(result.json()["candidates"]), 18)
             scrape.assert_not_called()
 
@@ -87,7 +87,7 @@ class WebsiteTests(unittest.TestCase):
         image = self.collect(lambda request: httpx.Response(404) if request.url.path == "/robots.txt" else httpx.Response(200, headers={"content-type": "text/html"}, text='<img src="/car.jpg">'))
         for code, expected in [("no_results", 200), ("quota_reached", 503)]:
             with patch.dict(os.environ, {"MOCK_MODE": "0"}), patch("backend.sourcing.scrape_website", return_value=image), patch("backend.sourcing.search_images", side_effect=SearchError(503, code, "Search unavailable")):
-                result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Vorden", "website": PAGE}})
+                result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Acme", "website": PAGE}})
                 self.assertEqual(result.status_code, expected)
 
 

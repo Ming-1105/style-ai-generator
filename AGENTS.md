@@ -53,7 +53,7 @@ All IDs are strings. Scores are 0–100 integers. Confidence is a 0–1 float. `
   "id": "img_01",
   "url": "https://…",
   "thumbnail_url": "https://…",
-  "source_domain": "vorden-auto.example",
+  "source_domain": "acme-auto.example",
   "source_type": "search | scrape | presskit | upload",
   "category": "product | logo | packaging | web | other",
   "relevance": 0.91,
@@ -135,7 +135,7 @@ from their own package.
 ## Fixtures
 
 `/fixtures/` holds example responses for every endpoint, using the fictional brand
-**"Vorden"** (automotive). Mock mode returns these. The frontend develops against them.
+**"Acme"** (automotive). Mock mode returns these. The frontend develops against them.
 Never use real brand names, logos or scraped images in fixtures or committed files.
 
 ## Working rules

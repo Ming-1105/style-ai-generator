@@ -35,7 +35,7 @@ def judgement(trait_id, score, status="ok", note="note"):
     return {"trait_id": trait_id, "score": score, "status": status, "note": note}
 
 
-# The Vorden sample judgements, as a model would return them.
+# The Acme sample judgements, as a model would return them.
 SAMPLE = {"view": "front view", "traits": [
     judgement("tr_01", 31, note="Lamps are round."),
     judgement("tr_02", 48, note="Stripe is off-centre."),
@@ -144,7 +144,7 @@ class WhatIsSentTests(unittest.TestCase):
         _, model = run(SAMPLE)
         prompt = model.calls[0][0]
         self.assertIn("tr_01 | Blade headlights: Sharp, tapered LED graphic", prompt)
-        self.assertIn("Vorden", prompt)
+        self.assertIn("Acme", prompt)
         self.assertNotIn("{{", prompt)
         self.assertNotIn("importance", prompt.lower())
         self.assertNotIn("importance", PROMPT_FILE.read_text(encoding="utf-8").lower())

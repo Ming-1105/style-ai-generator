@@ -32,7 +32,7 @@ cp .env.example .env
 ## Run in mock mode
 
 Mock mode is the default (`MOCK_MODE=1` in `.env`, and also when no `.env` exists). Every endpoint
-returns the fictional "Vorden" example data from `/fixtures`, so no API keys are needed.
+returns the fictional "Acme" example data from `/fixtures`, so no API keys are needed.
 
 ```bash
 uvicorn backend.main:app --reload

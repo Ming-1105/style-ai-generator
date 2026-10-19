@@ -10,7 +10,7 @@ from .website import PageImages
 
 
 def candidate(url, source="search"):
-    return ImageCandidate(id=url, url=url, thumbnail_url=url, source_domain="vorden.example", source_type=source, category="other")
+    return ImageCandidate(id=url, url=url, thumbnail_url=url, source_domain="acme.example", source_type=source, category="other")
 
 
 class FilteringTests(unittest.TestCase):
@@ -42,18 +42,18 @@ class FilteringTests(unittest.TestCase):
     def test_provider_original_size_used_instead_of_thumbnail_size(self):
         import os
         sizes = {}
-        response = httpx.Response(200,json={"images_results":[{"original":"https://cdn.example/car", "link":"https://vorden.example/", "original_width":800,"original_height":600,"thumbnail_width":64,"thumbnail_height":64}]})
+        response = httpx.Response(200,json={"images_results":[{"original":"https://cdn.example/car", "link":"https://acme.example/", "original_width":800,"original_height":600,"thumbnail_width":64,"thumbnail_height":64}]})
         with patch.dict(os.environ,{"IMAGE_SEARCH_PROVIDER":"serpapi","IMAGE_SEARCH_API_KEY":"test"}), patch("backend.sourcing.serpapi.httpx.Client") as client:
             client.return_value.__enter__.return_value.get.return_value = response
-            result = search_images(Brand(name="Vorden"), dimensions=sizes)
+            result = search_images(Brand(name="Acme"), dimensions=sizes)
         self.assertEqual(sizes[result.candidates[0].url], (800,600))
         self.assertEqual(len(filter_candidates(result.candidates,sizes)),1)
 
     def test_html_declared_sizes(self):
-        parser = PageImages("https://vorden.example/")
+        parser = PageImages("https://acme.example/")
         parser.feed('<img src="/tiny" width="32" height="32"><img src="/unknown" width="100%">')
-        self.assertEqual(parser.dimensions["https://vorden.example/tiny"], (32,32))
-        self.assertEqual(parser.dimensions["https://vorden.example/unknown"], (None,None))
+        self.assertEqual(parser.dimensions["https://acme.example/tiny"], (32,32))
+        self.assertEqual(parser.dimensions["https://acme.example/unknown"], (None,None))
 
 
 if __name__ == "__main__":

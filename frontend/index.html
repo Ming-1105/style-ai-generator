@@ -248,23 +248,27 @@
   .add-url-tile:hover{border-color:var(--ink); color:var(--ink);}
 
   /* traits */
-  .traits-list{list-style:none; margin:0; padding:0;}
-  .trait-row{display:flex; gap:20px; border-top:1px solid var(--line); padding:16px 0;}
-  .trait-row:last-child{border-bottom:1px solid var(--line);}
-  .trait-main{flex:1; min-width:0;}
+  .tone-field{max-width:720px; margin-bottom:32px;}
+  .traits-list{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px;}
+  @media (min-width:1360px){ .traits-list{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:760px){ .traits-list{grid-template-columns:minmax(0,1fr);} }
+  .trait-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; gap:12px; min-width:0;}
   .trait-name-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  .trait-name{font-family:var(--font-heading); font-weight:700; font-size:18px;}
+  .trait-name{font-family:var(--font-heading); font-weight:700; font-size:22px; line-height:1.2;}
   .trait-name[contenteditable="true"]{outline:1px dashed var(--ink); padding:0 3px;}
-  .trait-desc{color:var(--muted); font-size:16px; line-height:1.5; margin:6px 0 14px;}
-  .evidence-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  .evidence-thumbs{display:flex; flex-wrap:wrap; gap:8px;}
-  .evidence-thumb{width:100px; height:80px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted);}
+  .trait-desc{color:var(--muted); font-size:14px; line-height:1.5; margin:0;}
+  .trait-body{display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start;}
+  .trait-evidence{flex:1 1 200px; min-width:0;}
+  .evidence-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .evidence-grid .evidence-thumb{width:auto; height:auto; min-width:0;}
+  .evidence-grid button.evidence-thumb img{height:auto; aspect-ratio:4/3; object-fit:cover;}
+  .evidence-thumb{border:1px solid var(--line); border-radius:3px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--muted); min-height:60px;}
   .evidence-thumb svg{width:80%; height:80%;}
-  .evidence-label{font-size:12px;}
-  .trait-side{width:210px; flex-shrink:0; display:flex; flex-direction:column; gap:10px;}
+  .evidence-label{display:block; font-size:11.5px; margin-top:8px;}
+  .trait-controls{flex:1 1 150px; min-width:140px; display:flex; flex-direction:column; gap:12px;}
   .trait-conf{display:flex; justify-content:space-between; align-items:center; font-size:13px;}
   .trait-weight input[type=range]{width:100%; accent-color:var(--accent-strong);}
-  .trait-weight{display:flex; flex-direction:column;}
+  .trait-weight{display:flex; flex-direction:column; gap:4px;}
   .weight-val{font-size:11px; color:var(--muted);}
   .trait-actions{display:flex; gap:8px;}
 
@@ -365,8 +369,6 @@
     .directions-grid{grid-template-columns:1fr;}
     .compare-columns{grid-template-columns:1fr;}
     .dodont-row{grid-template-columns:1fr;}
-    .trait-row{flex-direction:column;}
-    .trait-side{width:100%;}
     .feature-row{grid-template-columns:120px 1fr 30px;}
   }
   @media (max-width:420px){
@@ -491,22 +493,22 @@
     </section>
 
     <!-- STEP 3 — STYLE DNA -->
-    <section class="panel" id="step-panel-3" hidden>
+    <section class="panel panel-wide" id="step-panel-3" hidden>
       <h2>Style DNA</h2>
       <div class="help" data-help-step="3"></div>
       <p class="panel-intro" id="traits-intro"></p>
       <div class="skipped-note" id="skipped-note" role="status" hidden></div>
 
-      <ul class="traits-list" id="traits-list"></ul>
-
-      <div class="add-keyword-row" style="margin-top:14px;">
-        <input type="text" id="add-trait-input" placeholder="+ Add trait manually">
-        <button type="button" class="btn-ghost" id="add-trait-btn">Add</button>
-      </div>
-
-      <div class="field" style="margin-top:20px;">
+      <div class="field tone-field">
         <label>Brand tone <span class="muted">— click to include or leave out</span></label>
         <div class="chip-row" id="tone-chips"></div>
+      </div>
+
+      <ul class="traits-list" id="traits-list"></ul>
+
+      <div class="add-keyword-row" style="margin-top:24px;">
+        <input type="text" id="add-trait-input" placeholder="+ Add trait manually">
+        <button type="button" class="btn-ghost" id="add-trait-btn">Add</button>
       </div>
 
       <div class="field" style="margin-top:20px;">
@@ -728,7 +730,7 @@
     edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
     add_trait:    {step: 3, label: 'Add a trait yourself', text: 'Add a trait the AI missed. It has no pictures linked to it, so the AI will judge it from your words alone.'},
     low_conf:     {step: 3, label: 'Low confidence', text: 'The AI was not sure about this trait, often because few pictures show it. Check it against the pictures before you rely on it.'},
-    evidence:     {step: 3, label: 'Evidence pictures', text: 'The pictures where the AI saw this trait. Click one to enlarge it and check whether you agree.'},
+    evidence:     {step: 3, label: 'Evidence pictures', text: 'The pictures where the AI saw this trait. Click any of them to see them all larger, and check whether you agree.'},
     tone:         {step: 3, label: 'Brand tone', text: 'Words that describe the brand\'s character. Click a word to keep or drop it; only the kept words go into the house style.'},
     rules:        {step: 3, label: 'Do / don\'t rules', text: 'Short design rules the AI drew from the traits. Remove any you disagree with; the ones that stay are part of the house style.'},
     lock:         {step: 3, label: 'Lock the house style package', text: 'Locking turns your edited traits, tone and rules into the package that designs are compared against. You can come back and change things, but then you lock again.'},
@@ -1194,29 +1196,31 @@
     list.innerHTML = state.traits.map(function(t){
       var conf = pct(t.confidence);
       var confHtml = conf === null ? '<span class="mono muted" title="The AI did not report a confidence for this trait">not rated</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
-      var evidenceRow = t.origin === 'manual'
+      var shown = t.evidence_image_ids.slice(0, 4);
+      var evidence = t.origin === 'manual'
         ? '<span class="mono muted evidence-label">Added manually — no evidence linked yet</span>'
-        : '<div class="evidence-thumbs">' + t.evidence_image_ids.map(function(id){ return imageThumb(id, 'evidence-thumb', t.id); }).join('') + '</div>' +
-          '<span class="mono muted evidence-label">seen in ' + t.seen_count + '/' + state.extractedFrom + ' images</span>';
-      return '<li class="trait-row" data-id="' + esc(t.id) + '">' +
-        '<div class="trait-main">' +
-          '<div class="trait-name-row">' +
-            '<span class="trait-name" contenteditable="false" data-id="' + esc(t.id) + '">' + esc(t.name) + '</span>' +
-            (t.low_confidence ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
-          '</div>' +
-          '<p class="trait-desc">' + esc(t.description) + '</p>' +
-          '<div class="evidence-row">' + evidenceRow + '</div>' +
+        : '<div class="evidence-grid">' + shown.map(function(id){ return imageThumb(id, 'evidence-thumb', t.id); }).join('') + '</div>' +
+          '<span class="mono muted evidence-label">seen in ' + t.seen_count + '/' + state.extractedFrom + ' images' +
+          (t.evidence_image_ids.length > 4 ? ' · +' + (t.evidence_image_ids.length - 4) + ' more' : '') + (t.evidence_image_ids.length ? ' · click to see all' : '') + '</span>';
+      return '<li class="trait-card" data-id="' + esc(t.id) + '">' +
+        '<div class="trait-name-row">' +
+          '<span class="trait-name" contenteditable="false" data-id="' + esc(t.id) + '">' + esc(t.name) + '</span>' +
+          (t.low_confidence ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
         '</div>' +
-        '<div class="trait-side">' +
-          '<div class="trait-conf"><span class="label-mono">confidence</span>' + confHtml + '</div>' +
-          '<div class="trait-weight">' +
-            '<label class="label-mono" for="trait-weight-' + esc(t.id) + '">importance</label>' +
-            '<input type="range" min="0" max="100" value="' + t.importance + '" id="trait-weight-' + esc(t.id) + '" data-id="' + esc(t.id) + '">' +
-            '<span class="mono weight-val">' + t.importance + '</span>' +
-          '</div>' +
-          '<div class="trait-actions">' +
-            '<button type="button" class="btn-ghost btn-edit" data-id="' + esc(t.id) + '">Edit</button>' +
-            '<button type="button" class="btn-ghost btn-remove" data-id="' + esc(t.id) + '">Remove</button>' +
+        '<p class="trait-desc">' + esc(t.description) + '</p>' +
+        '<div class="trait-body">' +
+          '<div class="trait-evidence">' + evidence + '</div>' +
+          '<div class="trait-controls">' +
+            '<div class="trait-conf"><span class="label-mono">confidence</span>' + confHtml + '</div>' +
+            '<div class="trait-weight">' +
+              '<label class="label-mono" for="trait-weight-' + esc(t.id) + '">importance</label>' +
+              '<input type="range" min="0" max="100" value="' + t.importance + '" id="trait-weight-' + esc(t.id) + '" data-id="' + esc(t.id) + '">' +
+              '<span class="mono weight-val">' + t.importance + '</span>' +
+            '</div>' +
+            '<div class="trait-actions">' +
+              '<button type="button" class="btn-ghost btn-edit" data-id="' + esc(t.id) + '">Edit</button>' +
+              '<button type="button" class="btn-ghost btn-remove" data-id="' + esc(t.id) + '">Remove</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</li>';

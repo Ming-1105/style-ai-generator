@@ -84,7 +84,7 @@ def to_directions(answer: ModelDirections, gap_by_trait: dict[str, int]) -> list
 def generate_directions(
     ask: VisionProvider,
     brand_name: str,
-    design: LoadedImage,
+    designs: list[LoadedImage],
     traits: list[Trait],
     scores: list[TraitScore],
 ) -> list[Direction]:
@@ -96,7 +96,7 @@ def generate_directions(
     if not gap_traits:
         return []  # nothing assessed, or everything fits, or the weighty traits have importance 0
     answer = ask_and_parse(
-        ask, build_prompt(brand_name, gap_traits), [design], parse_answer,
+        ask, build_prompt(brand_name, gap_traits), designs, parse_answer,
         "The AI's suggestions could not be read, even on a second try. No directions were made up.",
     )
     return to_directions(answer, {trait.id: gap for trait, _, gap in gap_traits})

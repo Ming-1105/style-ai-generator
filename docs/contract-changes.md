@@ -83,3 +83,16 @@
 - **Who is affected:** B returns it, C displays it as "based on N% of the importance" (and can suggest what to
   add when it is low). Optional field, nothing breaks without it. Until agreed, a screen can compute it from
   `trait_scores` and the package's importance values with the same formula.
+
+## Proposal (Person B, 2026-10-19): more than one design image in `POST /api/compare`
+
+- **What:** add one optional field to the request: `additional_design_images: string[]` (data URLs or https URLs, at most 3).
+  `design_image` stays the main view. B shows all of them to the model as views of the same design (labelled "design",
+  "design_2", ...). `contracts/models.py` and the API table in `AGENTS.md` are updated. Nothing changes in the response.
+- **Why:** one picture often hides traits (earlier results said "needs a side view to judge"). With a front, a side and a back
+  view the AI can judge more traits, which raises coverage, and a trait counts as "not assessable" only when no view shows it.
+- **Who is affected:** B reads it and sends all views to the model. C needs a way to add up to 4 images of the design and to send
+  the first as `design_image` and the rest as `additional_design_images`. A is not affected. Optional field, so nothing breaks
+  without it; more than 4 images in total is refused with a clear message (`too_many_design_images`).
+- **Status:** requested by the designer in the integration session and applied on branch `ai-core/design-views`; the team should
+  confirm it when that pull request is reviewed.

@@ -47,7 +47,7 @@ class GenerateDirectionsTests(unittest.TestCase):
     def generate(self, answer, pkg=None):
         pkg = pkg or package()
         model = FakeModel(answer)
-        result = generate_directions(model, pkg.brand.name, DESIGN_IMAGE, pkg.traits, scores_of(pkg))
+        result = generate_directions(model, pkg.brand.name, [DESIGN_IMAGE], pkg.traits, scores_of(pkg))
         return result, model
 
     def test_directions_are_ordered_by_gap_and_get_letters_in_that_order(self):
@@ -88,7 +88,7 @@ class GenerateDirectionsTests(unittest.TestCase):
         pkg = package()
         perfect = [TraitScore(trait_id=t.id, score=100, status="ok", note="") for t in pkg.traits]
         model = FakeModel()
-        self.assertEqual(generate_directions(model, "x", DESIGN_IMAGE, pkg.traits, perfect), [])
+        self.assertEqual(generate_directions(model, "x", [DESIGN_IMAGE], pkg.traits, perfect), [])
         self.assertEqual(model.calls, [])
 
     def test_prompt_shows_traits_scores_and_notes_but_never_importance(self):
@@ -106,7 +106,7 @@ class GenerateDirectionsTests(unittest.TestCase):
         pkg = package()
         model = FakeModel("nope", "still nope")
         with self.assertRaises(AiCoreError) as raised:
-            generate_directions(model, "x", DESIGN_IMAGE, pkg.traits, scores_of(pkg))
+            generate_directions(model, "x", [DESIGN_IMAGE], pkg.traits, scores_of(pkg))
         self.assertEqual(raised.exception.code, "invalid_model_output")
         self.assertEqual(len(model.calls), 2)
 

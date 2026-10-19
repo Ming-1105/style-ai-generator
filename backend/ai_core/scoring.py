@@ -130,4 +130,5 @@ def build_compare_result(
         matches=[m for m in matches if still_applies(m)],
         departures=departures,
         directions=[d for _, d in ranked],
+        coverage=coverage(traits, scores),
     )

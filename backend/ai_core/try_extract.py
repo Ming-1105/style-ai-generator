@@ -158,12 +158,16 @@ def main(argv: list[str]) -> None:
               f"   confidence {trait.confidence:.2f}   suggested importance {trait.importance}")
     print("\nTone words:", ", ".join(result.tone_words) or "-")
     print("Colors:    ", ", ".join(f"{c.name} {c.hex}" for c in result.colors) or "-")
+    print("Do / don't:" + ("" if result.do_dont else " -"))
+    for rule in result.do_dont:
+        print(f"   do:   {rule.do}\n   dont: {rule.dont}")
+    print("Skipped:   ", ", ".join(f"{s.id} ({s.reason})" for s in result.skipped_images) or "none")
     print()
 
     if args.save_package:
         package = HouseStylePackage(
             created_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            brand=brand, traits=result.traits, tone_words=result.tone_words, colors=result.colors,
+            brand=brand, traits=result.traits, tone_words=result.tone_words, colors=result.colors, do_dont=result.do_dont,
             source_image_ids=[c.id for c in candidates],
         )
         Path(args.save_package).write_text(package.model_dump_json(indent=2), encoding="utf-8")

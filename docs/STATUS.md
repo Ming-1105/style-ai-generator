@@ -15,6 +15,16 @@ If you need something from another folder, add a note under that owner's "Needs 
   write yours after the fact. `python -m http.server 8080 --directory docs/timeline` shows the master flowchart.
   B.csv is done as the example; A and C still to add.
 
+- **Integration (2026-10-19, one PC, branch `integration/a-b-c`):** A's `sourcing/serpapi` (PR #3), B's `ai-core/pipeline-page`
+  and C's merged UI were combined on top of `main`; the only conflict was the shared decision log (both sides appended),
+  resolved by keeping every entry. Results: A's 34 tests and B's 143 tests pass; in mock mode every endpoint, the frontend
+  and the pipeline page work, and C's UI runs Brand -> Sources -> Style DNA -> Lock -> Compare with the fit shown with its
+  coverage, the "could not be judged" group and 3 directions. Live (SerpApi + Gemini, key checked): search 30 candidates in
+  7 s, extraction and comparison worked through the combined code in about 26 s for about 0.3 cents. Findings: (1) A flags
+  27 of 30 results (domain does not match the brand or official site), so only 3 start selected and extraction rests on 3
+  images unless the designer ticks more or enters the official website; (2) the images A pre-selects can be downloaded by B;
+  (3) the contract proposals `skipped_images` and `coverage` in `docs/contract-changes.md` still need a team decision.
+
 ## A — Sourcing (`/backend/sourcing/`)
 
 - **Done:** Milestone 1 — SerpAPI live image search using existing httpx; mock path preserved. One request per search, up to 30 candidates, and clear configuration/provider errors. Five unittest checks pass; a live search returned 30 candidates with HTTP 200.

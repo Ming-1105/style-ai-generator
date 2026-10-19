@@ -81,6 +81,10 @@ If you need something from another folder, add a note under that owner's "Needs 
   in the header with new / rename / duplicate / delete / export / import, saved automatically in the browser with a "Saved" indicator);
   **lightbox** on every image (sources, evidence, house style sources, the design and its extra views, direction images) with arrows,
   zoom, pan, captions and a broken-image message; added the missing `viewport` meta tag so the phone layout works. No contract or API change.
+- **Done (later the same day, `ui/overhaul`):** the tool now has **6 steps**: the design upload moved out of step 4 into its own centred step 5 "Your Design"
+  (main image, more views, a "Sketch or black and white" switch, an optional short description); Compare is step 6. Saved projects from before are
+  migrated (`schemaVersion` 2). The switch and the description are sent to `/api/compare` as the optional fields `design_is_sketch` and
+  `design_description`; **this contract change is only proposed** (see `docs/contract-changes.md`) and `AGENTS.md` is not updated until the team agrees.
 - **For C to check:** the first project a browser creates is the Acme sample brand; projects created afterwards start empty. Storage is
   IndexedDB only (see the decision log); nothing is stored on the server. Not tried: browsers with IndexedDB switched off, and a real phone.
 

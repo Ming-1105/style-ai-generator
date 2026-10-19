@@ -364,3 +364,14 @@
 - **Why:** IndexedDB (not localStorage) because designs are large images. Keeping it in the browser needs no database or login, fits the
   prototype rules, and keeps scraped images out of anything we store (copyright rule). Export and import move a project to another
   computer. A server-side save would need an endpoint and so a contract change; nobody needs it for the demo.
+
+## 2026-10-19 — A sketch switch and a description for the design; colour is not judged for sketches (Person B)
+
+- **What:** `POST /api/compare` accepts two optional fields, `design_is_sketch` and `design_description`. When the designer says the design is a
+  sketch or black and white, the prompt tells the model not to judge colour, material, finish or transparency: those traits come back
+  `not_assessable`, so they are left out of the fit and lower the coverage instead of being scored 0. The description (one line, at most 500
+  characters, double quotes replaced) is given to the model as the designer's own words, as information and not as evidence.
+- **Why:** a pencil sketch should not lose points for having no colour. The prompt already treated colourless drawings carefully, but only when the
+  model noticed; now the designer's own statement decides. The description is context, so it must not raise a score for something the images do not
+  show, and it is treated as data, not as instructions. The decision stays with the model plus the existing scoring code; there is no keyword list in
+  code that tries to guess which traits are about colour.

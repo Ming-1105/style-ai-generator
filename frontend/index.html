@@ -41,6 +41,27 @@
   .field textarea{width:100%; min-height:64px; resize:vertical;}
   .field input[type=text]{width:100%;}
 
+  /* step 5: your design */
+  .panel-center{text-align:center;}
+  .design-title{font-size:44px; line-height:1.1; text-align:center; margin:16px 0 8px; letter-spacing:.01em;}
+  .help.help-center{display:flex; flex-direction:column; align-items:center; margin:0 auto 24px;}
+  .help-center .help-panel{text-align:left; width:100%;}
+  .design-stack{max-width:520px; margin:24px auto 0; display:flex; flex-direction:column; gap:32px;}
+  .design-block{display:flex; flex-direction:column; align-items:center; gap:8px;}
+  .design-block .dropzone{width:100%; margin-top:0;}
+  .dropzone-big{padding:56px 16px; font-size:14px;}
+  .design-block .design-preview{flex-direction:column; align-items:center; justify-content:center; margin-top:0;}
+  .design-block .design-preview img{max-height:220px; max-width:100%;}
+  .design-block .view-thumbs{justify-content:center; margin-top:0;}
+  .design-block textarea{width:100%; min-height:88px; resize:vertical; text-align:left;}
+  .switch{display:inline-flex; align-items:center; gap:12px; background:none; border:none; padding:4px 8px; color:var(--ink); font-size:14px;}
+  .switch-track{position:relative; width:44px; height:24px; border-radius:12px; border:1px solid var(--ink); background:var(--field); flex-shrink:0; transition:background .15s;}
+  .switch-knob{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--ink); transition:transform .15s;}
+  .switch[aria-checked="true"] .switch-track{background:var(--accent);}
+  .switch[aria-checked="true"] .switch-knob{transform:translateX(20px);}
+  .btn-row-center{justify-content:center;}
+  .panel-center .progress-box{margin:24px auto 0;}
+
   /* projects */
   .proj{position:relative; margin-left:auto;}
   .proj-trigger{display:inline-flex; align-items:center; gap:8px; background:var(--field); border:1px solid var(--ink); border-radius:var(--radius); padding:6px 12px; color:var(--ink); max-width:260px;}
@@ -448,29 +469,60 @@
     <section class="panel" id="step-panel-4" hidden>
       <div class="help" data-help-step="4"></div>
       <div class="doc" id="house-style-content"></div>
-      <div class="field" style="margin-top:20px;">
-        <label>Your design <span class="muted">— the image to compare with this house style</span></label>
-        <div class="dropzone" id="design-dropzone" tabindex="0" role="button">Drop your design here, or click to browse (PNG, JPG, WebP)</div>
-        <div id="design-preview" class="design-preview" hidden></div>
-        <div id="view-thumbs" class="view-thumbs"></div>
-        <div class="dropzone" id="add-view-dropzone" tabindex="0" role="button">+ Add another view of your design (side, back, …) — up to 3 more</div>
-        <p class="hint-note">More views let the AI judge traits that a single picture hides.</p>
-      </div>
-      <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
-      <input type="file" id="view-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
-      <div id="compare-progress" class="progress-box" hidden aria-live="polite"></div>
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="back-to-traits-btn">← Style DNA</button>
         <button type="button" class="btn-secondary" id="export-pdf-btn">Export PDF</button>
-        <button type="button" class="btn-primary" id="compare-btn">Compare a design →</button>
+        <button type="button" class="btn-primary" id="to-design-btn">Your design →</button>
       </div>
     </section>
 
-    <!-- STEP 5 — COMPARE -->
-    <section class="panel" id="step-panel-5" hidden>
+    <!-- STEP 5 — YOUR DESIGN -->
+    <section class="panel panel-center" id="step-panel-5" hidden>
+      <h2 class="design-title">Your Design</h2>
+      <div class="help help-center" data-help-step="5"></div>
+
+      <div class="design-stack">
+        <div class="design-block">
+          <span class="label-mono">main image</span>
+          <div class="dropzone dropzone-big" id="design-dropzone" tabindex="0" role="button">Drop your main image here, or click to browse</div>
+          <div id="design-preview" class="design-preview" hidden></div>
+        </div>
+
+        <div class="design-block">
+          <span class="label-mono">more views · up to 3</span>
+          <div class="dropzone" id="add-view-dropzone" tabindex="0" role="button">Drop more views here (side, back, …), or click to browse</div>
+          <div id="view-thumbs" class="view-thumbs"></div>
+        </div>
+
+        <div class="design-block">
+          <button type="button" class="switch" id="sketch-toggle" role="switch" aria-checked="false" aria-describedby="sketch-hint">
+            <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
+            <span>Sketch or black and white</span>
+          </button>
+          <p class="hint-note" id="sketch-hint" style="margin:0;" hidden>Colour and material will not be judged.</p>
+        </div>
+
+        <div class="design-block">
+          <label class="label-mono" for="design-description" style="margin:0;">description · optional</label>
+          <textarea id="design-description" maxlength="500" placeholder="A short description of your design"></textarea>
+        </div>
+      </div>
+
+      <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+      <input type="file" id="view-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+      <div id="compare-progress" class="progress-box" hidden aria-live="polite"></div>
+      <div class="btn-row btn-row-center">
+        <button type="button" class="btn-secondary" id="back-to-house-from-design-btn">← House style</button>
+        <button type="button" class="btn-primary" id="compare-btn">Compare →</button>
+      </div>
+    </section>
+
+    <!-- STEP 6 — COMPARE -->
+    <section class="panel" id="step-panel-6" hidden>
       <h2>Compare</h2>
-      <div class="help" data-help-step="5"></div>
+      <div class="help" data-help-step="6"></div>
       <p class="panel-intro">Your concept checked against the <span class="js-brand-name"></span> house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
+      <div id="compare-progress-6" class="progress-box" hidden aria-live="polite" style="margin:0 0 16px;"></div>
 
       <div class="compare-layout">
         <div class="sketch-panel">
@@ -519,7 +571,7 @@
       </div>
 
       <div class="btn-row">
-        <button type="button" class="btn-secondary" id="back-to-house-btn">← House style</button>
+        <button type="button" class="btn-secondary" id="back-to-house-btn">← Your design</button>
       </div>
     </section>
 
@@ -592,7 +644,9 @@
       compare: null,         // CompareResult from /api/compare
       hiddenDeparts: {},     // departure text -> true, for departures the designer hid
       showHidden: false,
-      directionStatus: {}    // direction id → 'accepted' | 'rejected'
+      directionStatus: {},   // direction id → 'accepted' | 'rejected'
+      designIsSketch: false, // the designer says the design is a sketch or black and white: colour is not judged
+      designDescription: ''  // a short text about the design, at most 500 characters
     };
   }
   var state = freshState(true);   // replaced when a project is opened
@@ -622,16 +676,18 @@
     rules:        {step: 3, label: 'Do / don\'t rules', text: 'Short design rules the AI drew from the traits. Remove any you disagree with; the ones that stay are part of the house style.'},
     lock:         {step: 3, label: 'Lock the house style package', text: 'Locking turns your edited traits, tone and rules into the package that designs are compared against. You can come back and change things, but then you lock again.'},
     package:      {step: 4, label: 'The house style package', text: 'Everything you decided in one place: traits with their importance, tone, colours, rules and the pictures they came from. This is what your design will be measured against.'},
-    design:       {step: 4, label: 'Your design', text: 'Upload a picture of your own design. If you skip this, a built-in sample sketch is compared so you can try the tool.'},
-    more_views:   {step: 4, label: 'More views of your design', text: 'Add up to three more pictures of the same design, such as the side or the back. One picture hides things, and more views let the AI judge more traits.'},
+    design:       {step: 5, label: 'Main image', text: 'Upload a picture of your own design. If you skip this, a built-in sample sketch is compared so you can try the tool.'},
+    more_views:   {step: 5, label: 'More views', text: 'Add up to three more pictures of the same design, such as the side or the back. One picture hides things, and more views let the AI judge more traits.'},
+    sketch:       {step: 5, label: 'Sketch or black and white', text: 'Switch this on when your design is a pencil sketch or has no colour yet. The AI then leaves colour and material out instead of marking them down, and the score is based on form only.'},
+    description:  {step: 5, label: 'Description', text: 'A short note about what the design is meant to be. It gives the AI context, but it can only judge what it sees in your pictures, so the note never raises a score.'},
     palette:      {step: 4, label: 'Download palette', text: 'Saves the brand colours as one image you can drop into your own board.'},
-    fit:          {step: 5, label: 'Overall fit', text: 'One number for how close your design is to the brand: higher is closer. It is an average of the trait scores, weighted by the importance you set.'},
-    coverage:     {step: 5, label: 'Coverage', text: 'How much of the total importance the AI could actually judge from your pictures. Low coverage means the fit rests on little, so add more views or a clearer picture.'},
-    trait_scores: {step: 5, label: 'Trait scores', text: 'One score per trait, with a short reason when you hover over it. Traits the AI could not see are listed apart and do not count as zero.'},
-    findings:     {step: 5, label: 'Matches and departures', text: 'What your design shares with the brand and where it moves away from it. Departures that belong only to traits with importance 0 are greyed out; you can hide them.'},
-    directions:   {step: 5, label: 'Suggested directions', text: 'Ideas for closing the biggest gaps, each pointing back to the traits it comes from. Accept the ones you like and reject the others; you decide.'},
-    notes:        {step: 5, label: 'Design notes', text: 'Accepted directions land here as notes. You can edit the text directly.'},
-    replace:      {step: 5, label: 'Replace design or add a view', text: 'Upload another version or an extra view and the comparison runs again with it.'}
+    fit:          {step: 6, label: 'Overall fit', text: 'One number for how close your design is to the brand: higher is closer. It is an average of the trait scores, weighted by the importance you set.'},
+    coverage:     {step: 6, label: 'Coverage', text: 'How much of the total importance the AI could actually judge from your pictures. Low coverage means the fit rests on little, so add more views or a clearer picture.'},
+    trait_scores: {step: 6, label: 'Trait scores', text: 'One score per trait, with a short reason when you hover over it. Traits the AI could not see are listed apart and do not count as zero.'},
+    findings:     {step: 6, label: 'Matches and departures', text: 'What your design shares with the brand and where it moves away from it. Departures that belong only to traits with importance 0 are greyed out; you can hide them.'},
+    directions:   {step: 6, label: 'Suggested directions', text: 'Ideas for closing the biggest gaps, each pointing back to the traits it comes from. Accept the ones you like and reject the others; you decide.'},
+    notes:        {step: 6, label: 'Design notes', text: 'Accepted directions land here as notes. You can edit the text directly.'},
+    replace:      {step: 6, label: 'Replace design or add a view', text: 'Upload another version or an extra view and the comparison runs again with it.'}
   };
 
   function renderHelp(){
@@ -740,7 +796,7 @@
   }
 
   /* ---------- navigation ---------- */
-  var STEP_NAMES = ['Brand','Sources','Style DNA','House style','Compare'];
+  var STEP_NAMES = ['Brand','Sources','Style DNA','House style','Your design','Compare'];
   var currentStep = 1;
   var maxReached = 1;
   var currentFilter = 'all';
@@ -774,13 +830,14 @@
   }
 
   function showPanel(n){
-    for (var i = 1; i <= 5; i++) document.getElementById('step-panel-' + i).hidden = (i !== n);
+    for (var i = 1; i <= 6; i++) document.getElementById('step-panel-' + i).hidden = (i !== n);
     renderBrandName();
     if (n === 1) renderBrand();
     if (n === 2) renderSources();
     if (n === 3) renderTraits();
-    if (n === 4){ renderHouseStyle(); renderDesignPreview(); }
-    if (n === 5) renderCompare();
+    if (n === 4) renderHouseStyle();
+    if (n === 5) renderDesignPanel();
+    if (n === 6) renderCompare();
   }
   function navigateToStep(n){
     if (n > maxReached) return;
@@ -789,6 +846,23 @@
     renderStepRail();
     window.scrollTo(0, 0);
     scheduleSave();
+  }
+  // Going from the house style to the design step keeps a comparison that was already made.
+  function goToDesign(){
+    maxReached = Math.max(maxReached, 5);
+    navigateToStep(5);
+  }
+  // A change to the design, its views, the sketch switch or the description makes the old comparison out of date.
+  function staleCompare(){
+    state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+    if (maxReached > 5){ maxReached = 5; renderStepRail(); }
+  }
+  function renderDesignPanel(){
+    renderDesignPreview();
+    var toggle = document.getElementById('sketch-toggle');
+    toggle.setAttribute('aria-checked', state.designIsSketch ? 'true' : 'false');
+    document.getElementById('sketch-hint').hidden = !state.designIsSketch;
+    document.getElementById('design-description').value = state.designDescription;
   }
   function advanceToStep(n){
     maxReached = n;   // later steps are based on old data, so they lock again
@@ -1439,7 +1513,8 @@
     if (!state.package) return;
     var btn = document.getElementById('compare-btn');
     btn.disabled = true;
-    showProgress('compare-progress', 'Comparing the design with the house style…');
+    var progressId = currentStep === 6 ? 'compare-progress-6' : 'compare-progress';   // the box on the screen the designer is looking at
+    showProgress(progressId, 'Comparing the design with the house style…');
     var designReady = state.design ? Promise.resolve(state.design) : loadSampleDesign();
     designReady.then(function(design){
       state.design = design;
@@ -1452,14 +1527,17 @@
         });
       });
       var extraViews = state.design === design ? state.moreDesigns.map(function(d){ return d.dataUrl; }) : [];
-      return api('/api/compare', {package: state.package, design_image: design.dataUrl, additional_design_images: extraViews, reference_images: refs});
+      var body = {package: state.package, design_image: design.dataUrl, additional_design_images: extraViews, reference_images: refs};
+      if (state.designIsSketch) body.design_is_sketch = true;
+      if (state.designDescription.trim()) body.design_description = state.designDescription.trim();
+      return api('/api/compare', body);
     }).then(function(data){
       state.compare = data;
       state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
-      hideProgress('compare-progress');
-      advanceToStep(5);
+      hideProgress(progressId);
+      advanceToStep(6);
     }).catch(function(err){
-      showError('compare-progress', err.message, runCompare);
+      showError(progressId, err.message, runCompare);
     }).then(function(){
       btn.disabled = false;
     });
@@ -1679,7 +1757,7 @@
     readDesignFile(file).then(function(design){
       state.design = design;
       state.moreDesigns = [];
-      state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+      staleCompare();
       renderDesignPreview();
       if (thenCompare) runCompare();
     }).catch(function(err){
@@ -1710,10 +1788,10 @@
   }
   function removeView(i){
     state.moreDesigns.splice(i, 1);
-    state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+    staleCompare();
     renderViewThumbs('view-thumbs');
     renderViewThumbs('compare-views');
-    if (currentStep === 5) runCompare();
+    if (currentStep === 6) runCompare();
   }
   // Adds files as views of the same design: the first becomes the main design when there is none yet.
   function addDesignFiles(files, thenCompare){
@@ -1732,7 +1810,7 @@
     });
     chain.then(function(){
       if (!added) return;   // nothing changed, so there is nothing to compare again
-      state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+      staleCompare();
       renderDesignPreview();
       if (thenCompare) runCompare();
     });
@@ -1757,7 +1835,7 @@
   /* ---------- projects: several per designer, saved in this browser (IndexedDB) ---------- */
   // Everything lives in the browser. Only the URLs and metadata of reference images are stored,
   // never their pixels; the designer's own design may be stored.
-  var SCHEMA_VERSION = 1;
+  var SCHEMA_VERSION = 2;   // 2: the design became its own step (step 5), so Compare moved from 5 to 6
   var DEFAULT_PROJECT_NAME = 'New project';
 
   var Store = (function(){
@@ -1952,6 +2030,8 @@
       base.doDont = base.doDont.filter(validRule);
       base.skippedImages = base.skippedImages.filter(function(x){ return isObject(x) && typeof x.id === 'string'; }).map(function(x){ x.reason = String(x.reason || ''); return x; });
       base.extractedFrom = num(base.extractedFrom, 0);
+      base.designIsSketch = base.designIsSketch === true;
+      base.designDescription = String(base.designDescription || '').slice(0, 500);
 
       if (base.package){
         var pkg = base.package;
@@ -1979,14 +2059,18 @@
       if (!base.package) base.compare = null;
 
       function limit(n){
-        if (n >= 5 && !base.compare) n = 4;
+        if (n >= 6 && !base.compare) n = 5;
         if (n >= 4 && !base.package) n = 3;
         if (n >= 3 && base.traits.length === 0) n = 2;
         if (n >= 2 && base.candidates.length === 0) n = 1;
         return n;
       }
-      var step = Math.max(1, Math.min(5, Math.round(num(data.currentStep, 1))));
-      var reached = Math.max(step, Math.max(1, Math.min(5, Math.round(num(data.maxReached, step)))));
+      // projects saved before the design step existed counted Compare as step 5
+      var old = num(rec && rec.schemaVersion, 1) < 2;
+      var rawStep = Math.round(num(data.currentStep, 1)), rawReached = Math.round(num(data.maxReached, rawStep));
+      if (old){ if (rawStep >= 5) rawStep++; if (rawReached >= 5) rawReached++; }
+      var step = Math.max(1, Math.min(6, rawStep));
+      var reached = Math.max(step, Math.max(1, Math.min(6, rawReached)));
       reached = limit(reached);
       step = Math.min(step, reached);
       var counter = 0;
@@ -1999,7 +2083,7 @@
 
   /* --- opening, creating and leaving projects --- */
   function resetTransientUi(){
-    ['brand-progress', 'extract-progress', 'compare-progress'].forEach(hideProgress);
+    ['brand-progress', 'extract-progress', 'compare-progress', 'compare-progress-6'].forEach(hideProgress);
     document.getElementById('toast-container').innerHTML = '';
     document.getElementById('keyword-input').value = '';
     document.getElementById('add-trait-input').value = '';
@@ -2108,7 +2192,7 @@
         return;
       }
       var now = new Date().toISOString();
-      var rec = {id: newProjectId(), name: String(obj.name || 'Imported project'), autoName: false, schemaVersion: SCHEMA_VERSION, createdAt: now, updatedAt: now, data: obj.data};
+      var rec = {id: newProjectId(), name: String(obj.name || 'Imported project'), autoName: false, schemaVersion: num(obj.schemaVersion, 1), createdAt: now, updatedAt: now, data: obj.data};
       saveNow().then(function(){ return openRecord(rec, true); }).then(function(){
         showToast(num(obj.schemaVersion, 0) > SCHEMA_VERSION
           ? 'Imported. This file comes from a newer CopyCat, so some parts may be missing.'
@@ -2266,13 +2350,24 @@
 
     document.getElementById('back-to-traits-btn').addEventListener('click', function(){ navigateToStep(3); });
     document.getElementById('export-pdf-btn').addEventListener('click', function(){ showToast('Export is not wired yet.'); });
+    document.getElementById('to-design-btn').addEventListener('click', goToDesign);
+    document.getElementById('back-to-house-from-design-btn').addEventListener('click', function(){ navigateToStep(4); });
     document.getElementById('compare-btn').addEventListener('click', runCompare);
+    document.getElementById('sketch-toggle').addEventListener('click', function(){
+      state.designIsSketch = !state.designIsSketch;
+      staleCompare();
+      renderDesignPanel();
+    });
+    document.getElementById('design-description').addEventListener('input', function(){
+      state.designDescription = this.value.slice(0, 500);
+      staleCompare();
+    });
 
     wireDesignDropzone(document.getElementById('design-dropzone'), false);
     wireDesignDropzone(document.getElementById('replace-design-dropzone'), true);
     wireViewDropzone(document.getElementById('add-view-dropzone'), false);
     wireViewDropzone(document.getElementById('add-view-compare-dropzone'), true);
-    document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(4); });
+    document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(5); });
 
     wireProjects();
     bootProjects();

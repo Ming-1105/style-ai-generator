@@ -354,3 +354,13 @@
 - **Why:** The designer should know what the traits rest on (a trait seen in 3 of 12 images means something different when 2 more
   images were never read), and an AI-written rule is a suggestion: the designer keeps the right to remove it before it becomes part
   of the locked package.
+
+## 2026-10-19 — Projects are saved in the browser (IndexedDB), not on the server (Person B, with Person C)
+
+- **What:** The interface keeps several projects per designer in the browser's IndexedDB, saved automatically after every change, with
+  export and import as a JSON file. Only the URLs and metadata of reference images are stored, never their pixels; the designer's own
+  uploaded design may be stored. Each project has a `schemaVersion`; an older or unknown shape is repaired or replaced, never a crash.
+  If storage is unavailable or full, the app keeps working in memory and says "Not saved". No backend endpoint was added.
+- **Why:** IndexedDB (not localStorage) because designs are large images. Keeping it in the browser needs no database or login, fits the
+  prototype rules, and keeps scraped images out of anything we store (copyright rule). Export and import move a project to another
+  computer. A server-side save would need an endpoint and so a contract change; nobody needs it for the demo.

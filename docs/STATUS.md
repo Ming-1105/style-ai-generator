@@ -75,6 +75,15 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## C — Interface (`/frontend/`)
 
+- **Done (2026-10-19, branch `ui/overhaul`, made with B's agent at the designer's request):** restyle (flat warm palette, Roboto fonts,
+  round step markers, a dial for the overall fit, a text label next to every score colour); the tool is named **CopyCat**; a collapsed
+  "Learn more" under every step, with all texts in the `HELP` object at the top of the script; **projects** (several per designer, switcher
+  in the header with new / rename / duplicate / delete / export / import, saved automatically in the browser with a "Saved" indicator);
+  **lightbox** on every image (sources, evidence, house style sources, the design and its extra views, direction images) with arrows,
+  zoom, pan, captions and a broken-image message; added the missing `viewport` meta tag so the phone layout works. No contract or API change.
+- **For C to check:** the first project a browser creates is the Acme sample brand; projects created afterwards start empty. Storage is
+  IndexedDB only (see the decision log); nothing is stored on the server. Not tried: browsers with IndexedDB switched off, and a real phone.
+
 - **Done (2026-10-19, agreed contract fields, made at C's laptop with B's agent):** Step 3 shows a note when selected images were not
   analysed ("1 of the 13 selected images could not be analysed", with the image, its source and the reason); "seen in N/M images" now
   counts only the analysed images. Step 3 also lists the AI's do/don't rules, each with a Remove button; the locked package carries the

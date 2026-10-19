@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from backend.ai_core.scoring import (
     build_compare_result,
+    coverage,
     overall_fit,
     rank_gaps,
     signature_departures,
@@ -71,6 +72,27 @@ class OverallFitTests(FixtureCase):
 
     def test_none_when_all_importance_is_zero(self):
         self.assertIsNone(overall_fit([trait("a", 0)], [score("a", 70)]))
+
+
+class CoverageTests(FixtureCase):
+    def test_fixture_covers_92_percent(self):
+        # judged importance 90+80+95+65+70 = 400 of 435 (tr_06, importance 35, not assessable)
+        self.assertEqual(coverage(self.traits, self.scores), 92)
+
+    def test_nothing_judged_is_zero(self):
+        none = [score(t.id, None, "not_assessable") for t in self.traits]
+        self.assertEqual(coverage(self.traits, none), 0)
+
+    def test_everything_judged_is_100(self):
+        all_scored = [score(t.id, 50) for t in self.traits]
+        self.assertEqual(coverage(self.traits, all_scored), 100)
+
+    def test_none_when_all_importance_is_zero(self):
+        self.assertIsNone(coverage([trait("a", 0)], [score("a", 70)]))
+
+    def test_follows_the_importance_the_designer_sets(self):
+        self.set_importance("tr_06", 400)  # the unjudged trait now holds 400 of 800
+        self.assertEqual(coverage(self.traits, self.scores), 50)
 
 
 class GapRankingTests(FixtureCase):

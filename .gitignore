@@ -23,3 +23,10 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Loose notes dropped in the repo root are not project files. Requirements files stay tracked.
+/*.txt
+!/requirements*.txt
+
+# Local record of token use and estimated cost
+/usage_ledger.jsonl

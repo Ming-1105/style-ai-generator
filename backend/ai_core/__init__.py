@@ -1,7 +1,7 @@
-"""AI core (Person B): trait extraction, embeddings, scoring, directions.
+"""AI core (Person B): trait extraction, design comparison, scoring, directions.
 
-Right now this is only the mock path: it returns the fixtures. Build the real
-implementation behind the MOCK_MODE check and keep the mock path working.
+With MOCK_MODE=1 the endpoints return the fixtures; otherwise they call the vision model
+chosen by VISION_PROVIDER (extract.py, compare.py). Keep the mock path working.
 """
 
 import json
@@ -9,10 +9,12 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
 
+from backend.ai_core.compare import compare_design
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
+from backend.ai_core.provider_gemini import DEFAULT_MODEL as GEMINI_DEFAULT_MODEL
 from backend.ai_core.scoring import build_compare_result
 from contracts.models import CompareRequest, CompareResult, ExtractRequest, ExtractResponse
 
@@ -27,16 +29,6 @@ def mock_mode() -> bool:
 
 def load_fixture(name: str) -> dict:
     return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
-
-
-def not_implemented(what: str) -> JSONResponse:
-    return JSONResponse(
-        status_code=501,
-        content={"error": {
-            "code": "not_implemented",
-            "message": f"{what} is not built yet — set MOCK_MODE=1 to use the sample data.",
-        }},
-    )
 
 
 @router.post("/dna/extract", response_model=ExtractResponse)
@@ -62,4 +54,32 @@ def compare(body: CompareRequest):
             sample.departures,
             sample.directions,
         )
-    return not_implemented("Live design comparison")
+    try:
+        return compare_design(body.package, body.design_image, reference_images=body.reference_images)
+    except AiCoreError as problem:
+        return problem.to_response()
+
+
+# --- Developer test page (not part of the app's real interface) ---------------------------
+# A page for trying the compare step with your own package and design image. It lives here,
+# in the AI core's own folder, until the real screen is connected to /api/compare.
+
+DEVTOOLS = Path(__file__).parent / "devtools"
+
+
+@router.get("/dev/compare", include_in_schema=False)
+def dev_compare_page():
+    return FileResponse(DEVTOOLS / "compare_test.html")
+
+
+@router.get("/dev/status", include_in_schema=False)
+def dev_status():
+    """Which mode the server is in, so the page can say whether scores are sample or live."""
+    provider = os.getenv("VISION_PROVIDER", "").strip().lower()
+    model = os.getenv("VISION_MODEL", "").strip() or (GEMINI_DEFAULT_MODEL if provider == "gemini" else "")
+    return {"mock_mode": mock_mode(), "provider": provider, "model": model}
+
+
+@router.get("/dev/sample-package", include_in_schema=False)
+def dev_sample_package():
+    return load_fixture("house_style_package.json")

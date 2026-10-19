@@ -118,11 +118,16 @@ All IDs are strings. Scores are 0–100 integers. Confidence is a 0–1 float. `
 |---|---|---|---|---|
 | POST | `/api/sources/search` | `{ "brand": Brand }` | `{ "candidates": ImageCandidate[] }` | A |
 | POST | `/api/dna/extract` | `{ "brand": Brand, "images": ImageCandidate[] }` | `{ "traits": Trait[], "tone_words": [], "colors": [] }` | B |
-| POST | `/api/compare` | `{ "package": HouseStylePackage, "design_image": "<data URL or https URL>" }` | `CompareResult` | B |
+| POST | `/api/compare` | `{ "package": HouseStylePackage, "design_image": "<data URL or https URL>", "reference_images": ImageCandidate[] }` (`reference_images` optional) | `CompareResult` | B |
 
 Errors use HTTP 4xx/5xx with `{ "error": { "code": "…", "message": "…" } }`. The message is
 written for the designer, e.g. "Image search returned nothing for this brand — try adding
 the official website."
+
+`reference_images` holds the `ImageCandidate` objects (each once) of the images that the package's traits cite in
+`evidence_image_ids`, so B can compare the design with the real reference pictures. The interface sends them from the
+sourcing step; B downloads each `url` for one request and never stores it. Without the field, B judges from the trait
+descriptions alone.
 
 `/backend/main.py` only wires the routers together. Each owner exposes a FastAPI `APIRouter`
 from their own package.

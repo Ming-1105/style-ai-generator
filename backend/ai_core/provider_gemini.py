@@ -12,10 +12,20 @@ import time
 
 import httpx
 
+from backend.ai_core import usage
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import LoadedImage
 
 DEFAULT_MODEL = "gemini-3.8-flash"  # 2.5 models are closed to new accounts
+# VISION_IMAGE_DETAIL: how many tokens (and how much detail) each image gets. Low matched high on our test and costs
+# about a quarter of the image tokens, so it is the default; "default" leaves the choice to Google.
+IMAGE_DETAIL = {"low": "MEDIA_RESOLUTION_LOW", "medium": "MEDIA_RESOLUTION_MEDIUM", "high": "MEDIA_RESOLUTION_HIGH"}
+DEFAULT_IMAGE_DETAIL = "low"
+# VISION_THINKING: how much the model thinks before answering. Thinking is billed as output, so on the larger
+# models it was most of the cost; "minimal" cut a comparison to about a quarter. "default" leaves it to Google.
+THINKING_LEVELS = ("minimal", "low", "medium", "high")
+DEFAULT_THINKING = "minimal"
+MAX_OUTPUT_TOKENS = 8192  # a ceiling per request (thinking included), so one runaway answer cannot cost much
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 TIMEOUT_SECONDS = 120
 RETRY_DELAYS = (3, 8)  # seconds to wait before the 2nd and 3rd attempt
@@ -31,12 +41,30 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
             "data": base64.b64encode(image.data).decode("ascii"),
         }})
 
+    usage.check_budget()  # refuse before spending anything if the limit in VISION_BUDGET_USD is reached
+
+    generation_config = {"responseMimeType": "application/json", "temperature": 0.2, "maxOutputTokens": MAX_OUTPUT_TOKENS}
+    detail = os.getenv("VISION_IMAGE_DETAIL", "").strip().lower() or DEFAULT_IMAGE_DETAIL
+    if detail != "default":
+        if detail not in IMAGE_DETAIL:
+            raise AiCoreError("vision_not_configured",
+                              f"VISION_IMAGE_DETAIL is \"{detail}\" but must be low, medium, high or default.",
+                              status=503)
+        generation_config["mediaResolution"] = IMAGE_DETAIL[detail]
+    thinking = os.getenv("VISION_THINKING", "").strip().lower() or DEFAULT_THINKING
+    if thinking != "default":
+        if thinking not in THINKING_LEVELS:
+            raise AiCoreError("vision_not_configured",
+                              f"VISION_THINKING is \"{thinking}\" but must be minimal, low, medium, high or default.",
+                              status=503)
+        generation_config["thinkingConfig"] = {"thinkingLevel": thinking}
+
     request = {
         "url": ENDPOINT.format(model=model),
         "headers": {"x-goog-api-key": os.getenv("VISION_API_KEY", "").strip()},  # never in the URL
         "json": {
             "contents": [{"role": "user", "parts": parts}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2},
+            "generationConfig": generation_config,
         },
         "timeout": TIMEOUT_SECONDS,
     }
@@ -55,7 +83,9 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
     if response.status_code in (400, 401, 403):
         raise AiCoreError("vision_auth",
                           "Gemini refused the request — check that VISION_API_KEY in .env is a valid "
-                          f"key and that the model \"{model}\" exists (VISION_MODEL).", status=502)
+                          f"key, that the model \"{model}\" exists (VISION_MODEL), and that this model accepts "
+                          "VISION_THINKING and VISION_IMAGE_DETAIL (set them to default to use the model's own settings).",
+                          status=502)
     if response.status_code == 404:
         raise AiCoreError("vision_model_unavailable",
                           f"Gemini does not offer the model \"{model}\" to this account — "
@@ -68,7 +98,9 @@ def ask(prompt: str, images: list[LoadedImage]) -> str:
     if response.status_code >= 400:
         raise AiCoreError("vision_error", f"Gemini returned an error ({response.status_code}) — try again.")
 
-    return read_text(response.json())
+    body = response.json()
+    usage.record(model, body.get("usageMetadata"))
+    return read_text(body)
 
 
 def read_text(body: dict) -> str:

@@ -132,3 +132,124 @@
 ## 2026-10-19 — Interface: designs are shrunk in the browser before comparison (milestone 4)
 - **What:** Uploaded designs are limited to 15 MB and downscaled to at most 1600 px (JPEG) before being sent to `/api/compare` as a data URL.
 - **Why:** Vision models do not need full-resolution files, and a small payload keeps the comparison fast and avoids request-size errors. The designer still sees their original-looking image in the preview.
+
+## 2026-10-07 — Comparison: the model judges, the code decides everything else (Person B)
+
+- **What:** `POST /api/compare` sends the design image and each trait's name and description to the
+  vision model in one request and asks for a score (0-100 with written anchors), a status and a one-
+  sentence note per trait. In code: a trait the model skipped, or marked not assessable, or scored
+  without a number, becomes `not_assessable` with a null score (never 0); `low_confidence` is set
+  from the package, not by the model; unknown trait ids are ignored. Overall fit and the signature
+  rule come from `scoring.py`. Matches (score >= 70) and departures (< 50, plus traits that could
+  not be judged) are taken from the model's per-trait notes, with no second model call.
+- **Why:** The model never sees the importance values, so it cannot bend scores towards what the
+  designer cares about; the weighting stays visible and editable in one place. One request for all
+  traits (instead of one per trait) keeps us inside the free-tier quota and fails less often when the
+  model is busy. Scores for traits whose feature is not visible are reported as not assessable so the
+  designer sees what is missing instead of a made-up number.
+- **Known limits:** reference images are not used yet (the request has no way to carry them; contract
+  change agreed, not yet applied); scores will vary between runs like extraction does (to be measured
+  with `try_compare --runs`); directions stay empty in live mode until milestone 5.
+
+## 2026-10-13 — First comparison of hand-drawn sketches against a brand's traits (Person B)
+
+- **What:** Compared three pencil sketches of new product ideas (made by the designer, in the style of one
+  real brand, kept local) against five traits extracted from 12 of that brand's product screenshots,
+  with `gemini-3.5-flash-lite`. One run each, about a minute per run including retries when the model
+  was busy. Overall fit came out at 41, 50 and 58.
+- **Observed (good):** the two colour and material traits, which carry the highest importance (95 and 90),
+  were reported as not assessable on all three sketches ("needs colour"), with no invented score. The notes
+  were concrete ("square grid instead of circular perforations"). A square mesh scored 30 on a
+  circular-perforation trait, vertical slots scored 90.
+- **Observed (weak):** the transparent-enclosure trait was handled inconsistently: scored 5 and 10 ("opaque,
+  monochrome pencil") on two sketches, which a pencil drawing cannot show either way, and 85 on a third
+  because internal parts were outlined. The slots-versus-circles score of 90 looks generous.
+- **Consequence:** with the two heaviest traits not assessable, the overall fit describes only the traits
+  that could be judged (here about 56% of the total importance on the first sketch), so the number must be
+  shown together with that coverage. Traits that could not be judged are listed under departures, which
+  reads as "departs from the brand"; the interface should show them as a separate group using the trait status.
+- **Next:** repeat one sketch several times to see how much scores move, tighten the prompt on traits about
+  material or transparency (judge them only when the drawing shows a clear cue), and try the larger model.
+
+## 2026-10-14 — Stricter compare prompt, and the fit is shown with its coverage (Person B)
+
+- **What:** Two prompt rules were added to `prompts/compare_traits.md`: colour, material, finish and
+  transparency are judged only when the drawing shows a clear cue (otherwise `not_assessable`, and the
+  absence of a feature in a monochrome sketch is never read as proof it is missing); and a different form
+  from the one a trait names (slots or squares instead of round holes) counts as a deviation. A new
+  function `scoring.coverage` gives the share of the total importance that could be judged, and the test
+  page shows it next to the fit and puts "could not be judged" in its own group.
+- **Result (same three sketches, same model, one run each):** overall fit 41 / 50 / 58 became
+  54 / 45 (52 in a later batch) / 46. Transparency went from scores of 5, 10 and 85 to "not assessable" on all
+  three; the slot pattern went from 90 to 30. The fit now rests on 39% of the total importance on every sketch,
+  because the three traits about colour, material and transparency (the heaviest ones) cannot be judged from
+  pencil. Three repeated runs of one sketch gave identical scores (30 / 75, fit 52), but the same trait scored
+  60 in the earlier separate run, so the spread over separate runs is at least 15 points.
+- **Caveat:** the stricter rule may be too strict: one sketch outlines the parts inside its head, which the
+  first prompt read as a see-through enclosure (85) and the second as not assessable. Whether that counts as a
+  clear cue is a judgement the designer should be able to make.
+- **Why:** The fit of 41 to 58 looked comparable between sketches but rested on different, partly unjustified
+  scores. Showing how much of the importance was judged, and refusing to score what a pencil outline cannot
+  show, keeps the number honest. For sketches the tool should tell the designer what to add (colour fills,
+  material notes, see-through parts) so that the heaviest traits can be judged.
+
+## 2026-10-18 — Directions: a second request, chosen by code, worded by the model (Person B)
+
+- **What:** After the per-trait judgements, code picks the traits with the biggest gap (importance x (100 - score);
+  importance 0 and traits that could not be judged never count) and a second model request words up to 3
+  concrete directions for them, each tied to trait ids. The model sees each trait's name, description, score and
+  observation, never the importance. Code drops directions that name no trait we sent, orders them by gap and
+  numbers them. If the directions request fails, the scores are still returned (with no directions).
+- **Why:** The ranking stays traceable to the designer's own importance values, and a failed suggestion step does
+  not throw away a successful comparison. It costs one extra request per comparison. A direction is only ever
+  tied to a trait that was actually judged, so a pencil sketch gets no direction about colour it could not be
+  judged on.
+- **Seen on real sketches:** two or three concrete, drawable suggestions per sketch (for example "replace the
+  slots with a dense pattern of small round holes"); none for traits that were not assessable.
+
+## 2026-10-18 — Image detail: low gives the same traits as high on this test (Person B)
+
+- **What:** Added the optional `VISION_IMAGE_DETAIL` setting (low, medium, high; sent to Gemini as mediaResolution).
+  Ran extraction on the same 12 product screenshots (one real brand, kept local) at each level, twice each, and
+  matched the traits by the images they cite. The five core traits came back in both runs at low detail, as they
+  did at high; the only trait that differed between levels was a stray one that appeared twice at medium and
+  never at high or low. Every run found 5 traits and took 5 to 7 seconds.
+- **Why it matters:** low detail costs about a quarter of the image tokens (264 instead of 1,100 per image in an
+  earlier measurement), so repeated runs and the reference images in the compare step get cheaper without an
+  obvious loss for this kind of material. Caveat: one brand, one image set, two runs per level, and fine
+  detail (very small holes) may need medium or high on other material. The default stays unset (Google's default).
+
+## 2026-10-18 — Reference images in the compare step (Person B)
+
+- **What:** With the agreed `reference_images` field the compare request carries the images the traits cite. Per
+  trait up to 3 of its evidence images (most relevant first), at most 12 distinct per request, are downloaded
+  into memory and shown to the model next to the design; the model judges the image labelled "design" only.
+  A reference that cannot be downloaded is skipped, and without the field the step works as before.
+- **Result on three sketches (single runs, same model):** scores moved by 5 to 15 points compared with the run
+  without references (toaster fit 52 became 64; fly swatter 54 became 52), which is within the run-to-run
+  noise we measured earlier, so there is no evidence yet that the references make the scores more accurate.
+  The honest gain is inspectability: the same pictures the designer sees as evidence are the ones the AI used.
+- **A warning sign:** on the third sketch the perforation trait became "not assessable", leaving only one judged
+  trait, and the overall fit showed 92 based on 19% of the total importance. A high fit resting on a small share
+  of the importance is misleading, so screens should show a warning when coverage is low (for example below 50%)
+  and tell the designer what to add.
+
+## 2026-10-18 — Cost controls: cheap defaults, a ceiling per request, a spending limit (Person B)
+
+- **What:** The Gemini connection now (1) defaults to low image detail and minimal thinking (both can be changed in
+  .env, or set to "default" to leave the choice to Google), (2) caps every request at 8,192 output tokens, thinking
+  included, (3) records the tokens Google reports for each request and an estimated cost in `usage_ledger.jsonl`
+  (kept out of git), and (4) refuses further requests once the recorded spend reaches `VISION_BUDGET_USD`.
+  The try scripts print a one-line summary of tokens and cost per run.
+- **Measured (one sketch comparison, one real request):** on Flash-Lite thinking was already 0, and low image detail
+  cut the input from 2,139 to 1,303 tokens. On the larger Flash model the default used 1,229 thinking tokens
+  (billed as output, about 1.7 cents in total); thinking set to minimal removed them and brought the request to about
+  0.5 cents. With the new defaults: extraction on 12 screenshots 4,010 tokens in and 733 out, about 0.3 cents; a
+  comparison including directions about 0.2 cents on Flash-Lite and 0.8 cents on Flash.
+- **Why:** A $5 prepaid budget should cover thousands of Flash-Lite comparisons or several hundred on Flash, and a
+  bug or a loop must not be able to spend it. The limit counts only what this code records, as an estimate with
+  Google's published prices (checked 2026-10-13), so it complements the spending cap in Google AI Studio rather
+  than replacing it.
+- **Side result for the report:** on the same sketch the larger Flash model scored the perforation trait 60 where
+  Flash-Lite scored 30 (overall fit 67 against 52, both based on 39% of the importance), so the choice of model
+  moves the numbers more than the settings above do.

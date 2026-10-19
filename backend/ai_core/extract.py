@@ -6,7 +6,6 @@ images we actually sent, seen_count is counted from them, and low_confidence fol
 from the confidence value.
 """
 
-import json
 import logging
 from pathlib import Path
 from typing import Callable, Optional
@@ -15,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
+from backend.ai_core.model_call import ask_and_parse, read_json_object
 from backend.ai_core.providers import VisionProvider, get_provider
 from contracts.models import Brand, Color, ExtractResponse, ImageCandidate, Trait
 
@@ -100,34 +100,16 @@ def build_prompt(brand: Brand, images: list[LoadedImage]) -> str:
 
 def ask_for_answer(ask: VisionProvider, prompt: str, images: list[LoadedImage]) -> ModelAnswer:
     """Ask the model; if the answer is not valid JSON in our shape, ask once more."""
-    try:
-        return parse_answer(ask(prompt, images))
-    except ValueError as problem:
-        first_problem = str(problem)
-        log.warning("Model answer was not usable, retrying once: %s", first_problem)
-
-    retry_prompt = (
-        f"{prompt}\n\nYour previous answer could not be read ({first_problem}). "
-        "Answer again with only the JSON object."
+    return ask_and_parse(
+        ask, prompt, images, parse_answer,
+        "The AI's answer could not be read, even on a second try. "
+        "No traits were made up to fill the gap — please run the extraction again.",
     )
-    try:
-        return parse_answer(ask(retry_prompt, images))
-    except ValueError as problem:
-        log.warning("Model answer was not usable after retry: %s", problem)
-        raise AiCoreError(
-            "invalid_model_output",
-            "The AI's answer could not be read, even on a second try. "
-            "No traits were made up to fill the gap — please run the extraction again.",
-            status=502,
-        )
 
 
 def parse_answer(text: str) -> ModelAnswer:
     """Raises ValueError (which covers JSON and pydantic validation errors) if unusable."""
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end < start:
-        raise ValueError("no JSON object in the answer")
-    return ModelAnswer.model_validate(json.loads(text[start:end + 1]))
+    return ModelAnswer.model_validate(read_json_object(text))
 
 
 def to_response(answer: ModelAnswer, sent_ids: list[str]) -> ExtractResponse:

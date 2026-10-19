@@ -36,6 +36,11 @@ class PromptTests(unittest.TestCase):
         self.assertIn("Do not judge colour", prompt)
         self.assertNotIn("own description", prompt)
 
+    def test_a_sketch_never_lowers_a_score_for_detail_it_does_not_draw(self):
+        prompt = prompt_for(design_is_sketch=True)
+        self.assertIn("A feature that the sketch does not draw is not", prompt)
+        self.assertIn("never lead you to score a trait lower", prompt)
+
     def test_the_description_is_given_as_information_not_evidence(self):
         prompt = prompt_for(design_description="A compact GT with a long hood")
         self.assertIn('Description: "A compact GT with a long hood"', prompt)

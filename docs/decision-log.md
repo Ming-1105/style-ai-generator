@@ -318,3 +318,17 @@
 - **Why:** The earlier invented name looked odd in demos and screenshots. "Acme" is the usual placeholder name, a
   single word like before, so the tests and the brand-word matching behave the same. It is not a real brand, so the
   rule against real brand names in committed files still holds.
+
+## 2026-10-19 — A design can be compared from up to 4 views (Person B, requested in the integration session)
+
+- **What:** `POST /api/compare` takes an optional `additional_design_images` (up to 3) next to `design_image`. The model sees all
+  views labelled "design", "design_2", ... and is told they are different views of one design: for each trait it uses the view
+  that shows it best, and a trait is "not assessable" only when no view shows it. The directions request sees every view too.
+  More than 4 images in total is refused with a clear message. The interface (Person C's file) and the developer page both let
+  the designer add up to 3 more views, and a refused extra image no longer triggers a new comparison.
+- **Why:** earlier results kept saying "needs a side view to judge". With a front, side and back view more traits can be judged,
+  which raises coverage without any change to the scoring.
+- **Cost:** each extra view adds about 264 input tokens at low image detail, so four views cost roughly a quarter of a cent more
+  than one. A real test with two views gave a comparison and directions for about 0.2 cents.
+- **Note:** this is a contract change (`docs/contract-changes.md`) and touches Person C's `frontend/index.html`; both need the team's
+  review.

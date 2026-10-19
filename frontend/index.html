@@ -41,6 +41,24 @@
   .field textarea{width:100%; min-height:64px; resize:vertical;}
   .field input[type=text]{width:100%;}
 
+  /* step 1: one big field, the rest in a menu that slides in from the left */
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  .start-stack{max-width:560px; margin:48px auto 0; display:flex; flex-direction:column; align-items:stretch; gap:20px;}
+  .brand-big{width:100%; font-family:var(--font-heading); font-weight:700; font-size:34px; text-align:center; padding:20px 24px; border:1px solid var(--ink); background:var(--field);}
+  .btn-large{width:100%; font-size:18px; padding:18px 24px;}
+  .more-info-toggle{align-self:center; display:inline-flex; align-items:center; gap:10px; background:none; border:1px dashed var(--ink); border-radius:var(--radius); padding:10px 20px; color:var(--ink); font-family:var(--font-mono); font-size:12.5px;}
+  .more-info-toggle:hover{background:var(--surface);}
+  .drawer-scrim{position:fixed; inset:0; z-index:70; background:rgba(42,40,37,.35);}
+  .drawer-scrim[hidden]{display:none;}
+  .drawer{position:fixed; top:0; left:0; bottom:0; z-index:80; width:380px; max-width:92vw; overflow-y:auto; background:var(--bg); border-right:1px solid var(--ink); padding:24px; transform:translateX(-100%); visibility:hidden; transition:transform .18s ease, visibility 0s linear .18s;}
+  .drawer.open{transform:translateX(0); visibility:visible; transition:transform .18s ease, visibility 0s;}
+  .drawer-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;}
+  .drawer-head h3{border:none; margin:0; padding:0; font-size:16px;}
+  .drawer .field{text-align:left; margin-left:0; max-width:none;}
+  .drawer .field label{text-align:left;}
+  .drawer .chip-row,.drawer .add-keyword-row{justify-content:flex-start;}
+  .drawer .toggle-row{margin-left:0;}
+
   /* step 5: your design */
   .panel-center{text-align:center;}
   .design-title{font-size:44px; line-height:1.1; text-align:center; margin:16px 0 8px; letter-spacing:.01em;}
@@ -388,53 +406,60 @@
     <section class="panel" id="step-panel-1" hidden>
       <h2>Brand</h2>
       <div class="help" data-help-step="1"></div>
-      <p class="panel-intro">Tell the tool which brand to study. This sets up the image search and gives the AI a starting point — you'll check its picks on the next screen.</p>
 
-      <div class="field">
-        <label for="brand-name">Brand name</label>
-        <input type="text" id="brand-name">
+      <div class="start-stack">
+        <label class="sr-only" for="brand-name">Brand name</label>
+        <input type="text" id="brand-name" class="brand-big" placeholder="Brand name" autocomplete="off">
+        <button type="button" class="btn-primary btn-large" id="find-images-btn">Find reference images →</button>
+        <button type="button" class="more-info-toggle" id="more-info-btn" aria-expanded="false" aria-controls="brand-drawer">
+          <span aria-hidden="true">+</span><span id="more-info-label">Add more info</span>
+        </button>
+        <div id="brand-progress" class="progress-box" hidden aria-live="polite"></div>
       </div>
-      <div class="field">
-        <label for="brand-category">Category</label>
-        <select id="brand-category">
-          <option value="automotive">Automotive</option>
-          <option value="electronics">Consumer electronics</option>
-          <option value="furniture">Furniture</option>
-          <option value="footwear">Footwear</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="brand-website">Official website</label>
-        <input type="text" id="brand-website" placeholder="brand.example">
-      </div>
-      <div class="field">
-        <label for="keyword-input">Keywords</label>
-        <div class="chip-row" id="keyword-chips"></div>
-        <div class="add-keyword-row">
-          <input type="text" id="keyword-input" placeholder="Add a keyword">
-          <button type="button" class="btn-ghost" id="add-keyword-btn">Add</button>
+
+      <div class="drawer-scrim" id="drawer-scrim" hidden></div>
+      <aside class="drawer" id="brand-drawer" aria-label="More about the brand" inert>
+        <div class="drawer-head">
+          <h3>More info</h3>
+          <button type="button" class="btn-secondary" id="drawer-close">Close ✕</button>
         </div>
-      </div>
-      <div class="field">
-        <label for="brand-values">Brand values</label>
-        <textarea id="brand-values"></textarea>
-      </div>
-      <div class="field">
-        <label>Where should the tool look?</label>
-        <div class="toggle-row">
-          <span class="toggle-item"><input type="checkbox" id="src-toggle-api" checked><label for="src-toggle-api" style="margin:0;">Image search API</label></span>
-          <span class="toggle-item"><input type="checkbox" id="src-toggle-scrape" checked><label for="src-toggle-scrape" style="margin:0;">Official website scrape</label></span>
-          <span class="toggle-item"><input type="checkbox" id="src-toggle-presskit"><label for="src-toggle-presskit" style="margin:0;">Press kit URL</label></span>
-          <span class="toggle-item"><input type="checkbox" id="src-toggle-uploads"><label for="src-toggle-uploads" style="margin:0;">My own uploads</label></span>
+        <div class="field">
+          <label for="brand-category">Category</label>
+          <select id="brand-category">
+            <option value="automotive">Automotive</option>
+            <option value="electronics">Consumer electronics</option>
+            <option value="furniture">Furniture</option>
+            <option value="footwear">Footwear</option>
+          </select>
         </div>
-        <div class="dropzone" id="upload-dropzone" tabindex="0" role="button">Drop image files here, or click to browse</div>
-      </div>
-
-      <div id="brand-progress" class="progress-box" hidden aria-live="polite"></div>
-
-      <div class="btn-row">
-        <button type="button" class="btn-primary" id="find-images-btn">Find reference images</button>
-      </div>
+        <div class="field">
+          <label for="brand-website">Official website</label>
+          <input type="text" id="brand-website" placeholder="brand.example">
+        </div>
+        <div class="field">
+          <label for="keyword-input">Keywords</label>
+          <div class="chip-row" id="keyword-chips"></div>
+          <div class="add-keyword-row">
+            <input type="text" id="keyword-input" placeholder="Add a keyword">
+            <button type="button" class="btn-ghost" id="add-keyword-btn">Add</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="brand-values">Brand values</label>
+          <textarea id="brand-values"></textarea>
+        </div>
+        <div class="field">
+          <label>Where should the tool look?</label>
+          <div class="toggle-row">
+            <span class="toggle-item"><input type="checkbox" id="src-toggle-api" checked><label for="src-toggle-api" style="margin:0;">Image search API</label></span>
+            <span class="toggle-item"><input type="checkbox" id="src-toggle-scrape" checked><label for="src-toggle-scrape" style="margin:0;">Official website scrape</label></span>
+            <span class="toggle-item"><input type="checkbox" id="src-toggle-presskit"><label for="src-toggle-presskit" style="margin:0;">Press kit URL</label></span>
+            <span class="toggle-item"><input type="checkbox" id="src-toggle-uploads"><label for="src-toggle-uploads" style="margin:0;">My own uploads</label></span>
+          </div>
+          <div class="dropzone" id="upload-dropzone" tabindex="0" role="button">Drop image files here, or click to browse</div>
+        </div>
+        <button type="button" class="btn-primary" id="drawer-done" style="width:100%;">Done</button>
+      </aside>
     </section>
 
     <!-- STEP 2 — SOURCES -->
@@ -686,6 +711,7 @@
   // One entry per option the designer can change. `step` says under which tab it is shown.
   var HELP = {
     brand_name:   {step: 1, label: 'Brand name', text: 'The brand you want to study. It is used to search for pictures, so spell it the way people write it.'},
+    more_info:    {step: 1, label: 'More info', text: 'Only the brand name is needed. Open the menu to add the category, official website, keywords and brand values; they make the picture search more accurate.'},
     category:     {step: 1, label: 'Category', text: 'The kind of product the brand makes. It helps the search find the right pictures; change it if the results show the wrong kind of product.'},
     website:      {step: 1, label: 'Official website', text: 'The brand\'s own site. If you fill it in, CopyCat also looks there for pictures, which are usually the most reliable ones. Leave it empty to search the web only.'},
     keywords:     {step: 1, label: 'Keywords', text: 'Extra words that steer the picture search, such as a model name or a part of the product. Add more to narrow the results, remove some to widen them.'},
@@ -862,6 +888,7 @@
   function showPanel(n){
     for (var i = 1; i <= 6; i++) document.getElementById('step-panel-' + i).hidden = (i !== n);
     renderBrandName();
+    if (n !== 1) setDrawerOpen(false);
     if (n === 1) renderBrand();
     if (n === 2) renderSources();
     if (n === 3) renderTraits();
@@ -924,12 +951,54 @@
   }
 
   /* ---------- step 1: brand ---------- */
+  // The extra brand fields live in a menu that slides in from the left.
+  function moreInfoCount(){
+    var b = state.brand, n = 0;
+    if (b.website) n++;
+    if (b.keywords.length) n++;
+    if (b.values) n++;
+    return n;
+  }
+  function updateMoreInfoLabel(){
+    var n = moreInfoCount();
+    document.getElementById('more-info-label').textContent = n ? 'More info · ' + n + ' added' : 'Add more info';
+  }
+  function setDrawerOpen(open){
+    var drawer = document.getElementById('brand-drawer'), btn = document.getElementById('more-info-btn');
+    var wasOpen = drawer.classList.contains('open');
+    if (open === wasOpen) return;
+    drawer.classList.toggle('open', open);
+    document.getElementById('drawer-scrim').hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open){
+      drawer.removeAttribute('inert');
+      document.getElementById('brand-category').focus();
+    } else {
+      drawer.setAttribute('inert', '');
+      readBrandForm();
+      updateMoreInfoLabel();
+      if (!document.getElementById('step-panel-1').hidden) btn.focus();
+    }
+  }
+  function wireDrawer(){
+    document.getElementById('more-info-btn').addEventListener('click', function(){ setDrawerOpen(true); });
+    document.getElementById('drawer-close').addEventListener('click', function(){ setDrawerOpen(false); });
+    document.getElementById('drawer-done').addEventListener('click', function(){ setDrawerOpen(false); });
+    document.getElementById('drawer-scrim').addEventListener('click', function(){ setDrawerOpen(false); });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && document.getElementById('brand-drawer').classList.contains('open')) setDrawerOpen(false);
+    });
+    document.getElementById('brand-name').addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); findImages(); }
+    });
+  }
   function renderBrand(){
     document.getElementById('brand-name').value = state.brand.name;
     document.getElementById('brand-category').value = state.brand.category;
     document.getElementById('brand-website').value = state.brand.website;
     document.getElementById('brand-values').value = state.brand.values;
     renderKeywordChips();
+    updateMoreInfoLabel();
   }
   function readBrandForm(){
     state.brand.name = document.getElementById('brand-name').value.trim();
@@ -2120,6 +2189,7 @@
     document.getElementById('keyword-input').value = '';
     document.getElementById('add-trait-input').value = '';
     closeLightbox();
+    setDrawerOpen(false);
   }
   // forceSave: write the project even though nothing changed (new, duplicated or imported projects)
   function openRecord(rec, forceSave){
@@ -2401,6 +2471,7 @@
     wireViewDropzone(document.getElementById('add-view-compare-dropzone'), true);
     document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(5); });
 
+    wireDrawer();
     wireProjects();
     bootProjects();
   }

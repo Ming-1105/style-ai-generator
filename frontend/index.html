@@ -40,6 +40,17 @@
   .field textarea{width:100%; min-height:64px; resize:vertical;}
   .field input[type=text]{width:100%;}
 
+  /* learn more */
+  .help{margin:0 0 24px; max-width:640px;}
+  .help-toggle{display:inline-flex; align-items:center; gap:8px; background:none; border:none; padding:4px 0; font-family:var(--font-mono); font-size:11.5px; color:var(--ink); text-transform:lowercase; letter-spacing:.04em;}
+  .help-toggle:hover .help-label{text-decoration:underline;}
+  .help-mark{display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; border:1px solid var(--ink); font-size:11px; line-height:1;}
+  .help-toggle[aria-expanded="true"] .help-mark{background:var(--accent);}
+  .help-panel{border-top:1px solid var(--line); margin-top:8px; padding-top:8px; max-height:40vh; overflow-y:auto;}
+  .help-panel dt{font-family:var(--font-heading); font-weight:700; font-size:13px; margin-top:12px;}
+  .help-panel dt:first-child{margin-top:0;}
+  .help-panel dd{margin:2px 0 0; font-size:12.5px; color:var(--muted);}
+
   /* shell */
   .app-shell{display:grid; grid-template-columns:220px 1fr; grid-template-areas:"header header" "rail main"; min-height:100vh;}
   .topbar{grid-area:header; display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--line); background:var(--bg);}
@@ -268,6 +279,7 @@
     <!-- STEP 1 — BRAND -->
     <section class="panel" id="step-panel-1" hidden>
       <h2>Brand</h2>
+      <div class="help" data-help-step="1"></div>
       <p class="panel-intro">Tell the tool which brand to study. This sets up the image search and gives the AI a starting point — you'll check its picks on the next screen.</p>
 
       <div class="field">
@@ -320,6 +332,7 @@
     <!-- STEP 2 — SOURCES -->
     <section class="panel" id="step-panel-2" hidden>
       <h2>Sources</h2>
+      <div class="help" data-help-step="2"></div>
       <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine <span class="js-brand-name"></span> reference before the AI reads them.</p>
 
       <div class="sources-head">
@@ -347,6 +360,7 @@
     <!-- STEP 3 — STYLE DNA -->
     <section class="panel" id="step-panel-3" hidden>
       <h2>Style DNA</h2>
+      <div class="help" data-help-step="3"></div>
       <p class="panel-intro" id="traits-intro"></p>
       <div class="skipped-note" id="skipped-note" role="status" hidden></div>
 
@@ -375,6 +389,7 @@
 
     <!-- STEP 4 — HOUSE STYLE -->
     <section class="panel" id="step-panel-4" hidden>
+      <div class="help" data-help-step="4"></div>
       <div class="doc" id="house-style-content"></div>
       <div class="field" style="margin-top:20px;">
         <label>Your design <span class="muted">— the image to compare with this house style</span></label>
@@ -397,6 +412,7 @@
     <!-- STEP 5 — COMPARE -->
     <section class="panel" id="step-panel-5" hidden>
       <h2>Compare</h2>
+      <div class="help" data-help-step="5"></div>
       <p class="panel-intro">Your concept checked against the <span class="js-brand-name"></span> house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
 
       <div class="compare-layout">
@@ -491,6 +507,60 @@
     showHidden: false,
     directionStatus: {}    // direction id → 'accepted' | 'rejected'
   };
+
+  /* ---------- help texts: edit them here, nowhere else ---------- */
+  // One entry per option the designer can change. `step` says under which tab it is shown.
+  var HELP = {
+    brand_name:   {step: 1, label: 'Brand name', text: 'The brand you want to study. It is used to search for pictures, so spell it the way people write it.'},
+    category:     {step: 1, label: 'Category', text: 'The kind of product the brand makes. It helps the search find the right pictures; change it if the results show the wrong kind of product.'},
+    website:      {step: 1, label: 'Official website', text: 'The brand\'s own site. If you fill it in, CopyCat also looks there for pictures, which are usually the most reliable ones. Leave it empty to search the web only.'},
+    keywords:     {step: 1, label: 'Keywords', text: 'Extra words that steer the picture search, such as a model name or a part of the product. Add more to narrow the results, remove some to widen them.'},
+    values:       {step: 1, label: 'Brand values', text: 'A sentence or two about what the brand stands for. It gives the AI context when it reads the pictures; it does not change which pictures are found.'},
+    where:        {step: 1, label: 'Where should the tool look?', text: 'The places CopyCat searches. Switching one off means no pictures are collected from that place.'},
+    include:      {step: 2, label: 'Include or leave out an image', text: 'Click a picture to include or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand.'},
+    flagged:      {step: 2, label: 'Flagged images', text: 'CopyCat flags pictures it doubts, for example very small ones or ones that look AI-made or fan-made. A flag is a warning, not a verdict: you decide whether to keep the picture.'},
+    filters:      {step: 2, label: 'Filters', text: 'Show only one kind of picture, such as product or logo. Filtering only changes what you see; it does not change which pictures are included.'},
+    relevance:    {step: 2, label: 'Relevance', text: 'How well CopyCat thinks a picture matches your search. A dash means it could not tell. Use it as a hint, not as a rule.'},
+    enlarge:      {step: 2, label: 'Enlarge a picture', text: 'Use the small enlarge button on a picture to see it bigger, with the website it came from. Pictures stay on their own websites; CopyCat does not keep copies.'},
+    importance:   {step: 3, label: 'Importance', text: 'How much a trait should count, from 0 to 100. A trait with 0 is ignored in the comparison; a trait of 80 or more is treated as a signature trait of the brand.'},
+    edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
+    add_trait:    {step: 3, label: 'Add a trait yourself', text: 'Add a trait the AI missed. It has no pictures linked to it, so the AI will judge it from your words alone.'},
+    low_conf:     {step: 3, label: 'Low confidence', text: 'The AI was not sure about this trait, often because few pictures show it. Check it against the pictures before you rely on it.'},
+    evidence:     {step: 3, label: 'Evidence pictures', text: 'The pictures where the AI saw this trait. Click one to enlarge it and check whether you agree.'},
+    tone:         {step: 3, label: 'Brand tone', text: 'Words that describe the brand\'s character. Click a word to keep or drop it; only the kept words go into the house style.'},
+    rules:        {step: 3, label: 'Do / don\'t rules', text: 'Short design rules the AI drew from the traits. Remove any you disagree with; the ones that stay are part of the house style.'},
+    lock:         {step: 3, label: 'Lock the house style package', text: 'Locking turns your edited traits, tone and rules into the package that designs are compared against. You can come back and change things, but then you lock again.'},
+    package:      {step: 4, label: 'The house style package', text: 'Everything you decided in one place: traits with their importance, tone, colours, rules and the pictures they came from. This is what your design will be measured against.'},
+    design:       {step: 4, label: 'Your design', text: 'Upload a picture of your own design. If you skip this, a built-in sample sketch is compared so you can try the tool.'},
+    more_views:   {step: 4, label: 'More views of your design', text: 'Add up to three more pictures of the same design, such as the side or the back. One picture hides things, and more views let the AI judge more traits.'},
+    palette:      {step: 4, label: 'Download palette', text: 'Saves the brand colours as one image you can drop into your own board.'},
+    fit:          {step: 5, label: 'Overall fit', text: 'One number for how close your design is to the brand: higher is closer. It is an average of the trait scores, weighted by the importance you set.'},
+    coverage:     {step: 5, label: 'Coverage', text: 'How much of the total importance the AI could actually judge from your pictures. Low coverage means the fit rests on little, so add more views or a clearer picture.'},
+    trait_scores: {step: 5, label: 'Trait scores', text: 'One score per trait, with a short reason when you hover over it. Traits the AI could not see are listed apart and do not count as zero.'},
+    findings:     {step: 5, label: 'Matches and departures', text: 'What your design shares with the brand and where it moves away from it. Departures that belong only to traits with importance 0 are greyed out; you can hide them.'},
+    directions:   {step: 5, label: 'Suggested directions', text: 'Ideas for closing the biggest gaps, each pointing back to the traits it comes from. Accept the ones you like and reject the others; you decide.'},
+    notes:        {step: 5, label: 'Design notes', text: 'Accepted directions land here as notes. You can edit the text directly.'},
+    replace:      {step: 5, label: 'Replace design or add a view', text: 'Upload another version or an extra view and the comparison runs again with it.'}
+  };
+
+  function renderHelp(){
+    document.querySelectorAll('.help[data-help-step]').forEach(function(box){
+      var step = parseInt(box.getAttribute('data-help-step'), 10);
+      var items = Object.keys(HELP).filter(function(k){ return HELP[k].step === step; });
+      var panelId = 'help-panel-' + step;
+      box.innerHTML = '<button type="button" class="help-toggle" aria-expanded="false" aria-controls="' + panelId + '">' +
+        '<span class="help-mark" aria-hidden="true">?</span><span class="help-label">Learn more</span></button>' +
+        '<dl class="help-panel" id="' + panelId + '" hidden>' + items.map(function(k){
+          return '<dt>' + esc(HELP[k].label) + '</dt><dd>' + esc(HELP[k].text) + '</dd>';
+        }).join('') + '</dl>';
+      var btn = box.querySelector('.help-toggle');
+      btn.addEventListener('click', function(){
+        var open = btn.getAttribute('aria-expanded') !== 'true';
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.getElementById(panelId).hidden = !open;
+      });
+    });
+  }
 
   /* ---------- helpers ---------- */
   function esc(v){
@@ -1403,6 +1473,7 @@
       state.showHidden = !state.showHidden;
       renderCompare();
     });
+    renderHelp();
     renderStepRail();
     showPanel(currentStep);
 

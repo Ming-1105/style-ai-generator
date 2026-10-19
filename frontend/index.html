@@ -440,6 +440,23 @@
     .fit-score{width:120px; height:120px; font-size:34px;}
   }
 
+  /* compare: smaller pictures on top so the score is in view without scrolling */
+  #step-panel-6 .panel-intro{display:none;}
+  #step-panel-6 .help{margin-bottom:8px;}
+  .compare-top{margin-bottom:20px;}
+  #compare-sketch{padding:8px;}
+  #compare-sketch .img-zoom{display:flex; justify-content:center; width:100%;}
+  #compare-sketch img{width:auto; max-width:100%; max-height:165px;}
+  .compare-top .view-thumbs:empty{display:none;}
+  .compare-top .sketch-actions{margin-top:8px;}
+  .refs-grid .evidence-thumb img{aspect-ratio:2/1;}
+  .compare-top .sketch-panel{padding:12px;}
+  .compare-top{align-items:stretch;}
+  .compare-top .sketch-panel{display:flex; flex-direction:column;}
+  .compare-top .refs-grid{grid-template-rows:repeat(2,100px);}
+  .compare-top .refs-grid .evidence-thumb{height:100%;}
+  .compare-top .refs-grid .evidence-thumb img{height:100%; aspect-ratio:auto;}
+
   /* the button that goes on to the next step: same size on every step */
   .btn-row{flex-wrap:wrap;}
   .btn-row .btn-primary{order:-1; flex:1 0 100%; width:100%; max-width:560px; font-size:18px; padding:18px 24px;}

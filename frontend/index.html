@@ -385,6 +385,28 @@
   .notes-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
   .palette-actions{display:flex; flex-wrap:wrap; gap:8px;}
 
+  /* style DNA, compact list: one row per trait, so all traits fit in one window */
+  .view-switch{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;}
+  .view-switch .label-mono{margin:0;}
+  .filter-chip[aria-pressed="true"]{border-color:var(--ink); color:var(--ink); background:var(--accent);}
+  .traits-list.compact{grid-template-columns:minmax(0,1fr); max-width:1100px; margin-left:auto; margin-right:auto; gap:6px;}
+  .traits-list.compact .trait-card{display:grid; grid-template-columns:minmax(140px,190px) minmax(0,1fr) 188px 380px; align-items:center; gap:4px 16px; padding:8px 14px;}
+  .traits-list.compact .trait-body{display:contents;}
+  .traits-list.compact .trait-name{font-size:16px;}
+  .traits-list.compact .trait-desc{-webkit-line-clamp:2; font-size:12px; line-height:1.35;}
+  .traits-list.compact .evidence-grid{grid-template-columns:repeat(4,44px); gap:4px;}
+  .traits-list.compact .evidence-grid .evidence-thumb img{aspect-ratio:1/1;}
+  .traits-list.compact .thumb-domain,.traits-list.compact .evidence-label{display:none;}
+  .traits-list.compact .trait-controls{display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; gap:12px; flex:none; min-width:0;}
+  .traits-list.compact .trait-conf{display:flex; gap:6px; align-items:center; flex:none;}
+  .traits-list.compact .trait-weight{flex:1 1 auto; flex-direction:row; align-items:center; gap:8px; min-width:0;}
+  .traits-list.compact .trait-weight label{margin:0;}
+  .traits-list.compact .trait-weight input[type=range]{flex:1; min-width:60px;}
+  .traits-list.compact .trait-actions{margin:0; flex-wrap:nowrap; flex:none;}
+  @media (max-width:900px){
+    .traits-list.compact .trait-card{grid-template-columns:minmax(0,1fr);}
+  }
+
   /* the button that goes on to the next step: same size on every step */
   .btn-row{flex-wrap:wrap;}
   .btn-row .btn-primary{order:-1; flex:1 0 100%; width:100%; max-width:560px; font-size:18px; padding:18px 24px;}
@@ -573,6 +595,12 @@
           <input type="text" id="add-tone-input" maxlength="30" placeholder="+ Add a tone word">
           <button type="button" class="btn-ghost" id="add-tone-btn">Add</button>
         </div>
+      </div>
+
+      <div class="view-switch" role="group" aria-label="How to show the traits">
+        <span class="label-mono">view</span>
+        <button type="button" class="filter-chip" id="view-cards" aria-pressed="true">Cards</button>
+        <button type="button" class="filter-chip" id="view-compact" aria-pressed="false">Compact list</button>
       </div>
 
       <ul class="traits-list" id="traits-list"></ul>
@@ -785,7 +813,8 @@
       showHidden: false,
       directionStatus: {},   // direction id → 'accepted' | 'rejected'
       designIsSketch: false, // the designer says the design is a sketch or black and white: colour is not judged
-      designDescription: ''  // a short text about the design, at most 500 characters
+      designDescription: '', // a short text about the design, at most 500 characters
+      traitView: 'cards'     // 'cards' or 'compact': how step 3 shows the traits
     };
   }
   var state = freshState();   // replaced when a project is opened
@@ -811,6 +840,7 @@
     edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
     add_trait:    {step: 3, label: 'Add a trait yourself', text: 'Add a trait the AI missed. It has no pictures linked to it, so the AI will judge it from your words alone.'},
     low_conf:     {step: 3, label: 'Low confidence', text: 'The AI was not sure about this trait, often because few pictures show it. Check it against the pictures before you rely on it.'},
+    view:         {step: 3, label: 'Cards or compact list', text: 'Cards show every trait with larger pictures. The compact list puts each trait on one row so you can see all of them in one window. Only the way they are shown changes.'},
     evidence:     {step: 3, label: 'Evidence pictures', text: 'The pictures where the AI saw this trait. Click any of them to see them all larger, and check whether you agree.'},
     tone:         {step: 3, label: 'Brand tone', text: 'Words that describe the brand\'s character. Click a word to keep or drop it, or add your own; only the kept words go into the house style.'},
     rules:        {step: 3, label: 'Do / don\'t rules', text: 'Short design rules the AI drew from the traits. Remove any you disagree with; the ones that stay are part of the house style.'},
@@ -1278,6 +1308,9 @@
     renderRules();
 
     var list = document.getElementById('traits-list');
+    list.classList.toggle('compact', state.traitView === 'compact');
+    document.getElementById('view-cards').setAttribute('aria-pressed', state.traitView === 'compact' ? 'false' : 'true');
+    document.getElementById('view-compact').setAttribute('aria-pressed', state.traitView === 'compact' ? 'true' : 'false');
     list.innerHTML = state.traits.map(function(t){
       var conf = pct(t.confidence);
       var confHtml = conf === null ? '<span class="mono muted" title="The AI did not report a confidence for this trait">not rated</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
@@ -2324,6 +2357,7 @@
       base.skippedImages = base.skippedImages.filter(function(x){ return isObject(x) && typeof x.id === 'string'; }).map(function(x){ x.reason = String(x.reason || ''); return x; });
       base.extractedFrom = num(base.extractedFrom, 0);
       base.designIsSketch = base.designIsSketch === true;
+      base.traitView = base.traitView === 'compact' ? 'compact' : 'cards';
       base.designDescription = String(base.designDescription || '').slice(0, 500);
 
       if (base.package){
@@ -2637,6 +2671,8 @@
 
     document.getElementById('add-trait-btn').addEventListener('click', addTraitManually);
     document.getElementById('add-tone-btn').addEventListener('click', addTone);
+    document.getElementById('view-cards').addEventListener('click', function(){ state.traitView = 'cards'; renderTraits(); });
+    document.getElementById('view-compact').addEventListener('click', function(){ state.traitView = 'compact'; renderTraits(); });
     document.getElementById('add-tone-input').addEventListener('keydown', function(e){
       if (e.key === 'Enter'){ e.preventDefault(); addTone(); }
     });

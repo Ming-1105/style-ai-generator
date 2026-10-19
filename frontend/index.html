@@ -169,10 +169,10 @@
   .sources-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-bottom:16px;}
   .sources-divider{grid-column:1/-1; display:flex; align-items:center; gap:12px; margin-top:8px;}
   .sources-divider::after{content:''; flex:1; border-top:1px solid var(--line);}
-  .thumb{position:relative; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:12px; cursor:pointer; transition:opacity .15s;}
+  .thumb{position:relative; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:12px;}
   .thumb:hover{border-color:var(--ink);}
-  .thumb.excluded{opacity:.5;}
-  .thumb.excluded .thumb-caption{text-decoration:line-through;}
+  .thumb.excluded .thumb-media{opacity:.45;}
+  .add-url-tile{cursor:pointer;}
   .thumb-media{aspect-ratio:4/3; min-height:0; display:flex; align-items:center; justify-content:center; color:var(--muted); background:var(--bg); border-radius:3px; margin-bottom:6px;}
   .thumb-media svg{width:88%; height:88%;}
   .thumb-media img{width:100%; height:100%; object-fit:contain; border-radius:3px;}
@@ -212,8 +212,14 @@
   .finding-ignored{color:var(--muted); opacity:.6;}
   .finding-hide{margin-left:8px; padding:1px 7px; font-size:11px;}
   .hidden-toggle{margin-top:8px; padding:3px 9px; font-size:11px;}
-  .thumb-check{position:absolute; top:8px; left:8px; width:16px; height:16px; border:1px solid var(--ink); border-radius:3px; background:var(--surface); font-size:11px; display:flex; align-items:center; justify-content:center; color:var(--ink); font-weight:700;}
-  .flag-chip{position:absolute; top:6px; right:6px; background:var(--surface); border:1px solid var(--accent); color:var(--accent-ink); font-family:var(--font-mono); font-size:10px; text-transform:lowercase; letter-spacing:.04em; padding:2px 6px; border-radius:3px;}
+  .thumb-top{display:flex; align-items:center; min-height:28px; margin-bottom:8px;}
+  .thumb-check{display:inline-flex; align-items:center; gap:8px; background:none; border:none; padding:0; color:var(--ink); font-family:var(--font-mono); font-size:11.5px; cursor:pointer;}
+  .thumb-box{width:24px; height:24px; border:1px solid var(--ink); border-radius:var(--radius); background:var(--field); display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; line-height:1;}
+  .thumb-check[aria-checked="true"] .thumb-box{background:var(--accent);}
+  .thumb-check:hover .thumb-box{background:var(--accent-soft);}
+  .thumb-check[aria-checked="true"]:hover .thumb-box{background:var(--accent);}
+  .thumb-open{display:flex; width:100%; padding:0; border:none; cursor:zoom-in;}
+  .flag-chip{position:absolute; top:12px; right:12px; background:var(--surface); border:1px solid var(--accent); color:var(--accent-ink); font-family:var(--font-mono); font-size:10px; text-transform:lowercase; letter-spacing:.04em; padding:2px 6px; border-radius:3px;}
   .thumb-caption{font-size:12px; font-weight:500; margin-bottom:3px;}
   .thumb-meta{display:flex; justify-content:space-between; align-items:center; gap:4px; font-size:10px; margin-bottom:3px; flex-wrap:wrap;}
   .thumb-meta .domain{color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -686,11 +692,11 @@
     values:       {step: 1, label: 'Brand values', text: 'A sentence or two about what the brand stands for. It gives the AI context when it reads the pictures; it does not change which pictures are found.'},
     projects:     {step: 1, label: 'Projects (top of the page)', text: 'Each project keeps its own brand, pictures, traits and designs, and is saved in this browser as you work. Use the project menu to start another one, rename, copy or delete it, or export it as a file to open on another computer.'},
     where:        {step: 1, label: 'Where should the tool look?', text: 'The places CopyCat searches. Switching one off means no pictures are collected from that place.'},
-    include:      {step: 2, label: 'Include or leave out an image', text: 'Click a picture to include or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand. Pictures you leave out move to the bottom, and you can click them again to bring them back.'},
+    include:      {step: 2, label: 'Include or leave out an image', text: 'Use the box at the top of a picture to include it or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand. Pictures you leave out move to the bottom, and you can tick them again to bring them back.'},
     flagged:      {step: 2, label: 'Flagged images', text: 'CopyCat flags pictures it doubts, for example very small ones or ones that look AI-made or fan-made. A flag is a warning, not a verdict: you decide whether to keep the picture.'},
     filters:      {step: 2, label: 'Filters', text: 'Show only one kind of picture, such as product or logo. Filtering only changes what you see; it does not change which pictures are included.'},
     relevance:    {step: 2, label: 'Relevance', text: 'Shown when you enlarge a picture. A rough score from the words in the picture\'s title and web address, not from the picture itself. A dash means there was nothing to go on. Use it as a hint, not as a rule.'},
-    enlarge:      {step: 2, label: 'Enlarge a picture', text: 'Click the small enlarge button on a picture to see it bigger, with the website it came from. In the large view, use the arrows to move through the set, click or + and − to zoom, and drag to move around. Esc closes it. Pictures stay on their own websites; CopyCat does not keep copies. The same works for evidence pictures, the house style sources, your design and its extra views.'},
+    enlarge:      {step: 2, label: 'Enlarge a picture', text: 'Click a picture to see it bigger, with the website it came from. In the large view, use the arrows to move through the set, click or + and − to zoom, and drag to move around. Esc closes it. Pictures stay on their own websites; CopyCat does not keep copies. The same works for evidence pictures, the house style sources, your design and its extra views.'},
     importance:   {step: 3, label: 'Importance', text: 'How much a trait should count, from 0 to 100. A trait with 0 is ignored in the comparison; a trait of 80 or more is treated as a signature trait of the brand.'},
     edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
     add_trait:    {step: 3, label: 'Add a trait yourself', text: 'Add a trait the AI missed. It has no pictures linked to it, so the AI will judge it from your words alone.'},
@@ -989,11 +995,12 @@
     btn.disabled = included === 0;
   }
   function thumbCard(c){
-    var html = '<div class="thumb ' + (c.included ? '' : 'excluded') + '" data-id="' + esc(c.id) + '" tabindex="0" role="checkbox" aria-checked="' + c.included + '">';
-    html += '<div class="thumb-check" aria-hidden="true">' + (c.included ? '✓' : '') + '</div>';
+    var html = '<div class="thumb ' + (c.included ? '' : 'excluded') + '" data-id="' + esc(c.id) + '">';
+    html += '<div class="thumb-top"><button type="button" class="thumb-check" role="checkbox" aria-checked="' + c.included + '" data-toggle="' + esc(c.id) + '" aria-label="Include ' + esc(c.id) + ' from ' + esc(c.source_domain) + '">' +
+      '<span class="thumb-box" aria-hidden="true">' + (c.included ? '✓' : '') + '</span><span>' + (c.included ? 'included' : 'left out') + '</span></button></div>';
     if (c.flagged) html += '<div class="flag-chip">flagged</div>';
-    html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
-      '<button type="button" class="thumb-zoom" data-enlarge="sources" data-id="' + esc(c.id) + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" title="Enlarge">⤢</button></div>';
+    html += '<button type="button" class="thumb-media thumb-open" data-enlarge="sources" data-id="' + esc(c.id) + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" title="Click to enlarge">' +
+      '<img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"></button>';
     html += '<div class="thumb-body">';
     html += '<div class="thumb-meta"><span class="mono domain" title="' + esc(c.source_domain) + '">' + esc(c.source_domain) + '</span><span class="type-tag">' + esc(c.category) + '</span></div>';
     if (c.flagged && c.flag_reason) html += '<div class="thumb-reason">' + esc(c.flag_reason) + '</div>';
@@ -1019,15 +1026,9 @@
     html += '<div class="thumb add-url-tile" tabindex="0" role="button"><div>+ Add image URL</div></div>';
     grid.innerHTML = html;
 
-    grid.querySelectorAll('.thumb:not(.add-url-tile)').forEach(function(el){
-      el.addEventListener('click', function(e){
-        if (e.target.closest('[data-enlarge]')) return;   // the enlarge button opens the lightbox instead
-        toggleSource(this.dataset.id);
-      });
-      el.addEventListener('keydown', function(e){
-        if (e.target !== this) return;
-        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSource(this.dataset.id); }
-      });
+    // Only the box at the top includes or leaves out a picture; clicking the picture enlarges it.
+    grid.querySelectorAll('.thumb-check').forEach(function(box){
+      box.addEventListener('click', function(){ toggleSource(this.getAttribute('data-toggle')); });
     });
     var addTile = grid.querySelector('.add-url-tile');
     function notWired(){ showToast('Adding your own image URL is not wired yet.'); }
@@ -1042,7 +1043,7 @@
     if (c) c.included = !c.included;
     renderSources();
     // the picture moved to the other group; keep the keyboard focus on it
-    var moved = document.querySelector('#sources-grid .thumb[data-id="' + id + '"]');
+    var moved = document.querySelector('#sources-grid .thumb-check[data-toggle="' + id + '"]');
     if (moved && document.activeElement === document.body) moved.focus({preventScroll: true});
   }
   function setActiveFilterChip(){

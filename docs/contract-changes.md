@@ -94,5 +94,5 @@
 - **Who is affected:** B reads it and sends all views to the model. C needs a way to add up to 4 images of the design and to send
   the first as `design_image` and the rest as `additional_design_images`. A is not affected. Optional field, so nothing breaks
   without it; more than 4 images in total is refused with a clear message (`too_many_design_images`).
-- **Status:** requested by the designer in the integration session and applied on branch `ai-core/design-views`; the team should
-  confirm it when that pull request is reviewed.
+- **Status:** confirmed by all three of us on 2026-10-19 and applied in `AGENTS.md` (API table and text) and
+  `contracts/models.py` (pull request #12). No fixture changes: fixtures are responses and the response did not change.

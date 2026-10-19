@@ -368,6 +368,18 @@
   #step-panel-3 .tone-field .add-keyword-row{margin-top:0;}
   .evidence-grid button.evidence-thumb img{aspect-ratio:4/3;}
 
+  /* compare: the design and the reference images side by side */
+  .compare-top{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; margin-bottom:32px;}
+  @media (max-width:760px){ .compare-top{grid-template-columns:minmax(0,1fr);} }
+  .compare-layout{display:block;}
+  .refs-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .refs-grid .evidence-thumb{position:relative; overflow:hidden; display:flex; width:auto; height:auto; min-height:0; padding:0; cursor:zoom-in;}
+  .refs-grid .evidence-thumb img{width:100%; height:auto; aspect-ratio:4/3; object-fit:cover;}
+  .refs-grid .thumb-domain{position:absolute; left:0; right:0; bottom:0; background:rgba(239,235,227,.9); border-top:none; font-size:9.5px; padding:2px 4px;}
+  .swatch{position:relative;}
+  .notes-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .palette-actions{display:flex; flex-wrap:wrap; gap:8px;}
+
   /* the button that goes on to the next step: same size on every step */
   .btn-row{flex-wrap:wrap;}
   .btn-row .btn-primary{order:-1; flex:1 0 100%; width:100%; max-width:560px; font-size:18px; padding:18px 24px;}
@@ -636,7 +648,7 @@
       <p class="panel-intro">Your concept checked against the <span class="js-brand-name"></span> house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
       <div id="compare-progress-6" class="progress-box" hidden aria-live="polite" style="margin:0 0 16px;"></div>
 
-      <div class="compare-layout">
+      <div class="compare-top">
         <div class="sketch-panel">
           <span class="label-mono">Your design</span>
           <div class="sketch-wrap" id="compare-sketch"></div>
@@ -645,6 +657,14 @@
           <div class="dropzone" id="replace-design-dropzone" tabindex="0" role="button" style="margin-top:10px;">Replace design</div>
           <div class="dropzone" id="add-view-compare-dropzone" tabindex="0" role="button" style="margin-top:6px;">+ Add another view</div>
         </div>
+        <div class="sketch-panel">
+          <span class="label-mono">reference images</span>
+          <div class="refs-grid" id="compare-refs"></div>
+          <p class="mono muted" id="compare-refs-label" style="font-size:11px;margin-top:6px;"></p>
+        </div>
+      </div>
+
+      <div class="compare-layout">
         <div>
           <span class="fit-label">Overall fit</span>
           <div class="fit-score mono" id="fit-score">—</div>
@@ -678,6 +698,10 @@
           <div class="notes-box">
             <ul id="design-notes-list"></ul>
             <p class="muted mono" id="design-notes-empty" style="font-size:11.5px;">No directions accepted yet — accept a suggestion above to add it here.</p>
+          </div>
+          <div class="notes-actions" id="notes-actions" hidden>
+            <button type="button" class="btn-ghost" id="copy-notes-btn">Copy notes</button>
+            <button type="button" class="btn-ghost" id="download-notes-btn">Download notes (.txt)</button>
           </div>
         </div>
       </div>
@@ -785,13 +809,14 @@
     more_views:   {step: 5, label: 'More views', text: 'Add up to three more pictures of the same design, such as the side or the back. One picture hides things, and more views let the AI judge more traits.'},
     sketch:       {step: 5, label: 'Sketch or black and white', text: 'Switch this on when your design is a pencil sketch or has no colour yet. The AI then leaves colour and material out instead of marking them down, and the score is based on form only.'},
     description:  {step: 5, label: 'Description', text: 'A short note about what the design is meant to be. It gives the AI context, but it can only judge what it sees in your pictures, so the note never raises a score.'},
-    palette:      {step: 4, label: 'Download palette', text: 'Saves the brand colours as one image you can drop into your own board.'},
+    palette:      {step: 4, label: 'Download palette', text: 'Saves the brand colours as one image, or as a list of hex codes you can copy or download as a text file. Use the × on a colour to take it out of the palette; you can undo right after.'},
     fit:          {step: 6, label: 'Overall fit', text: 'One number for how close your design is to the brand: higher is closer. It is an average of the trait scores, weighted by the importance you set.'},
     coverage:     {step: 6, label: 'Coverage', text: 'How much of the total importance the AI could actually judge from your pictures. Low coverage means the fit rests on little, so add more views or a clearer picture.'},
     trait_scores: {step: 6, label: 'Trait scores', text: 'One score per trait, with a short reason when you hover over it. Traits the AI could not see are listed apart and do not count as zero.'},
     findings:     {step: 6, label: 'Matches and departures', text: 'What your design shares with the brand and where it moves away from it. Departures that belong only to traits with importance 0 are greyed out; you can hide them.'},
     directions:   {step: 6, label: 'Suggested directions', text: 'Ideas for closing the biggest gaps, each pointing back to the traits it comes from. Accept the ones you like and reject the others; you decide.'},
-    notes:        {step: 6, label: 'Design notes', text: 'Accepted directions land here as notes. You can edit the text directly.'},
+    notes:        {step: 6, label: 'Design notes', text: 'Accepted directions land here as notes. You can edit the text directly, then copy the notes or download them as a text file.'},
+    refs:         {step: 6, label: 'Reference images', text: 'The pictures where the traits were seen, next to your design so you can compare them by eye. Click one to see them all larger.'},
     replace:      {step: 6, label: 'Replace design or add a view', text: 'Upload another version or an extra view and the comparison runs again with it.'}
   };
 
@@ -1396,12 +1421,17 @@
       ? '<div class="chip-row" style="margin-top:10px;">' + pkg.tone_words.map(function(w){ return '<span class="chip">' + esc(w) + '</span>'; }).join('') + '</div>'
       : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">No tone words selected.</p>';
     var colorsHtml = pkg.colors.length
-      ? '<div class="swatch-row">' + pkg.colors.map(function(c){
+      ? '<div class="swatch-row">' + pkg.colors.map(function(c, i){
           return '<div class="swatch"><div class="swatch-color" style="background:' + esc(c.hex) + '"></div>' +
+            '<button type="button" class="view-remove swatch-remove" data-i="' + i + '" aria-label="Remove ' + esc(c.name) + ' from the palette" title="Remove from the palette">×</button>' +
             '<div class="swatch-label">' + esc(c.name) + '<span class="mono muted">' + esc(c.hex) + '</span></div></div>';
         }).join('') + '</div>' +
-        '<div class="palette-actions"><button type="button" class="btn-ghost" id="download-palette-btn">Download palette (PNG)</button></div>'
-      : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">The AI found no brand colors.</p>';
+        '<div class="palette-actions">' +
+          '<button type="button" class="btn-ghost" id="download-palette-btn">Download palette (PNG)</button>' +
+          '<button type="button" class="btn-ghost" id="download-hex-btn">Download hex codes (.txt)</button>' +
+          '<button type="button" class="btn-ghost" id="copy-hex-btn">Copy hex codes</button>' +
+        '</div>'
+      : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">No colours in the palette.</p>';
     var pairsHtml = pkg.do_dont.length
       ? '<div class="dodont-list">' + pkg.do_dont.map(function(p){
           return '<div class="dodont-row"><div><span class="label-mono text-good">Do</span>' + esc(p.do) + '</div>' +
@@ -1432,6 +1462,61 @@
 
     var dl = document.getElementById('download-palette-btn');
     if (dl) dl.addEventListener('click', downloadPalette);
+    var dlHex = document.getElementById('download-hex-btn');
+    if (dlHex) dlHex.addEventListener('click', function(){ downloadText(fileSlug(pkg.brand.name) + '-palette.txt', hexCodes()); });
+    var cpHex = document.getElementById('copy-hex-btn');
+    if (cpHex) cpHex.addEventListener('click', function(){ copyText(hexCodes(), 'Hex codes copied.'); });
+    el.querySelectorAll('.swatch-remove').forEach(function(b){
+      b.addEventListener('click', function(){ removeColor(parseInt(this.getAttribute('data-i'), 10)); });
+    });
+  }
+
+  /* ---------- palette and notes: remove, copy, download ---------- */
+  function fileSlug(name){ return (name || 'brand').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'brand'; }
+  function hexCodes(){ return state.package.colors.map(function(c){ return String(c.hex).toUpperCase(); }).join('\n'); }
+  function downloadText(filename, text){
+    var blob = new Blob([text + '\n'], {type: 'text/plain;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+  function copyText(text, message){
+    function done(){ showToast(message); }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e){}
+      ta.remove();
+      if (ok) done(); else showToast('Copying is not allowed in this browser. Use the download instead.', {duration: 6000});
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+  }
+  // A colour is removed from the locked package and from the list a later lock would start from.
+  function removeColor(i){
+    var removed = state.package.colors.splice(i, 1)[0];
+    if (!removed) return;
+    var at = -1;
+    state.colors.forEach(function(c, k){ if (at === -1 && c.hex === removed.hex && c.name === removed.name) at = k; });
+    if (at !== -1) state.colors.splice(at, 1);
+    renderHouseStyle();
+    showToast('Removed ' + removed.name + ' from the palette', {
+      actionLabel: 'Undo',
+      onAction: function(){
+        state.package.colors.splice(i, 0, removed);
+        if (at !== -1) state.colors.splice(at, 0, removed);
+        renderHouseStyle();
+      }
+    });
+  }
+  function notesText(){
+    var items = Array.prototype.map.call(document.querySelectorAll('#design-notes-list li'), function(li){ return li.textContent.trim(); }).filter(Boolean);
+    var brand = state.package ? state.package.brand.name : '';
+    return 'Design notes' + (brand ? ' — ' + brand : '') + '\n\n' + items.map(function(s){ return '- ' + s; }).join('\n');
   }
 
   /* ---------- lightbox: every image can be opened larger ---------- */
@@ -1468,6 +1553,7 @@
       var tr = findTrait(traitId, state.traits) || (state.package ? findTrait(traitId, state.package.traits) : null);
       fromCandidates((tr ? tr.evidence_image_ids : [id]).map(findCandidate).filter(Boolean));
     }
+    else if (key === 'refs') fromCandidates(state.package ? referenceImages() : []);
     else if (key === 'pkg') fromCandidates(state.package ? state.package.source_image_ids.map(findCandidate).filter(Boolean) : []);
     else if (key === 'design'){ items = designItems(); start = parseInt(el.getAttribute('data-index'), 10) || 0; }
     else if (key === 'directions' && state.compare){
@@ -1750,9 +1836,35 @@
     });
     return Math.round(judged / total * 100);
   }
+  // The reference pictures behind the traits: the ones cited most often come first.
+  function referenceImages(){
+    var count = {}, order = [];
+    state.package.traits.forEach(function(tr){
+      (tr.evidence_image_ids || []).forEach(function(id){
+        if (!findCandidate(id)) return;
+        if (count[id] === undefined){ count[id] = 0; order.push(id); }
+        count[id]++;
+      });
+    });
+    order.sort(function(a, b){ return count[b] - count[a]; });
+    return order.map(findCandidate);
+  }
+  function renderCompareRefs(){
+    var all = referenceImages(), shown = all.slice(0, 4);
+    var grid = document.getElementById('compare-refs');
+    grid.innerHTML = shown.map(function(c){
+      return '<button type="button" class="evidence-thumb" data-enlarge="refs" data-id="' + esc(c.id) + '" title="' + esc(c.id + ' · ' + c.source_domain + ' — click to enlarge') + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '">' +
+        '<img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
+        '<span class="thumb-domain">' + esc(c.source_domain) + '</span></button>';
+    }).join('');
+    document.getElementById('compare-refs-label').textContent = shown.length
+      ? 'Where the traits were seen' + (all.length > shown.length ? ' · +' + (all.length - shown.length) + ' more' : '') + ' · click to enlarge'
+      : 'No reference pictures are linked to the traits.';
+  }
   function renderCompare(){
     var r = state.compare;
     if (!r || !state.package) return;
+    renderCompareRefs();
 
     document.getElementById('compare-sketch').innerHTML = state.design
       ? '<button type="button" class="img-zoom" data-enlarge="design" data-index="0" aria-label="Enlarge your design"><img src="' + esc(state.design.dataUrl) + '" alt="Your design"></button>'
@@ -1869,6 +1981,7 @@
     var empty = document.getElementById('design-notes-empty');
     var accepted = state.compare.directions.filter(function(d){ return state.directionStatus[d.id] === 'accepted'; });
     empty.hidden = accepted.length > 0;
+    document.getElementById('notes-actions').hidden = accepted.length === 0;
     list.innerHTML = accepted.map(function(d){
       return '<li contenteditable="true" spellcheck="false">' + esc(d.title) + ' — ' + esc(d.rationale) + '</li>';
     }).join('');
@@ -2527,6 +2640,10 @@
     document.getElementById('to-design-btn').addEventListener('click', goToDesign);
     document.getElementById('back-to-house-from-design-btn').addEventListener('click', function(){ navigateToStep(4); });
     document.getElementById('compare-btn').addEventListener('click', runCompare);
+    document.getElementById('copy-notes-btn').addEventListener('click', function(){ copyText(notesText(), 'Design notes copied.'); });
+    document.getElementById('download-notes-btn').addEventListener('click', function(){
+      downloadText(fileSlug(state.package ? state.package.brand.name : '') + '-design-notes.txt', notesText());
+    });
     document.getElementById('sketch-toggle').addEventListener('click', function(){
       state.designIsSketch = !state.designIsSketch;
       staleCompare();

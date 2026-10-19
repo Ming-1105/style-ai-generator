@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CopyCat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -153,11 +154,33 @@
   .direction-media img{width:100%; height:auto; display:block;}
   .mini-thumb:hover{border-color:var(--ink);}
   .palette-actions{margin-top:12px;}
-  .lightbox{position:fixed; inset:0; z-index:100; background:rgba(10,12,14,.82); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:24px;}
+  /* lightbox */
+  .lightbox{position:fixed; inset:0; z-index:100; background:rgba(20,18,16,.92); display:flex; flex-direction:column; padding:16px 24px 16px; gap:8px; color:#fff;}
   .lightbox[hidden]{display:none;}
-  .lightbox img{max-width:min(92vw,1100px); max-height:78vh; background:var(--surface); border-radius:var(--radius); object-fit:contain;}
-  .lightbox-caption{color:#fff; font-family:var(--font-mono); font-size:12px;}
-  .lightbox-close{position:absolute; top:16px; right:16px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:var(--radius); padding:6px 12px;}
+  .lb-bar{display:flex; justify-content:space-between; align-items:center; gap:16px;}
+  .lb-count{font-size:12px; color:#D9D2C6;}
+  .lb-tools{display:flex; gap:8px;}
+  .lb-btn,.lb-nav{background:var(--field); color:var(--ink); border:1px solid var(--ink); border-radius:var(--radius); padding:6px 12px; font-size:14px; min-width:40px; min-height:36px;}
+  .lb-btn:hover,.lb-nav:hover{background:var(--accent);}
+  .lb-main{flex:1; min-height:0; display:flex; align-items:stretch; gap:12px;}
+  .lb-nav{align-self:center; font-size:22px; line-height:1; padding:8px 12px;}
+  .lb-nav[hidden]{display:none;}
+  .lb-stage{flex:1; min-width:0; display:flex; align-items:center; justify-content:center; overflow:hidden; touch-action:none; position:relative;}
+  .lb-stage img{max-width:100%; max-height:100%; object-fit:contain; background:var(--surface); border-radius:var(--radius); cursor:zoom-in; user-select:none; -webkit-user-drag:none; transform-origin:center center; will-change:transform;}
+  .lb-stage.zoomed img{cursor:grab;}
+  .lb-stage.panning img{cursor:grabbing;}
+  .lb-error{max-width:420px; text-align:center; padding:24px; border:1px solid #D9D2C6; border-radius:var(--radius); font-size:14px;}
+  .lightbox-caption{font-family:var(--font-mono); font-size:12px; text-align:center; color:#fff; min-height:18px;}
+  .img-zoom{display:block; max-width:100%; background:none; border:none; padding:0; cursor:zoom-in;}
+  .sketch-wrap .img-zoom,.direction-media .img-zoom{width:100%;}
+  .thumb-media{position:relative;}
+  .thumb-zoom{position:absolute; right:4px; bottom:4px; width:28px; height:28px; padding:0; border:1px solid var(--ink); border-radius:50%; background:var(--field); color:var(--ink); font-size:14px; line-height:1;}
+  .thumb-zoom:hover{background:var(--accent);}
+  button.evidence-thumb,button.mini-thumb{flex-direction:column; align-items:stretch; justify-content:flex-start; padding:0; cursor:zoom-in; height:auto; color:var(--ink);}
+  button.evidence-thumb img{height:64px;}
+  button.mini-thumb img{height:84px;}
+  .thumb-domain{font-family:var(--font-mono); font-size:9.5px; color:var(--muted); padding:2px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; border-top:1px solid var(--line);}
+  @media (max-width:760px){ .lightbox{padding:8px 8px 12px;} .lb-main{gap:4px;} .lb-nav{padding:8px 8px; min-width:32px;} }
   .finding-ignored{color:var(--muted); opacity:.6;}
   .finding-hide{margin-left:8px; padding:1px 7px; font-size:11px;}
   .hidden-toggle{margin-top:8px; padding:3px 9px; font-size:11px;}
@@ -503,9 +526,23 @@
   </main>
 </div>
 
-<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged source image" hidden>
-  <button type="button" class="lightbox-close" id="lightbox-close">Close ✕</button>
-  <img id="lightbox-img" alt="">
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged image" hidden>
+  <div class="lb-bar">
+    <span class="lb-count mono" id="lb-count"></span>
+    <div class="lb-tools">
+      <button type="button" class="lb-btn" id="lb-zoom-out" aria-label="Zoom out">−</button>
+      <button type="button" class="lb-btn" id="lb-zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" class="lb-btn" id="lightbox-close">Close ✕</button>
+    </div>
+  </div>
+  <div class="lb-main">
+    <button type="button" class="lb-nav" id="lb-prev" aria-label="Previous image">‹</button>
+    <div class="lb-stage" id="lb-stage">
+      <img id="lightbox-img" alt="" draggable="false">
+      <p class="lb-error" id="lb-error" role="alert" hidden></p>
+    </div>
+    <button type="button" class="lb-nav" id="lb-next" aria-label="Next image">›</button>
+  </div>
   <div class="lightbox-caption" id="lightbox-caption"></div>
 </div>
 
@@ -575,7 +612,7 @@
     flagged:      {step: 2, label: 'Flagged images', text: 'CopyCat flags pictures it doubts, for example very small ones or ones that look AI-made or fan-made. A flag is a warning, not a verdict: you decide whether to keep the picture.'},
     filters:      {step: 2, label: 'Filters', text: 'Show only one kind of picture, such as product or logo. Filtering only changes what you see; it does not change which pictures are included.'},
     relevance:    {step: 2, label: 'Relevance', text: 'How well CopyCat thinks a picture matches your search. A dash means it could not tell. Use it as a hint, not as a rule.'},
-    enlarge:      {step: 2, label: 'Enlarge a picture', text: 'Use the small enlarge button on a picture to see it bigger, with the website it came from. Pictures stay on their own websites; CopyCat does not keep copies.'},
+    enlarge:      {step: 2, label: 'Enlarge a picture', text: 'Click the small enlarge button on a picture to see it bigger, with the website it came from. In the large view, use the arrows to move through the set, click or + and − to zoom, and drag to move around. Esc closes it. Pictures stay on their own websites; CopyCat does not keep copies. The same works for evidence pictures, the house style sources, your design and its extra views.'},
     importance:   {step: 3, label: 'Importance', text: 'How much a trait should count, from 0 to 100. A trait with 0 is ignored in the comparison; a trait of 80 or more is treated as a signature trait of the brand.'},
     edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
     add_trait:    {step: 3, label: 'Add a trait yourself', text: 'Add a trait the AI missed. It has no pictures linked to it, so the AI will judge it from your words alone.'},
@@ -635,9 +672,13 @@
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
   }
-  function imageThumb(id, cls){
+  function imageThumb(id, cls, traitId){
     var c = findCandidate(id);
     if (!c) return '<div class="' + cls + '" title="' + esc(id) + ' (not in the current source set)">?</div>';
+    if (traitId){
+      return '<button type="button" class="' + cls + '" data-enlarge="evidence" data-trait="' + esc(traitId) + '" data-id="' + esc(c.id) + '" title="' + esc(c.id + ' · ' + c.source_domain + ' — click to enlarge') + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '">' +
+        '<img src="' + esc(c.thumbnail_url) + '" alt="' + esc(c.id) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="thumb-domain">' + esc(c.source_domain) + '</span></button>';
+    }
     return '<div class="' + cls + '" title="' + esc(c.id + ' · ' + c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="' + esc(c.id) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"></div>';
   }
 
@@ -854,7 +895,8 @@
     var html = '<div class="thumb ' + (c.included ? '' : 'excluded') + '" data-id="' + esc(c.id) + '" tabindex="0" role="checkbox" aria-checked="' + c.included + '">';
     html += '<div class="thumb-check" aria-hidden="true">' + (c.included ? '✓' : '') + '</div>';
     if (c.flagged) html += '<div class="flag-chip">flagged</div>';
-    html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'"></div>';
+    html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
+      '<button type="button" class="thumb-zoom" data-enlarge="sources" data-id="' + esc(c.id) + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" title="Enlarge">⤢</button></div>';
     html += '<div class="thumb-body">';
     html += '<div class="thumb-caption mono">' + esc(c.id) + ' · ' + esc(c.source_type) + '</div>';
     html += '<div class="thumb-meta"><span class="mono domain" title="' + esc(c.source_domain) + '">' + esc(c.source_domain) + '</span><span class="type-tag">' + esc(c.category) + '</span></div>';
@@ -863,20 +905,27 @@
     html += '</div></div>';
     return html;
   }
-  function renderSources(){
-    var grid = document.getElementById('sources-grid');
-    var filtered = state.candidates.filter(function(c){
+  function filteredCandidates(){
+    return state.candidates.filter(function(c){
       if (currentFilter === 'all') return true;
       if (currentFilter === 'flagged') return c.flagged;
       return c.category === currentFilter;
     });
+  }
+  function renderSources(){
+    var grid = document.getElementById('sources-grid');
+    var filtered = filteredCandidates();
     var html = filtered.map(thumbCard).join('');
     html += '<div class="thumb add-url-tile" tabindex="0" role="button"><div>+ Add image URL</div></div>';
     grid.innerHTML = html;
 
     grid.querySelectorAll('.thumb:not(.add-url-tile)').forEach(function(el){
-      el.addEventListener('click', function(){ toggleSource(this.dataset.id); });
+      el.addEventListener('click', function(e){
+        if (e.target.closest('[data-enlarge]')) return;   // the enlarge button opens the lightbox instead
+        toggleSource(this.dataset.id);
+      });
       el.addEventListener('keydown', function(e){
+        if (e.target !== this) return;
         if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleSource(this.dataset.id); }
       });
     });
@@ -973,7 +1022,7 @@
       var confHtml = conf === null ? '<span class="mono muted" title="The AI did not report a confidence for this trait">not rated</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
       var evidenceRow = t.origin === 'manual'
         ? '<span class="mono muted evidence-label">Added manually — no evidence linked yet</span>'
-        : '<div class="evidence-thumbs">' + t.evidence_image_ids.map(function(id){ return imageThumb(id, 'evidence-thumb'); }).join('') + '</div>' +
+        : '<div class="evidence-thumbs">' + t.evidence_image_ids.map(function(id){ return imageThumb(id, 'evidence-thumb', t.id); }).join('') + '</div>' +
           '<span class="mono muted evidence-label">seen in ' + t.seen_count + '/' + state.extractedFrom + ' images</span>';
       return '<li class="trait-row" data-id="' + esc(t.id) + '">' +
         '<div class="trait-main">' +
@@ -1121,7 +1170,7 @@
     var sourcesHtml = pkg.source_image_ids.map(function(id){
       var c = findCandidate(id);
       if (!c) return imageThumb(id, 'mini-thumb');
-      return '<button type="button" class="mini-thumb" data-id="' + esc(c.id) + '" title="' + esc(c.id + ' · ' + c.source_domain + ' — click to enlarge') + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="" loading="lazy"></button>';
+      return '<button type="button" class="mini-thumb" data-enlarge="pkg" data-id="' + esc(c.id) + '" title="' + esc(c.id + ' · ' + c.source_domain + ' — click to enlarge') + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '"><img src="' + esc(c.thumbnail_url) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="thumb-domain">' + esc(c.source_domain) + '</span></button>';
     }).join('');
     var domains = [];
     pkg.source_image_ids.forEach(function(id){
@@ -1140,26 +1189,206 @@
       '<section><h3>Sources</h3><div class="mini-thumb-row">' + sourcesHtml + '</div>' +
         '<p class="mono muted" style="font-size:11px;margin-top:8px;">From: ' + esc(domains.join(', ')) + '</p></section>';
 
-    el.querySelectorAll('.mini-thumb[data-id]').forEach(function(b){
-      b.addEventListener('click', function(){ openLightbox(this.dataset.id); });
-    });
     var dl = document.getElementById('download-palette-btn');
     if (dl) dl.addEventListener('click', downloadPalette);
   }
 
-  function openLightbox(id){
-    var c = findCandidate(id);
-    if (!c) return;
-    var img = document.getElementById('lightbox-img');
-    img.src = c.url;
-    img.alt = 'Reference image ' + c.id + ' from ' + c.source_domain;
-    document.getElementById('lightbox-caption').textContent = c.id + ' · ' + c.source_domain + ' · ' + c.category;
+  /* ---------- lightbox: every image can be opened larger ---------- */
+  // items: [{ src, thumb (fallback), alt, caption, domain }]. Zoom, pan, previous/next, focus handling.
+  var lb = {open: false, items: [], index: 0, scale: 1, x: 0, y: 0, opener: null, openerSel: '', triedThumb: false, suppressClick: false};
+  var lbPointers = {};
+  var lbPinch = null;
+  var lbDrag = null;
+
+  function candidateItem(c){
+    var flag = c.flagged ? ' · flagged' + (c.flag_reason ? ': ' + c.flag_reason : '') : '';
+    return {src: c.url, thumb: c.thumbnail_url, alt: 'Reference image ' + c.id + ' from ' + c.source_domain, domain: c.source_domain,
+            caption: c.id + ' · ' + c.source_domain + ' · ' + c.category + flag};
+  }
+  function designItems(){
+    var items = [];
+    if (state.design){
+      items.push({src: state.design.dataUrl, alt: 'Your design', caption: 'Your design · ' + state.design.label});
+      state.moreDesigns.forEach(function(d, i){ items.push({src: d.dataUrl, alt: 'Extra view ' + (i + 2), caption: 'Extra view ' + (i + 2) + ' · ' + d.label}); });
+    }
+    return items;
+  }
+  // Builds the set of images that belongs with the clicked picture, so the arrows move within that set.
+  function openEnlarge(el){
+    var key = el.getAttribute('data-enlarge'), id = el.getAttribute('data-id'), items = [], start = 0;
+    function fromCandidates(list){
+      list.forEach(function(c){ if (c.id === id) start = items.length; items.push(candidateItem(c)); });
+    }
+    if (key === 'sources') fromCandidates(filteredCandidates());
+    else if (key === 'evidence'){
+      var traitId = el.getAttribute('data-trait');
+      var tr = findTrait(traitId, state.traits) || (state.package ? findTrait(traitId, state.package.traits) : null);
+      fromCandidates((tr ? tr.evidence_image_ids : [id]).map(findCandidate).filter(Boolean));
+    }
+    else if (key === 'pkg') fromCandidates(state.package ? state.package.source_image_ids.map(findCandidate).filter(Boolean) : []);
+    else if (key === 'design'){ items = designItems(); start = parseInt(el.getAttribute('data-index'), 10) || 0; }
+    else if (key === 'directions' && state.compare){
+      state.compare.directions.filter(function(d){ return d.image_url; }).forEach(function(d){
+        if (d.id === id) start = items.length;
+        items.push({src: d.image_url, alt: d.title, caption: d.title + ' · suggested direction'});
+      });
+    }
+    if (items.length) openLightbox(items, start, el);
+  }
+  function lbClamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+  function lbApply(){
+    var img = document.getElementById('lightbox-img'), stage = document.getElementById('lb-stage');
+    var sw = stage.clientWidth, sh = stage.clientHeight;
+    var maxX = Math.max(0, (img.offsetWidth * lb.scale - sw) / 2), maxY = Math.max(0, (img.offsetHeight * lb.scale - sh) / 2);
+    lb.x = lbClamp(lb.x, -maxX, maxX); lb.y = lbClamp(lb.y, -maxY, maxY);
+    img.style.transform = 'translate(' + lb.x + 'px,' + lb.y + 'px) scale(' + lb.scale + ')';
+    stage.classList.toggle('zoomed', lb.scale > 1);
+  }
+  function lbZoom(scale){
+    lb.scale = lbClamp(scale, 1, 6);
+    if (lb.scale === 1){ lb.x = 0; lb.y = 0; }
+    lbApply();
+  }
+  function lbShow(){
+    var it = lb.items[lb.index];
+    var img = document.getElementById('lightbox-img'), err = document.getElementById('lb-error');
+    lb.triedThumb = false;
+    err.hidden = true; img.hidden = false;
+    lb.scale = 1; lb.x = 0; lb.y = 0; img.style.transform = '';
+    document.getElementById('lb-stage').classList.remove('zoomed');
+    img.alt = it.alt;
+    img.src = it.src;
+    document.getElementById('lightbox-caption').textContent = it.caption;
+    var many = lb.items.length > 1;
+    document.getElementById('lb-count').textContent = many ? (lb.index + 1) + ' / ' + lb.items.length : '';
+    document.getElementById('lb-prev').hidden = !many;
+    document.getElementById('lb-next').hidden = !many;
+  }
+  function lbStep(delta){
+    if (lb.items.length < 2) return;
+    lb.index = (lb.index + delta + lb.items.length) % lb.items.length;
+    lbShow();
+  }
+  function openLightbox(items, index, opener){
+    lb.items = items; lb.index = index; lb.opener = opener || null;
+    lb.openerSel = opener ? '[data-enlarge="' + opener.getAttribute('data-enlarge') + '"]' +
+      (opener.getAttribute('data-id') ? '[data-id="' + opener.getAttribute('data-id') + '"]' : '') +
+      (opener.getAttribute('data-index') ? '[data-index="' + opener.getAttribute('data-index') + '"]' : '') : '';
+    lb.open = true;
     document.getElementById('lightbox').hidden = false;
+    document.querySelector('.app-shell').setAttribute('inert', '');
+    document.body.style.overflow = 'hidden';
+    lbShow();
     document.getElementById('lightbox-close').focus();
   }
   function closeLightbox(){
+    if (!lb.open) return;
+    lb.open = false;
     document.getElementById('lightbox').hidden = true;
     document.getElementById('lightbox-img').removeAttribute('src');
+    document.querySelector('.app-shell').removeAttribute('inert');
+    document.body.style.overflow = '';
+    // the picture may have been redrawn in the meantime, so look it up again
+    var back = lb.opener && document.contains(lb.opener) ? lb.opener : (lb.openerSel ? document.querySelector(lb.openerSel) : null);
+    if (back) back.focus();
+    lb.opener = null;
+  }
+  function wireLightbox(){
+    var box = document.getElementById('lightbox'), stage = document.getElementById('lb-stage'), img = document.getElementById('lightbox-img');
+
+    document.addEventListener('click', function(e){
+      var el = e.target.closest ? e.target.closest('[data-enlarge]') : null;
+      if (el && !lb.open){ e.preventDefault(); openEnlarge(el); }
+    });
+
+    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+    document.getElementById('lb-prev').addEventListener('click', function(){ lbStep(-1); });
+    document.getElementById('lb-next').addEventListener('click', function(){ lbStep(1); });
+    document.getElementById('lb-zoom-in').addEventListener('click', function(){ lbZoom(lb.scale * 1.5); });
+    document.getElementById('lb-zoom-out').addEventListener('click', function(){ lbZoom(lb.scale / 1.5); });
+    // a click outside the picture closes; ending a drag over the empty area must not
+    box.addEventListener('click', function(e){
+      if (lb.suppressClick) return;
+      if (e.target === box || e.target === stage || e.target.classList.contains('lb-main') || e.target.classList.contains('lb-bar')) closeLightbox();
+    });
+
+    img.addEventListener('error', function(){
+      if (!lb.open) return;
+      var it = lb.items[lb.index];
+      if (it.thumb && it.thumb !== it.src && !lb.triedThumb){ lb.triedThumb = true; img.src = it.thumb; return; }
+      img.hidden = true;
+      var err = document.getElementById('lb-error');
+      err.hidden = false;
+      err.textContent = 'This image could not be loaded' + (it.domain ? ' from ' + it.domain : '') + '. The website may have removed it or may not allow it to be shown here.';
+    });
+
+    stage.addEventListener('wheel', function(e){
+      if (!lb.open) return;
+      e.preventDefault();
+      lbZoom(lb.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
+    }, {passive: false});
+
+    // pointer events cover mouse, pen and touch: drag to pan when zoomed, pinch to zoom, tap or click to toggle zoom
+    function distance(){ var k = Object.keys(lbPointers); var a = lbPointers[k[0]], b = lbPointers[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y) || 1; }
+    stage.addEventListener('pointerdown', function(e){
+      if (!lb.open) return;
+      lbPointers[e.pointerId] = {x: e.clientX, y: e.clientY};
+      try { stage.setPointerCapture(e.pointerId); } catch (err){}
+      var n = Object.keys(lbPointers).length;
+      if (n === 1) lbDrag = {x: e.clientX, y: e.clientY, startX: lb.x, startY: lb.y, moved: false, onImage: e.target === img};
+      if (n === 2){ lbPinch = {d: distance(), s: lb.scale}; if (lbDrag) lbDrag.moved = true; }
+    });
+    stage.addEventListener('pointermove', function(e){
+      if (!lbPointers[e.pointerId]) return;
+      lbPointers[e.pointerId] = {x: e.clientX, y: e.clientY};
+      if (lbPinch && Object.keys(lbPointers).length === 2){ lbZoom(lbPinch.s * distance() / lbPinch.d); return; }
+      if (!lbDrag) return;
+      var dx = e.clientX - lbDrag.x, dy = e.clientY - lbDrag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 5) lbDrag.moved = true;
+      if (lb.scale > 1 && lbDrag.moved){
+        lb.x = lbDrag.startX + dx; lb.y = lbDrag.startY + dy;
+        stage.classList.add('panning');
+        lbApply();
+      }
+    });
+    function endPointer(e){
+      if (!lbPointers[e.pointerId]) return;
+      delete lbPointers[e.pointerId];
+      if (Object.keys(lbPointers).length < 2) lbPinch = null;
+      if (Object.keys(lbPointers).length === 0 && lbDrag){
+        stage.classList.remove('panning');
+        if (lbDrag.moved){
+          lb.suppressClick = true;
+          setTimeout(function(){ lb.suppressClick = false; }, 0);
+        } else if (lbDrag.onImage && e.type === 'pointerup'){
+          lbZoom(lb.scale > 1 ? 1 : 2.5);
+          lb.suppressClick = true;
+          setTimeout(function(){ lb.suppressClick = false; }, 0);
+        }
+        lbDrag = null;
+      }
+    }
+    stage.addEventListener('pointerup', endPointer);
+    stage.addEventListener('pointercancel', endPointer);
+
+    document.addEventListener('keydown', function(e){
+      if (!lb.open) return;
+      if (e.key === 'Escape'){ e.preventDefault(); closeLightbox(); }
+      else if (e.key === 'ArrowLeft'){ e.preventDefault(); lbStep(-1); }
+      else if (e.key === 'ArrowRight'){ e.preventDefault(); lbStep(1); }
+      else if (e.key === '+' || e.key === '='){ e.preventDefault(); lbZoom(lb.scale * 1.5); }
+      else if (e.key === '-' || e.key === '_'){ e.preventDefault(); lbZoom(lb.scale / 1.5); }
+      else if (e.key === '0'){ e.preventDefault(); lbZoom(1); }
+      else if (e.key === 'Tab'){
+        // keep the focus inside the lightbox
+        var focusable = Array.prototype.slice.call(box.querySelectorAll('button')).filter(function(b){ return !b.hidden && b.offsetParent !== null; });
+        if (!focusable.length) return;
+        var first = focusable[0], last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+        else if (!box.contains(document.activeElement)){ e.preventDefault(); first.focus(); }
+      }
+    });
   }
 
   // Draws every colour of the package as a swatch with its name and hex, and saves it as a PNG.
@@ -1279,7 +1508,7 @@
     if (!r || !state.package) return;
 
     document.getElementById('compare-sketch').innerHTML = state.design
-      ? '<img src="' + esc(state.design.dataUrl) + '" alt="Your design">'
+      ? '<button type="button" class="img-zoom" data-enlarge="design" data-index="0" aria-label="Enlarge your design"><img src="' + esc(state.design.dataUrl) + '" alt="Your design"></button>'
       : '';
     var moreCount = state.design ? state.moreDesigns.length : 0;
     document.getElementById('compare-sketch-label').textContent = state.design
@@ -1365,7 +1594,7 @@
         refLine = '<div class="direction-ref mono muted">↳ New direction · outside current DNA</div>';
       }
       return '<div class="direction-tile" data-id="' + esc(dir.id) + '">' +
-        (dir.image_url ? '<div class="direction-media"><img src="' + esc(dir.image_url) + '" alt="' + esc(dir.title) + '"></div>' : '') +
+        (dir.image_url ? '<div class="direction-media"><button type="button" class="img-zoom" data-enlarge="directions" data-id="' + esc(dir.id) + '" aria-label="Enlarge: ' + esc(dir.title) + '"><img src="' + esc(dir.image_url) + '" alt="' + esc(dir.title) + '"></button></div>' : '') +
         '<div class="direction-title">' + esc(dir.title) + '</div>' +
         '<p class="direction-desc">' + esc(dir.rationale) + '</p>' +
         refLine +
@@ -1441,7 +1670,7 @@
     var box = document.getElementById('design-preview');
     box.hidden = false;
     box.innerHTML = state.design
-      ? '<img src="' + esc(state.design.dataUrl) + '" alt="Your design"><span class="mono muted" style="font-size:11px;">' + esc(state.design.label) + '</span>'
+      ? '<button type="button" class="img-zoom" data-enlarge="design" data-index="0" aria-label="Enlarge your design"><img src="' + esc(state.design.dataUrl) + '" alt="Your design"></button><span class="mono muted" style="font-size:11px;">' + esc(state.design.label) + '</span>'
       : '<span class="mono muted" style="font-size:11px;">No design chosen — a bundled sample sketch will be compared.</span>';
     renderViewThumbs('view-thumbs');
   }
@@ -1472,7 +1701,7 @@
     var box = document.getElementById(boxId);
     if (!box) return;
     box.innerHTML = state.moreDesigns.map(function(d, i){
-      return '<div class="view-thumb"><img src="' + esc(d.dataUrl) + '" alt="Extra view ' + (i + 2) + '" title="' + esc(d.label) + '">' +
+      return '<div class="view-thumb"><button type="button" class="img-zoom" data-enlarge="design" data-index="' + (i + 1) + '" aria-label="Enlarge extra view ' + (i + 2) + '"><img src="' + esc(d.dataUrl) + '" alt="Extra view ' + (i + 2) + '" title="' + esc(d.label) + '"></button>' +
         '<button type="button" class="view-remove" data-i="' + i + '" aria-label="Remove view ' + (i + 2) + '">×</button></div>';
     }).join('');
     box.querySelectorAll('.view-remove').forEach(function(b){
@@ -2009,9 +2238,7 @@
     renderStepRail();
     showPanel(currentStep);
 
-    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
-    document.getElementById('lightbox').addEventListener('click', function(e){ if (e.target === this) closeLightbox(); });
-    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeLightbox(); });
+    wireLightbox();
 
     document.getElementById('add-keyword-btn').addEventListener('click', addKeyword);
     document.getElementById('keyword-input').addEventListener('keydown', function(e){

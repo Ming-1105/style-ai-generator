@@ -1,4 +1,4 @@
-<title>Brand DNA</title>
+<title>CopyCat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -44,7 +44,7 @@
   .app-shell{display:grid; grid-template-columns:220px 1fr; grid-template-areas:"header header" "rail main"; min-height:100vh;}
   .topbar{grid-area:header; display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--line); background:var(--bg);}
   .wordmark{font-family:var(--font-heading); font-weight:700; font-size:18px; letter-spacing:.02em;}
-  .mock-tag{font-family:var(--font-mono); font-size:10px; text-transform:lowercase; letter-spacing:.04em; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:2px 7px;}
+  .proto-tag{font-family:var(--font-mono); font-size:10px; text-transform:lowercase; letter-spacing:.04em; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:2px 7px;}
   .project-name{margin-left:auto; font-family:var(--font-mono); font-size:12px; color:var(--muted);}
   .project-name b{color:var(--ink); font-weight:500;}
 
@@ -256,8 +256,8 @@
 
 <div class="app-shell">
   <header class="topbar">
-    <span class="wordmark">Brand DNA</span>
-    <span class="mock-tag">Prototype</span>
+    <span class="wordmark">CopyCat</span>
+    <span class="proto-tag">Prototype</span>
     <span class="project-name">Project: <b id="project-name">—</b></span>
   </header>
 
@@ -534,7 +534,7 @@
         return data;
       });
     }, function(){
-      throw new Error('Could not reach the Brand DNA server — is it running on localhost:8000?');
+      throw new Error('Could not reach the CopyCat server — is it running on localhost:8000?');
     });
   }
 

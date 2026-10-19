@@ -59,6 +59,7 @@ def compare(body: CompareRequest):
         return compare_design(
             body.package, body.design_image, reference_images=body.reference_images,
             additional_design_images=body.additional_design_images,
+            design_is_sketch=body.design_is_sketch, design_description=body.design_description,
         )
     except AiCoreError as problem:
         return problem.to_response()

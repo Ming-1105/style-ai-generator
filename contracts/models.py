@@ -139,6 +139,8 @@ class CompareRequest(BaseModel):
     design_image: str  # data URL or https URL
     additional_design_images: list[str] = []  # more views of the same design (optional, at most 3)
     reference_images: list[ImageCandidate] = []  # the images cited as evidence by the traits (optional)
+    design_is_sketch: bool = False  # the designer says it is a sketch or black and white: colour and material are not judged (optional)
+    design_description: str = ""  # a short text from the designer about the design (optional, at most 500 characters are used)
 
 
 # ---------- Errors ----------

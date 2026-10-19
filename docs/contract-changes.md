@@ -72,6 +72,19 @@
 - **Decision needed:** the team agrees on the field name `reference_images` and that C sends it.
   If agreed, one person updates `AGENTS.md`, `contracts/models.py` and this file in a single PR.
 
+## Proposal (Person B, 2026-10-19): say that the design is a sketch, and describe it, in `POST /api/compare`
+
+- **Status:** proposed, needs the team's OK. Built so far on branch `ui/overhaul` (optional fields in `contracts/models.py`, the AI core and the new
+  "Your design" step). `AGENTS.md` is not updated yet.
+- **What:** two optional request fields: `design_is_sketch: boolean` (default `false`) and `design_description: string` (default empty; at most 500
+  characters are used). When `design_is_sketch` is true the AI is told not to judge colour, material, finish or transparency: those traits come
+  back as `not_assessable`, so they are left out of the fit and lower the coverage instead of being scored 0. The description is given to the AI as
+  the designer's own words, as information and not as evidence. Nothing changes in the response.
+- **Why:** a pencil sketch should not be penalised for having no colour, and a designer often wants to say what a rough drawing is meant to be.
+  The prompt already treated colourless drawings carefully; the toggle makes the designer's own statement decisive, and the description gives context.
+- **Who is affected:** B reads the fields (done). C adds the toggle and the text box on the new step (done on `ui/overhaul`). A is not affected.
+  Optional fields: old clients keep working.
+
 ## Proposal (Person B, 2026-10-14): `coverage` on the compare result
 
 - **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).

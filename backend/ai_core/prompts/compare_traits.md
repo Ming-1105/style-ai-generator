@@ -14,7 +14,7 @@ The designer has fixed these traits as the brand's visual identity:
 
 The designer's own work is the image labelled "Image design". It may be a photo, a render,
 or a rough sketch.
-{{design_views_section}}{{reference_section}}
+{{design_views_section}}{{design_context_section}}{{reference_section}}
 ## What to do
 
 First look at the image and decide what view it shows (for example front, side, rear,

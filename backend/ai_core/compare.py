@@ -26,6 +26,9 @@ PROMPT_FILE = Path(__file__).parent / "prompts" / "compare_traits.md"
 REFERENCES_FILE = Path(__file__).parent / "prompts" / "compare_references.md"
 
 DESIGN_VIEWS_FILE = Path(__file__).parent / "prompts" / "compare_design_views.md"
+DESIGN_SKETCH_FILE = Path(__file__).parent / "prompts" / "compare_design_sketch.md"
+DESIGN_DESCRIPTION_FILE = Path(__file__).parent / "prompts" / "compare_design_description.md"
+MAX_DESCRIPTION_CHARS = 500
 MAX_DESIGN_IMAGES = 4  # the main design plus up to 3 more views
 MAX_REFERENCES_PER_TRAIT = 3
 MAX_REFERENCES_TOTAL = 12  # distinct images in one request
@@ -55,6 +58,8 @@ def compare_design(
     load: Optional[Callable[[str, str], LoadedImage]] = None,
     reference_images: Optional[list[ImageCandidate]] = None,
     additional_design_images: Optional[list[str]] = None,
+    design_is_sketch: bool = False,
+    design_description: str = "",
 ) -> CompareResult:
     """`ask` and `load` can be replaced in tests, so no API key or network is needed."""
     ask = ask or get_provider()  # fail early if no model is set up
@@ -77,7 +82,7 @@ def compare_design(
 
     references, refs_by_trait = load_references(package.traits, reference_images or [], load)
     answer = ask_and_parse(
-        ask, build_prompt(package, designs, refs_by_trait), [*designs, *references], parse_answer,
+        ask, build_prompt(package, designs, refs_by_trait, design_is_sketch, design_description), [*designs, *references], parse_answer,
         "The AI's answer could not be read, even on a second try. "
         "No scores were made up to fill the gap — please run the comparison again.",
     )
@@ -160,7 +165,13 @@ def load_designs(sources: list[str], load: Callable[[str, str], LoadedImage]) ->
     return designs
 
 
-def build_prompt(package: HouseStylePackage, designs: list[LoadedImage], refs_by_trait: Optional[dict[str, list[str]]] = None) -> str:
+def build_prompt(
+    package: HouseStylePackage,
+    designs: list[LoadedImage],
+    refs_by_trait: Optional[dict[str, list[str]]] = None,
+    design_is_sketch: bool = False,
+    design_description: str = "",
+) -> str:
     # Deliberately name and description only: the model must not see the importance values.
     refs_by_trait = refs_by_trait or {}
     trait_lines = []
@@ -174,12 +185,23 @@ def build_prompt(package: HouseStylePackage, designs: list[LoadedImage], refs_by
         "traits": "\n".join(trait_lines),
         "trait_ids": ", ".join(t.id for t in package.traits),
         "design_views_section": views_section(designs),
+        "design_context_section": context_section(design_is_sketch, design_description),
         "reference_section": REFERENCES_FILE.read_text(encoding="utf-8") if any(refs_by_trait.values()) else "",
     }
     prompt = PROMPT_FILE.read_text(encoding="utf-8")
     for key, value in values.items():
         prompt = prompt.replace("{{" + key + "}}", value)
     return prompt
+
+
+def context_section(is_sketch: bool, description: str) -> str:
+    """What the designer told us about the design: a sketch (no colour or material judged) and/or a short description."""
+    text = DESIGN_SKETCH_FILE.read_text(encoding="utf-8") if is_sketch else ""
+    # One line of limited length; the text is the designer's own words and is shown to the model as information only.
+    description = " ".join(description.split())[:MAX_DESCRIPTION_CHARS].replace('"', "'")
+    if description:
+        text += DESIGN_DESCRIPTION_FILE.read_text(encoding="utf-8").replace("{{description}}", description)
+    return text
 
 
 def views_section(designs: list[LoadedImage]) -> str:

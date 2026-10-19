@@ -80,7 +80,7 @@ If you need something from another folder, add a note under that owner's "Needs 
   next to the extraction result). `/api/compare` now returns `coverage` (already used when present). The fixtures contain an example of
   each, so mock mode shows them.
 
-- **Changed by B at the designer's request (2026-10-19), please review:** `frontend/index.html` now lets the designer add up to 3 more views of
+- **Changed by B at the designer's request (2026-10-19), confirmed by the team:** `frontend/index.html` now lets the designer add up to 3 more views of
   the design (step 4 and the Compare screen) and sends them as `additional_design_images`; first image stays `design_image`. A refused
   extra image does not re-run the comparison. See the decision log.
 

@@ -292,3 +292,19 @@
 - **Why it matters:** starting the billing set-up is not harmless: the free allowance is replaced by the prepaid balance,
   so the project is unusable until credit is bought. Before changing billing on a project that is in use, keep a second
   key from a project that stays on the free tier.
+
+## 2026-10-19 — Sourcing flags only AI, fan-made, poor-quality and user-generated images (decided in the integration session; Person A to review)
+
+- **What:** The review flags in `backend/sourcing/flagging.py` no longer depend on whether the image's source website
+  matches the brand name or the supplied official site. An image is flagged (and starts unselected) only when its
+  metadata suggests it is small or low quality (reported side under 512 px), AI-generated (words such as
+  "AI generated", Midjourney, DALL-E in the title, alt text or URL), fan-made or unofficial (fan art, fan-made,
+  mock-up, parody, concept art), or user-generated or marketplace content (social networks, image boards, art
+  communities, second-hand marketplaces such as eBay). A plain "render" or "CGI" is not flagged any more.
+- **Why:** On a live search, 27 of 30 results were flagged because most image search results are retailers and
+  magazines, so only 3 images started selected and the extraction rested on 3 images. Retailers, press and the
+  brand's own pages are normal sources of reference images; the real risks are fake, fan-made and amateur pictures.
+  After the change, 23 of 30 start selected; the 7 flagged were small images and eBay listings.
+- **Trade-off:** images of a different company with a similar name (for example a tool maker with the same name as a
+  car brand) are no longer flagged by their domain. The relevance estimate still uses the brand words, and the
+  designer reviews the images before extraction. Person A can add a lighter signal for this if it becomes a problem.

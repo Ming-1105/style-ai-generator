@@ -32,6 +32,9 @@ If you need something from another folder, add a note under that owner's "Needs 
 - **Blocked:**
 - **Needs from others:**
 - **Run the tests:** `python -m unittest backend.sourcing.test_search backend.sourcing.test_website backend.sourcing.test_filtering backend.sourcing.test_flagging backend.sourcing.test_classification`
+- **Changed in the integration session (2026-10-19), please review:** flagging no longer looks at whether the source domain matches
+  the brand; it flags only small, AI-generated, fan-made and user-generated/marketplace images (see the decision log). Tests updated
+  (37 pass). 23 of 30 live results now start selected instead of 3.
 
 ## B — AI core (`/backend/ai_core/`)
 

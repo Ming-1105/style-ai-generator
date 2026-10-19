@@ -369,7 +369,10 @@
   .evidence-grid button.evidence-thumb img{aspect-ratio:4/3;}
 
   /* compare: the design and the reference images side by side */
-  .compare-top{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; align-items:start; margin-bottom:32px;}
+  .compare-top{display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:24px; align-items:start; margin:0 auto 32px; max-width:1240px;}
+  .compare-layout{max-width:920px; margin-left:auto; margin-right:auto;}
+  .sketch-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .dropzone.dropzone-small{width:auto; margin:0; padding:6px 12px; font-size:12px;}
   @media (max-width:760px){ .compare-top{grid-template-columns:minmax(0,1fr);} }
   .compare-layout{display:block;}
   .refs-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
@@ -642,7 +645,7 @@
     </section>
 
     <!-- STEP 6 — COMPARE -->
-    <section class="panel" id="step-panel-6" hidden>
+    <section class="panel panel-wide" id="step-panel-6" hidden>
       <h2>Compare</h2>
       <div class="help" data-help-step="6"></div>
       <p class="panel-intro">Your concept checked against the <span class="js-brand-name"></span> house style package. Scores are per trait — read the reasoning below before deciding what to change.</p>
@@ -654,8 +657,10 @@
           <div class="sketch-wrap" id="compare-sketch"></div>
           <p class="mono muted" id="compare-sketch-label" style="font-size:11px;margin-top:6px;"></p>
           <div id="compare-views" class="view-thumbs"></div>
-          <div class="dropzone" id="replace-design-dropzone" tabindex="0" role="button" style="margin-top:10px;">Replace design</div>
-          <div class="dropzone" id="add-view-compare-dropzone" tabindex="0" role="button" style="margin-top:6px;">+ Add another view</div>
+          <div class="sketch-actions">
+            <div class="dropzone dropzone-small" id="replace-design-dropzone" tabindex="0" role="button">Replace design</div>
+            <div class="dropzone dropzone-small" id="add-view-compare-dropzone" tabindex="0" role="button">+ Add view</div>
+          </div>
         </div>
         <div class="sketch-panel">
           <span class="label-mono">reference images</span>

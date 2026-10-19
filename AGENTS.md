@@ -90,6 +90,7 @@ All IDs are strings. Scores are 0–100 integers. Confidence is a 0–1 float. `
 // CompareResult
 {
   "overall_fit": 61,              // null if no trait could be assessed
+  "coverage": 92,                 // % of the total importance that could be judged; null if all importance is 0
   "trait_scores": [
     { "trait_id": "tr_01", "score": 31, "status": "ok | low_confidence | not_assessable",
       "note": "Lamps are round; brand uses tapered blades." }
@@ -107,6 +108,8 @@ All IDs are strings. Scores are 0–100 integers. Confidence is a 0–1 float. `
 
 - `overall_fit = Σ(score × importance) / Σ(importance)` over traits with status `ok` or
   `low_confidence`. Traits that are `not_assessable` are left out, not counted as 0.
+- `coverage = Σ(importance of traits with status ok or low_confidence) / Σ(importance of all traits)`, as a whole
+  percentage. Screens show it next to the fit ("based on N% of the importance") and warn when it is low.
 - Directions are ranked by `gap = importance × (100 − score)`. Traits with importance 0
   never generate a direction.
 - Traits with importance ≥ 80 are "signature" traits. If one of them scores < 40, add a
@@ -117,7 +120,7 @@ All IDs are strings. Scores are 0–100 integers. Confidence is a 0–1 float. `
 | Method | Path | Body | Returns | Owner |
 |---|---|---|---|---|
 | POST | `/api/sources/search` | `{ "brand": Brand }` | `{ "candidates": ImageCandidate[] }` | A |
-| POST | `/api/dna/extract` | `{ "brand": Brand, "images": ImageCandidate[] }` | `{ "traits": Trait[], "tone_words": [], "colors": [] }` | B |
+| POST | `/api/dna/extract` | `{ "brand": Brand, "images": ImageCandidate[] }` | `{ "traits": Trait[], "tone_words": [], "colors": [], "do_dont": DoDont[], "skipped_images": [{ "id", "reason" }] }` (the last two optional) | B |
 | POST | `/api/compare` | `{ "package": HouseStylePackage, "design_image": "<data URL or https URL>", "additional_design_images": string[], "reference_images": ImageCandidate[] }` (the last two optional) | `CompareResult` | B |
 
 Errors use HTTP 4xx/5xx with `{ "error": { "code": "…", "message": "…" } }`. The message is
@@ -128,6 +131,10 @@ the official website."
 `evidence_image_ids`, so B can compare the design with the real reference pictures. The interface sends them from the
 sourcing step; B downloads each `url` for one request and never stores it. Without the field, B judges from the trait
 descriptions alone.
+
+`do_dont` holds design rules drawn from the traits (a concrete `do` and the `dont` that would break it); the interface puts them in the
+House Style Package. `skipped_images` lists the selected images that extraction could not analyse and why (for example
+"could not be downloaded"), so the designer knows what the traits are based on.
 
 `additional_design_images` holds up to 3 more views (data URLs or https URLs) of the same design, for example the side and the back,
 so B can judge traits that the first view hides. `design_image` stays the main view; B shows all views to the model as one design.

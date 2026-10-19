@@ -16,7 +16,7 @@ from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
 from backend.ai_core.model_call import ask_and_parse, read_json_object
 from backend.ai_core.providers import VisionProvider, get_provider
-from contracts.models import Brand, Color, ExtractResponse, ImageCandidate, Trait
+from contracts.models import Brand, Color, DoDont, ExtractResponse, ImageCandidate, SkippedImage, Trait
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +25,7 @@ PROMPT_FILE = Path(__file__).parent / "prompts" / "extract_traits.md"
 MAX_IMAGES = 20             # most relevant first; keeps one request affordable
 MIN_IMAGES = 2              # "recurring" needs at least two images
 LOW_CONFIDENCE_BELOW = 0.6  # AGENTS.md
+MAX_RULES = 6               # do/don't pairs returned
 
 
 class ModelTrait(BaseModel):
@@ -41,6 +42,7 @@ class ModelAnswer(BaseModel):
     traits: list[ModelTrait]
     tone_words: list[str] = []
     colors: list[Color] = []
+    do_dont: list[DoDont] = []
 
 
 def extract_dna(
@@ -61,6 +63,9 @@ def extract_dna(
             status=422,
         )
     included.sort(key=lambda c: c.relevance or 0, reverse=True)
+    # Everything that is selected but not analysed is reported to the designer, with the reason.
+    skipped = [SkippedImage(id=c.id, reason=f"not analysed: only the {MAX_IMAGES} most relevant images are used")
+               for c in included[MAX_IMAGES:]]
     included = included[:MAX_IMAGES]
 
     images = []
@@ -69,6 +74,7 @@ def extract_dna(
             images.append(load(candidate.id, candidate.url))
         except ImageLoadError as problem:
             log.warning("Skipped %s (%s): %s", candidate.id, candidate.source_domain, problem)
+            skipped.append(SkippedImage(id=candidate.id, reason=str(problem)))
 
     if len(images) < MIN_IMAGES:
         raise AiCoreError(
@@ -80,7 +86,7 @@ def extract_dna(
         )
 
     answer = ask_for_answer(ask, build_prompt(brand, images), images)
-    return to_response(answer, sent_ids=[image.id for image in images])
+    return to_response(answer, sent_ids=[image.id for image in images], skipped=skipped)
 
 
 def build_prompt(brand: Brand, images: list[LoadedImage]) -> str:
@@ -112,7 +118,17 @@ def parse_answer(text: str) -> ModelAnswer:
     return ModelAnswer.model_validate(read_json_object(text))
 
 
-def to_response(answer: ModelAnswer, sent_ids: list[str]) -> ExtractResponse:
+def clean_rules(rules: list[DoDont]) -> list[DoDont]:
+    """Keep only complete do/don't pairs (both sides written), at most MAX_RULES."""
+    kept = []
+    for rule in rules:
+        do, dont = rule.do.strip(), rule.dont.strip()
+        if do and dont:
+            kept.append(DoDont(do=do, dont=dont))
+    return kept[:MAX_RULES]
+
+
+def to_response(answer: ModelAnswer, sent_ids: list[str], skipped: Optional[list[SkippedImage]] = None) -> ExtractResponse:
     traits = []
     for proposed in answer.traits:
         # Keep only evidence that points at an image we actually sent, without duplicates.
@@ -131,4 +147,5 @@ def to_response(answer: ModelAnswer, sent_ids: list[str]) -> ExtractResponse:
             low_confidence=proposed.confidence < LOW_CONFIDENCE_BELOW,
             origin="ai",
         ))
-    return ExtractResponse(traits=traits, tone_words=answer.tone_words, colors=answer.colors)
+    return ExtractResponse(traits=traits, tone_words=answer.tone_words, colors=answer.colors,
+                           do_dont=clean_rules(answer.do_dont), skipped_images=skipped or [])

@@ -101,6 +101,7 @@ class CompareResult(BaseModel):
     matches: list[Finding] = []
     departures: list[Finding] = []
     directions: list[Direction] = []
+    coverage: Optional[int] = Field(default=None, ge=0, le=100)  # % of the total importance that could be judged
 
 
 # ---------- API request / response bodies ----------
@@ -118,10 +119,19 @@ class ExtractRequest(BaseModel):
     images: list[ImageCandidate]
 
 
+class SkippedImage(BaseModel):
+    """An image that was selected but not analysed, and why. Shown to the designer."""
+
+    id: str
+    reason: str
+
+
 class ExtractResponse(BaseModel):
     traits: list[Trait]
     tone_words: list[str] = []
     colors: list[Color] = []
+    do_dont: list[DoDont] = []  # design rules drawn from the traits (optional)
+    skipped_images: list[SkippedImage] = []  # selected images that could not be analysed (optional)
 
 
 class CompareRequest(BaseModel):
@@ -129,6 +139,8 @@ class CompareRequest(BaseModel):
     design_image: str  # data URL or https URL
     additional_design_images: list[str] = []  # more views of the same design (optional, at most 3)
     reference_images: list[ImageCandidate] = []  # the images cited as evidence by the traits (optional)
+    design_is_sketch: bool = False  # the designer says it is a sketch or black and white: colour and material are not judged (optional)
+    design_description: str = ""  # a short text from the designer about the design (optional, at most 500 characters are used)
 
 
 # ---------- Errors ----------

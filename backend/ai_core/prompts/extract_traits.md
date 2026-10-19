@@ -44,6 +44,9 @@ Rules:
 8. `tone_words`: 2 to 5 single words for the visual character of the brand.
 9. `colors`: up to 5 colours that recur, each with a short name and your best estimate of
    the hex code as seen in the images.
+10. `do_dont`: 2 to 5 design rules a designer could follow, each drawn from the traits you
+    found: a concrete `do`, and the contrasting `dont` that would break that trait. Do not
+    add a rule that is not backed by a trait above. Return an empty list if no clear rule follows.
 
 ## Answer format
 
@@ -63,5 +66,8 @@ fences. Use exactly this shape:
   "tone_words": ["Word", "Word"],
   "colors": [
     { "name": "Colour name", "hex": "#2B2F33" }
+  ],
+  "do_dont": [
+    { "do": "Taper light graphics to a point", "dont": "Round or oval lamp shapes" }
   ]
 }

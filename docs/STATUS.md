@@ -53,6 +53,9 @@ If you need something from another folder, add a note under that owner's "Needs 
     images, extraction, editing the traits, a design and the comparison on one screen, with the running cost. Developer tool.
   - Several views of the design (branch `ai-core/design-views`): optional `additional_design_images` (up to 3) on `/api/compare`;
     all views go to the model as one design. Contract change, see `docs/contract-changes.md`.
+  - Agreed contract fields (branch `contract/agreed-fields`): `/api/dna/extract` returns `skipped_images` (selected images that could not be
+    analysed, with the reason) and `do_dont` (rules drawn from the traits); `/api/compare` returns `coverage`. In `AGENTS.md`,
+    `contracts/models.py` and the fixtures.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
   `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `ai-core/cost-controls`, `docs/timeline`,
@@ -72,7 +75,25 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## C — Interface (`/frontend/`)
 
-- **Changed by B at the designer's request (2026-10-19), please review:** `frontend/index.html` now lets the designer add up to 3 more views of
+- **Done (2026-10-19, branch `ui/overhaul`, made with B's agent at the designer's request):** restyle (flat warm palette, Roboto fonts,
+  round step markers, a dial for the overall fit, a text label next to every score colour); the tool is named **CopyCat**; a collapsed
+  "Learn more" under every step, with all texts in the `HELP` object at the top of the script; **projects** (several per designer, switcher
+  in the header with new / rename / duplicate / delete / export / import, saved automatically in the browser with a "Saved" indicator);
+  **lightbox** on every image (sources, evidence, house style sources, the design and its extra views, direction images) with arrows,
+  zoom, pan, captions and a broken-image message; added the missing `viewport` meta tag so the phone layout works. No contract or API change.
+- **Done (later the same day, `ui/overhaul`):** the tool now has **6 steps**: the design upload moved out of step 4 into its own centred step 5 "Your Design"
+  (main image, more views, a "Sketch or black and white" switch, an optional short description); Compare is step 6. Saved projects from before are
+  migrated (`schemaVersion` 2). The switch and the description are sent to `/api/compare` as the optional fields `design_is_sketch` and
+  `design_description`; **this contract change is only proposed** (see `docs/contract-changes.md`) and `AGENTS.md` is not updated until the team agrees.
+- **For C to check:** the first project a browser creates is the Acme sample brand; projects created afterwards start empty. Storage is
+  IndexedDB only (see the decision log); nothing is stored on the server. Not tried: browsers with IndexedDB switched off, and a real phone.
+
+- **Done (2026-10-19, agreed contract fields, made at C's laptop with B's agent):** Step 3 shows a note when selected images were not
+  analysed ("1 of the 13 selected images could not be analysed", with the image, its source and the reason); "seen in N/M images" now
+  counts only the analysed images. Step 3 also lists the AI's do/don't rules, each with a Remove button; the locked package carries the
+  remaining rules into the House style screen. `coverage` from the API was already used when present.
+
+- **Changed by B at the designer's request (2026-10-19), confirmed by the team:** `frontend/index.html` now lets the designer add up to 3 more views of
   the design (step 4 and the Compare screen) and sends them as `additional_design_images`; first image stays `design_image`. A refused
   extra image does not re-run the comparison. See the decision log.
 

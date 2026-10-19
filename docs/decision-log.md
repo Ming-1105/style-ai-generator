@@ -332,3 +332,46 @@
   than one. A real test with two views gave a comparison and directions for about 0.2 cents.
 - **Note:** this is a contract change (`docs/contract-changes.md`) and touches Person C's `frontend/index.html`; both need the team's
   review.
+
+## 2026-10-19 — Three agreed contract fields are built: skipped images, do/don't rules, coverage (Person B)
+
+- **What:** After the team meeting the three open proposals were applied. `POST /api/dna/extract` also returns `skipped_images`
+  (every selected image that was not analysed, with the reason: could not be downloaded, wrong file type, too large, or beyond the 20
+  most relevant) and `do_dont` (up to 6 design rules; the model is asked to draw each only from the traits it found, and
+  incomplete pairs are dropped in code). `POST /api/compare` also returns `coverage`, computed by the same function as before.
+  Contract, fixtures and tests are updated together.
+- **Why:** The designer should know what the traits are based on (a trait seen in 3 images is weaker when 4 more images were never
+  analysed), the House Style Package had an empty "do/don't" section no endpoint filled, and the fit should always be read together
+  with how much of the importance could be judged, computed once instead of in every screen.
+- **Seen on real images:** 12 screenshots gave 3 do/don't pairs, each matching a found trait; two images that could not be
+  downloaded were reported with their reasons while the other 12 still produced traits.
+
+## 2026-10-19 — Interface: skipped images and do/don't rules are shown, and the rules are editable (Person C, made with B's agent)
+
+- **What:** Step 3 (Style DNA) shows a note when selected images were not analysed, naming each image, its source and the reason, and
+  "seen in N/M images" counts only the images the AI really looked at. The AI's do/don't rules are listed with a Remove button; whatever
+  is left goes into the locked House Style Package and the House style screen.
+- **Why:** The designer should know what the traits rest on (a trait seen in 3 of 12 images means something different when 2 more
+  images were never read), and an AI-written rule is a suggestion: the designer keeps the right to remove it before it becomes part
+  of the locked package.
+
+## 2026-10-19 — Projects are saved in the browser (IndexedDB), not on the server (Person B, with Person C)
+
+- **What:** The interface keeps several projects per designer in the browser's IndexedDB, saved automatically after every change, with
+  export and import as a JSON file. Only the URLs and metadata of reference images are stored, never their pixels; the designer's own
+  uploaded design may be stored. Each project has a `schemaVersion`; an older or unknown shape is repaired or replaced, never a crash.
+  If storage is unavailable or full, the app keeps working in memory and says "Not saved". No backend endpoint was added.
+- **Why:** IndexedDB (not localStorage) because designs are large images. Keeping it in the browser needs no database or login, fits the
+  prototype rules, and keeps scraped images out of anything we store (copyright rule). Export and import move a project to another
+  computer. A server-side save would need an endpoint and so a contract change; nobody needs it for the demo.
+
+## 2026-10-19 — A sketch switch and a description for the design; colour is not judged for sketches (Person B)
+
+- **What:** `POST /api/compare` accepts two optional fields, `design_is_sketch` and `design_description`. When the designer says the design is a
+  sketch or black and white, the prompt tells the model not to judge colour, material, finish or transparency: those traits come back
+  `not_assessable`, so they are left out of the fit and lower the coverage instead of being scored 0. The description (one line, at most 500
+  characters, double quotes replaced) is given to the model as the designer's own words, as information and not as evidence.
+- **Why:** a pencil sketch should not lose points for having no colour. The prompt already treated colourless drawings carefully, but only when the
+  model noticed; now the designer's own statement decides. The description is context, so it must not raise a score for something the images do not
+  show, and it is treated as data, not as instructions. The decision stays with the model plus the existing scoring code; there is no keyword list in
+  code that tries to guess which traits are about colour.

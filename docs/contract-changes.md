@@ -2,6 +2,7 @@
 
 ## Proposal (Person B, 2026-10-07): tell the designer which images were skipped
 
+- **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).
 - **What:** add an optional `skipped_images: [{ "id": "img_07", "reason": "could not be downloaded" }]`
   to the response of `POST /api/dna/extract`.
 - **Why:** extraction skips images it cannot download. Today that is only written to the server
@@ -10,6 +11,7 @@
 
 ## Proposal (Person C, 2026-10-07): return do/don't rules from extraction
 
+- **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).
 - **What:** add an optional `do_dont: [{ "do": "…", "dont": "…" }]` to the response of
   `POST /api/dna/extract`, next to `tone_words` and `colors`.
 - **Why:** `HouseStylePackage.do_dont` exists and the House style screen has a "Form language"
@@ -70,8 +72,22 @@
 - **Decision needed:** the team agrees on the field name `reference_images` and that C sends it.
   If agreed, one person updates `AGENTS.md`, `contracts/models.py` and this file in a single PR.
 
+## Proposal (Person B, 2026-10-19): say that the design is a sketch, and describe it, in `POST /api/compare`
+
+- **Status:** proposed, needs the team's OK. Built so far on branch `ui/overhaul` (optional fields in `contracts/models.py`, the AI core and the new
+  "Your design" step). `AGENTS.md` is not updated yet.
+- **What:** two optional request fields: `design_is_sketch: boolean` (default `false`) and `design_description: string` (default empty; at most 500
+  characters are used). When `design_is_sketch` is true the AI is told not to judge colour, material, finish or transparency: those traits come
+  back as `not_assessable`, so they are left out of the fit and lower the coverage instead of being scored 0. The description is given to the AI as
+  the designer's own words, as information and not as evidence. Nothing changes in the response.
+- **Why:** a pencil sketch should not be penalised for having no colour, and a designer often wants to say what a rough drawing is meant to be.
+  The prompt already treated colourless drawings carefully; the toggle makes the designer's own statement decisive, and the description gives context.
+- **Who is affected:** B reads the fields (done). C adds the toggle and the text box on the new step (done on `ui/overhaul`). A is not affected.
+  Optional fields: old clients keep working.
+
 ## Proposal (Person B, 2026-10-14): `coverage` on the compare result
 
+- **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).
 - **What:** add an optional integer `coverage` (0-100, or `null`) to `CompareResult`: the share of the
   designer's total trait importance that could be judged (traits with status `ok` or `low_confidence`, weighed by
   importance, divided by the importance of all traits). `scoring.coverage` in `backend/ai_core/scoring.py`
@@ -94,5 +110,5 @@
 - **Who is affected:** B reads it and sends all views to the model. C needs a way to add up to 4 images of the design and to send
   the first as `design_image` and the rest as `additional_design_images`. A is not affected. Optional field, so nothing breaks
   without it; more than 4 images in total is refused with a clear message (`too_many_design_images`).
-- **Status:** requested by the designer in the integration session and applied on branch `ai-core/design-views`; the team should
-  confirm it when that pull request is reviewed.
+- **Status:** confirmed by all three of us on 2026-10-19 and applied in `AGENTS.md` (API table and text) and
+  `contracts/models.py` (pull request #12). No fixture changes: fixtures are responses and the response did not change.

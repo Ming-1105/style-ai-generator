@@ -75,10 +75,10 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## C — Interface (`/frontend/`)
 
-- **Needs from C (agreed in the team meeting, 2026-10-19):** `/api/dna/extract` now returns `do_dont` (use it for the package's do/don't
-  rules instead of `[]`) and `skipped_images` (show something like "2 images could not be analysed: img_13 (could not be downloaded)"
-  next to the extraction result). `/api/compare` now returns `coverage` (already used when present). The fixtures contain an example of
-  each, so mock mode shows them.
+- **Done (2026-10-19, agreed contract fields, made at C's laptop with B's agent):** Step 3 shows a note when selected images were not
+  analysed ("1 of the 13 selected images could not be analysed", with the image, its source and the reason); "seen in N/M images" now
+  counts only the analysed images. Step 3 also lists the AI's do/don't rules, each with a Remove button; the locked package carries the
+  remaining rules into the House style screen. `coverage` from the API was already used when present.
 
 - **Changed by B at the designer's request (2026-10-19), confirmed by the team:** `frontend/index.html` now lets the designer add up to 3 more views of
   the design (step 4 and the Compare screen) and sends them as `additional_design_images`; first image stays `design_image`. A refused

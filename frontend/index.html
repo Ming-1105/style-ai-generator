@@ -96,6 +96,10 @@
   .dropzone.dragover{border-color:var(--accent); color:var(--accent);}
   .design-preview{margin-top:10px; display:flex; gap:12px; align-items:center;}
   .design-preview img{max-height:110px; max-width:180px; border:1px solid var(--line); border-radius:3px; background:var(--bg);}
+  .skipped-note{border:1px solid var(--warn); border-radius:var(--radius); padding:8px 12px; margin:0 0 14px; font-size:12.5px; max-width:720px;}
+  .skipped-note ul{margin:6px 0 0; padding-left:18px;}
+  .rule-row{display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:start; border:1px solid var(--line); border-radius:var(--radius); padding:8px 12px; font-size:12.5px; margin-top:8px; max-width:720px;}
+  @media (max-width:760px){ .rule-row{grid-template-columns:1fr;} }
   .view-thumbs{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
   .view-thumb{position:relative;}
   .view-thumb img{max-height:70px; max-width:110px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:block;}
@@ -339,6 +343,7 @@
     <section class="panel" id="step-panel-3" hidden>
       <h2>Style DNA</h2>
       <p class="panel-intro" id="traits-intro"></p>
+      <div class="skipped-note" id="skipped-note" role="status" hidden></div>
 
       <ul class="traits-list" id="traits-list"></ul>
 
@@ -350,6 +355,11 @@
       <div class="field" style="margin-top:20px;">
         <label>Brand tone <span class="muted">— click to include or leave out</span></label>
         <div class="chip-row" id="tone-chips"></div>
+      </div>
+
+      <div class="field" style="margin-top:20px;">
+        <label>Do / don't rules <span class="muted">— drawn from the traits; remove any you disagree with</span></label>
+        <div id="rules-list"></div>
       </div>
 
       <div class="btn-row">
@@ -464,6 +474,8 @@
     toneWords: [],         // tone words suggested by the AI
     selectedTones: [],     // the ones the designer keeps
     colors: [],            // Color[] from /api/dna/extract
+    doDont: [],            // { do, dont }[] from /api/dna/extract; the designer can remove rules
+    skippedImages: [],     // { id, reason }[] from /api/dna/extract: selected images that were not analysed
     extractedFrom: 0,      // number of included images sent to extraction
     package: null,         // HouseStylePackage, built when the designer locks the style
     design: null,          // { dataUrl, label } — the main view of the design sent to /api/compare
@@ -684,7 +696,7 @@
       }
       state.candidates = data.candidates;
       // new sources make everything downstream stale
-      state.traits = []; state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+      state.traits = []; state.doDont = []; state.skippedImages = []; state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
       currentFilter = 'all';
       setActiveFilterChip();
       hideProgress('brand-progress');
@@ -767,7 +779,10 @@
       state.toneWords = data.tone_words || [];
       state.selectedTones = state.toneWords.slice();
       state.colors = data.colors || [];
-      state.extractedFrom = images.length;
+      state.doDont = clone(data.do_dont || []);
+      state.skippedImages = clone(data.skipped_images || []);
+      // "seen in N/M images" counts only the images the AI really looked at
+      state.extractedFrom = images.length - state.skippedImages.length;
       state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
       hideProgress('extract-progress');
       advanceToStep(3);
@@ -778,11 +793,46 @@
     });
   }
 
+  /* ---------- step 3: what the traits are based on, and the do/don't rules ---------- */
+  function renderSkippedNote(){
+    var box = document.getElementById('skipped-note');
+    var skipped = state.skippedImages;
+    if (!skipped.length){ box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = '<strong>' + skipped.length + ' of the ' + (state.extractedFrom + skipped.length) + ' selected images could not be analysed.</strong> ' +
+      'The traits below are based on ' + state.extractedFrom + ' images.<ul>' +
+      skipped.map(function(s){
+        var c = findCandidate(s.id);
+        return '<li><span class="mono">' + esc(s.id) + '</span>' + (c ? ' · ' + esc(c.source_domain) : '') + ' — ' + esc(s.reason) + '</li>';
+      }).join('') + '</ul>';
+  }
+  function renderRules(){
+    var box = document.getElementById('rules-list');
+    if (!state.doDont.length){
+      box.innerHTML = '<p class="mono muted" style="font-size:11.5px;margin-top:6px;">No do/don\'t rules came back for these images.</p>';
+      return;
+    }
+    box.innerHTML = state.doDont.map(function(r, i){
+      return '<div class="rule-row"><div><span class="label-mono text-good">Do</span>' + esc(r.do) + '</div>' +
+        '<div><span class="label-mono text-bad">Don\'t</span>' + esc(r.dont) + '</div>' +
+        '<button type="button" class="btn-ghost rule-remove" data-i="' + i + '" aria-label="Remove this rule">Remove</button></div>';
+    }).join('');
+    box.querySelectorAll('.rule-remove').forEach(function(b){
+      b.addEventListener('click', function(){
+        state.doDont.splice(parseInt(this.getAttribute('data-i'), 10), 1);
+        state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+        renderRules();
+      });
+    });
+  }
+
   /* ---------- step 3: traits ---------- */
   function renderTraits(){
     document.getElementById('traits-intro').textContent =
       'The AI found ' + state.traits.filter(function(t){ return t.origin === 'ai'; }).length +
       ' recurring traits in ' + state.extractedFrom + ' images. Edit, reweight or remove them before locking them into the house style package.';
+    renderSkippedNote();
+    renderRules();
 
     var list = document.getElementById('traits-list');
     list.innerHTML = state.traits.map(function(t){
@@ -901,7 +951,7 @@
       traits: clone(state.traits),
       tone_words: state.selectedTones.slice(),
       colors: clone(state.colors),
-      do_dont: [],   // no endpoint produces these yet — see docs/contract-changes.md
+      do_dont: clone(state.doDont),   // from /api/dna/extract, minus the rules the designer removed
       source_image_ids: includedCandidates().map(function(c){ return c.id; })
     };
     state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;

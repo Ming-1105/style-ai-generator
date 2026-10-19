@@ -345,3 +345,12 @@
   with how much of the importance could be judged, computed once instead of in every screen.
 - **Seen on real images:** 12 screenshots gave 3 do/don't pairs, each matching a found trait; two images that could not be
   downloaded were reported with their reasons while the other 12 still produced traits.
+
+## 2026-10-19 — Interface: skipped images and do/don't rules are shown, and the rules are editable (Person C, made with B's agent)
+
+- **What:** Step 3 (Style DNA) shows a note when selected images were not analysed, naming each image, its source and the reason, and
+  "seen in N/M images" counts only the images the AI really looked at. The AI's do/don't rules are listed with a Remove button; whatever
+  is left goes into the locked House Style Package and the House style screen.
+- **Why:** The designer should know what the traits rest on (a trait seen in 3 of 12 images means something different when 2 more
+  images were never read), and an AI-written rule is a suggestion: the designer keeps the right to remove it before it becomes part
+  of the locked package.

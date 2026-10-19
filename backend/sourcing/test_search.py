@@ -31,6 +31,34 @@ class SearchTests(unittest.TestCase):
     def test_query(self):
         self.assertEqual(build_query(Brand(name="Acme", category="automotive", keywords=["SUV", "electric"])), "Acme automotive SUV electric official")
 
+    def test_query_without_the_word_official(self):
+        brand = Brand(name="Volvo", category="automotive")
+        self.assertEqual(build_query(brand), "Volvo automotive official")
+        self.assertEqual(build_query(brand, official=False), "Volvo automotive")
+
+    def test_searches_again_without_official_when_google_returns_nothing(self):
+        empty = httpx.Response(200, json={"error": "Google hasn't returned any results for this query."})
+        found = httpx.Response(200, json={"images_results": [
+            {"original": "https://cdn.example/car.jpg", "link": "https://acme.example/cars", "thumbnail": "https://cdn.example/small.jpg"},
+        ]})
+        with patch.dict(os.environ, {"MOCK_MODE": "0", "IMAGE_SEARCH_PROVIDER": "serpapi", "IMAGE_SEARCH_API_KEY": "test-key"}):
+            with patch("backend.sourcing.serpapi.httpx.Client") as provider:
+                get = provider.return_value.__enter__.return_value.get
+                get.side_effect = [empty, found]
+                result = TestClient(app).post("/api/sources/search", json={"brand": {"name": "Volvo", "category": "automotive"}})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(len(result.json()["candidates"]), 1)
+        queries = [call.kwargs["params"]["q"] for call in get.call_args_list]
+        self.assertEqual(queries, ["Volvo automotive official", "Volvo automotive"])
+
+    def test_does_not_search_twice_when_the_first_search_works_or_fails_for_another_reason(self):
+        for response in (httpx.Response(200, json={"images_results": [
+                {"original": "https://cdn.example/car.jpg", "link": "https://acme.example/cars"}]}),
+                httpx.Response(429, json={}), httpx.Response(401, json={})):
+            with self.subTest(status=response.status_code):
+                _, provider = self.call(response)
+                provider.return_value.__enter__.return_value.get.assert_called_once()
+
     def test_live_mapping_and_invalid_rows(self):
         response = httpx.Response(200, json={"images_results": [
             {"original": "https://cdn.example/car.jpg", "link": "https://acme.example/cars", "thumbnail": "https://cdn.example/small.jpg"},

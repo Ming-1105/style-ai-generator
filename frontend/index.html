@@ -112,7 +112,10 @@
   .step-btn.locked{opacity:.5; cursor:not-allowed;}
   .step-btn:not(:disabled):hover{background:var(--surface);}
 
-  .workspace{grid-area:main; padding:32px 32px 64px; max-width:920px;}
+  .workspace{grid-area:main; padding:32px 32px 64px; min-width:0;}
+  .panel{max-width:920px;}
+  .panel-wide{max-width:1240px;}
+  .panel-center{margin-left:auto; margin-right:auto;}
   .panel-intro{color:var(--muted); max-width:640px; margin-bottom:18px;}
   .btn-row{display:flex; justify-content:flex-end; gap:8px; margin-top:32px; border-top:1px solid var(--line); padding-top:24px;}
   .btn-primary{background:var(--accent); color:var(--ink); border:1px solid var(--ink); border-radius:var(--radius); padding:8px 16px; font-weight:500; transition:background .15s;}
@@ -162,14 +165,16 @@
   /* sources grid */
   .sources-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px;}
   .sources-count{font-family:var(--font-mono); font-size:12px; color:var(--muted);}
-  .sources-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-bottom:10px;}
-  .thumb{position:relative; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:8px; cursor:pointer; transition:opacity .15s;}
+  .sources-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; margin-bottom:16px;}
+  .sources-divider{grid-column:1/-1; display:flex; align-items:center; gap:12px; margin-top:8px;}
+  .sources-divider::after{content:''; flex:1; border-top:1px solid var(--line);}
+  .thumb{position:relative; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:12px; cursor:pointer; transition:opacity .15s;}
   .thumb:hover{border-color:var(--ink);}
   .thumb.excluded{opacity:.5;}
   .thumb.excluded .thumb-caption{text-decoration:line-through;}
-  .thumb-media{aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; color:var(--muted); background:var(--bg); border-radius:3px; margin-bottom:6px;}
+  .thumb-media{aspect-ratio:4/3; min-height:0; display:flex; align-items:center; justify-content:center; color:var(--muted); background:var(--bg); border-radius:3px; margin-bottom:6px;}
   .thumb-media svg{width:88%; height:88%;}
-  .thumb-media img{width:100%; height:100%; object-fit:cover; border-radius:3px;}
+  .thumb-media img{width:100%; height:100%; object-fit:contain; border-radius:3px;}
   .evidence-thumb img,.mini-thumb img{width:100%; height:100%; object-fit:cover; border-radius:2px;}
   .sketch-wrap img{width:100%; height:auto; display:block;}
   .direction-media img{width:100%; height:auto; display:block;}
@@ -195,12 +200,13 @@
   .img-zoom{display:block; max-width:100%; background:none; border:none; padding:0; cursor:zoom-in;}
   .sketch-wrap .img-zoom,.direction-media .img-zoom{width:100%;}
   .thumb-media{position:relative;}
-  .thumb-zoom{position:absolute; right:4px; bottom:4px; width:28px; height:28px; padding:0; border:1px solid var(--ink); border-radius:50%; background:var(--field); color:var(--ink); font-size:14px; line-height:1;}
+  .thumb-zoom{position:absolute; right:8px; bottom:8px; width:36px; height:36px; padding:0; border:1px solid var(--ink); border-radius:50%; background:var(--field); color:var(--ink); font-size:14px; line-height:1;}
   .thumb-zoom:hover{background:var(--accent);}
   button.evidence-thumb,button.mini-thumb{flex-direction:column; align-items:stretch; justify-content:flex-start; padding:0; cursor:zoom-in; height:auto; color:var(--ink);}
   button.evidence-thumb img{height:64px;}
   button.mini-thumb img{height:84px;}
   .thumb-domain{font-family:var(--font-mono); font-size:9.5px; color:var(--muted); padding:2px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:left; border-top:1px solid var(--line);}
+  @media (max-width:900px){ .sources-grid{grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px;} }
   @media (max-width:760px){ .lightbox{padding:8px 8px 12px;} .lb-main{gap:4px;} .lb-nav{padding:8px 8px; min-width:32px;} }
   .finding-ignored{color:var(--muted); opacity:.6;}
   .finding-hide{margin-left:8px; padding:1px 7px; font-size:11px;}
@@ -322,7 +328,7 @@
     .feature-row{grid-template-columns:120px 1fr 30px;}
   }
   @media (max-width:420px){
-    .sources-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+    .sources-grid{grid-template-columns:minmax(0,1fr);}
     .doc{padding:18px 16px;}
   }
 </style>
@@ -408,7 +414,7 @@
     </section>
 
     <!-- STEP 2 — SOURCES -->
-    <section class="panel" id="step-panel-2" hidden>
+    <section class="panel panel-wide" id="step-panel-2" hidden>
       <h2>Sources</h2>
       <div class="help" data-help-step="2"></div>
       <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine <span class="js-brand-name"></span> reference before the AI reads them.</p>
@@ -662,10 +668,10 @@
     values:       {step: 1, label: 'Brand values', text: 'A sentence or two about what the brand stands for. It gives the AI context when it reads the pictures; it does not change which pictures are found.'},
     projects:     {step: 1, label: 'Projects (top of the page)', text: 'Each project keeps its own brand, pictures, traits and designs, and is saved in this browser as you work. Use the project menu to start another one, rename, copy or delete it, or export it as a file to open on another computer.'},
     where:        {step: 1, label: 'Where should the tool look?', text: 'The places CopyCat searches. Switching one off means no pictures are collected from that place.'},
-    include:      {step: 2, label: 'Include or leave out an image', text: 'Click a picture to include or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand.'},
+    include:      {step: 2, label: 'Include or leave out an image', text: 'Click a picture to include or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand. Pictures you leave out move to the bottom, and you can click them again to bring them back.'},
     flagged:      {step: 2, label: 'Flagged images', text: 'CopyCat flags pictures it doubts, for example very small ones or ones that look AI-made or fan-made. A flag is a warning, not a verdict: you decide whether to keep the picture.'},
     filters:      {step: 2, label: 'Filters', text: 'Show only one kind of picture, such as product or logo. Filtering only changes what you see; it does not change which pictures are included.'},
-    relevance:    {step: 2, label: 'Relevance', text: 'How well CopyCat thinks a picture matches your search. A dash means it could not tell. Use it as a hint, not as a rule.'},
+    relevance:    {step: 2, label: 'Relevance', text: 'Shown when you enlarge a picture. A rough score from the words in the picture\'s title and web address, not from the picture itself. A dash means there was nothing to go on. Use it as a hint, not as a rule.'},
     enlarge:      {step: 2, label: 'Enlarge a picture', text: 'Click the small enlarge button on a picture to see it bigger, with the website it came from. In the large view, use the arrows to move through the set, click or + and − to zoom, and drag to move around. Esc closes it. Pictures stay on their own websites; CopyCat does not keep copies. The same works for evidence pictures, the house style sources, your design and its extra views.'},
     importance:   {step: 3, label: 'Importance', text: 'How much a trait should count, from 0 to 100. A trait with 0 is ignored in the comparison; a trait of 80 or more is treated as a signature trait of the brand.'},
     edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
@@ -965,31 +971,33 @@
     btn.disabled = included === 0;
   }
   function thumbCard(c){
-    var rel = pct(c.relevance);
     var html = '<div class="thumb ' + (c.included ? '' : 'excluded') + '" data-id="' + esc(c.id) + '" tabindex="0" role="checkbox" aria-checked="' + c.included + '">';
     html += '<div class="thumb-check" aria-hidden="true">' + (c.included ? '✓' : '') + '</div>';
     if (c.flagged) html += '<div class="flag-chip">flagged</div>';
     html += '<div class="thumb-media"><img src="' + esc(c.thumbnail_url) + '" alt="Reference image ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
       '<button type="button" class="thumb-zoom" data-enlarge="sources" data-id="' + esc(c.id) + '" aria-label="Enlarge ' + esc(c.id) + ' from ' + esc(c.source_domain) + '" title="Enlarge">⤢</button></div>';
     html += '<div class="thumb-body">';
-    html += '<div class="thumb-caption mono">' + esc(c.id) + ' · ' + esc(c.source_type) + '</div>';
     html += '<div class="thumb-meta"><span class="mono domain" title="' + esc(c.source_domain) + '">' + esc(c.source_domain) + '</span><span class="type-tag">' + esc(c.category) + '</span></div>';
-    html += '<div class="thumb-conf mono">' + (rel === null ? 'relevance —' : 'relevance ' + rel + '%') + '</div>';
     if (c.flagged && c.flag_reason) html += '<div class="thumb-reason">' + esc(c.flag_reason) + '</div>';
     html += '</div></div>';
     return html;
   }
+  // Included pictures first, left-out ones after them; each group keeps its original order.
   function filteredCandidates(){
-    return state.candidates.filter(function(c){
+    var shown = state.candidates.filter(function(c){
       if (currentFilter === 'all') return true;
       if (currentFilter === 'flagged') return c.flagged;
       return c.category === currentFilter;
     });
+    return shown.filter(function(c){ return c.included; }).concat(shown.filter(function(c){ return !c.included; }));
   }
   function renderSources(){
     var grid = document.getElementById('sources-grid');
     var filtered = filteredCandidates();
-    var html = filtered.map(thumbCard).join('');
+    var kept = filtered.filter(function(c){ return c.included; });
+    var left = filtered.filter(function(c){ return !c.included; });
+    var html = kept.map(thumbCard).join('');
+    if (left.length) html += '<div class="sources-divider" role="separator"><span class="label-mono">left out · ' + left.length + '</span></div>' + left.map(thumbCard).join('');
     html += '<div class="thumb add-url-tile" tabindex="0" role="button"><div>+ Add image URL</div></div>';
     grid.innerHTML = html;
 
@@ -1015,6 +1023,9 @@
     var c = findCandidate(id);
     if (c) c.included = !c.included;
     renderSources();
+    // the picture moved to the other group; keep the keyboard focus on it
+    var moved = document.querySelector('#sources-grid .thumb[data-id="' + id + '"]');
+    if (moved && document.activeElement === document.body) moved.focus({preventScroll: true});
   }
   function setActiveFilterChip(){
     document.querySelectorAll('.filter-chip').forEach(function(chip){
@@ -1276,8 +1287,10 @@
 
   function candidateItem(c){
     var flag = c.flagged ? ' · flagged' + (c.flag_reason ? ': ' + c.flag_reason : '') : '';
+    var rel = pct(c.relevance);
+    var relevance = ' · relevance ' + (rel === null ? '—' : rel + '% (text match)');
     return {src: c.url, thumb: c.thumbnail_url, alt: 'Reference image ' + c.id + ' from ' + c.source_domain, domain: c.source_domain,
-            caption: c.id + ' · ' + c.source_domain + ' · ' + c.category + flag};
+            caption: c.id + ' · ' + c.source_domain + ' · ' + c.category + relevance + flag};
   }
   function designItems(){
     var items = [];

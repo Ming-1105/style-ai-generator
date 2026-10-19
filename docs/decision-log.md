@@ -128,3 +128,7 @@
 ## 2026-10-07 — Interface: failures stay visible (milestone 2)
 - **What:** API errors are shown inline in the step with a retry button, and empty AI/search results are treated as an error with advice. The overall fit explains how many traits were left out or low confidence.
 - **Why:** The core principle is that the AI must report honestly when it cannot judge. A toast disappears and an empty screen looks like a bug; designers need to see what failed and why.
+
+## 2026-10-19 — Interface: designs are shrunk in the browser before comparison (milestone 4)
+- **What:** Uploaded designs are limited to 15 MB and downscaled to at most 1600 px (JPEG) before being sent to `/api/compare` as a data URL.
+- **Why:** Vision models do not need full-resolution files, and a small payload keeps the comparison fast and avoids request-size errors. The designer still sees their original-looking image in the preview.

@@ -53,7 +53,12 @@ If you need something from another folder, add a note under that owner's "Needs 
 - **Done (milestone 3):** greyed-out departures (all linked traits importance 0) have a Hide button;
   hidden ones leave the list and a "N hidden — show" toggle brings them back. Frontend only, nothing
   sent to the backend. Resets when sources, DNA, package or compare change.
-- **In progress:** next is milestone 4 (design upload to replace the sample sketch).
+- **Done (milestone 4):** design upload. Step 4 has a drop/click area for the designer's own image
+  (PNG/JPG/WebP/GIF, max 15 MB, preview shown); "Replace design" on the Compare screen uploads and
+  re-compares at once. Images over 1600 px on the long side are shrunk to JPEG in the browser before
+  being sent as a data URL in `design_image`. Wrong file types and unreadable images give a clear
+  message. With no upload, the bundled sample sketch is still used and labelled as such.
+- **In progress:** nothing planned yet; milestone 5 not defined.
 - **Blocked:**
 - **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.
 - **Request from B** (agreed with the designer on 2026-10-07; greying and hide control done) —

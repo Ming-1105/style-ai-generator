@@ -96,6 +96,10 @@
   .dropzone.dragover{border-color:var(--accent); color:var(--accent);}
   .design-preview{margin-top:10px; display:flex; gap:12px; align-items:center;}
   .design-preview img{max-height:110px; max-width:180px; border:1px solid var(--line); border-radius:3px; background:var(--bg);}
+  .view-thumbs{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
+  .view-thumb{position:relative;}
+  .view-thumb img{max-height:70px; max-width:110px; border:1px solid var(--line); border-radius:3px; background:var(--bg); display:block;}
+  .view-remove{position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-size:12px; line-height:1; padding:0; cursor:pointer;}
   .dropzone:hover{border-color:var(--accent); color:var(--accent);}
 
   /* sources grid */
@@ -361,8 +365,12 @@
         <label>Your design <span class="muted">— the image to compare with this house style</span></label>
         <div class="dropzone" id="design-dropzone" tabindex="0" role="button">Drop your design here, or click to browse (PNG, JPG, WebP)</div>
         <div id="design-preview" class="design-preview" hidden></div>
+        <div id="view-thumbs" class="view-thumbs"></div>
+        <div class="dropzone" id="add-view-dropzone" tabindex="0" role="button">+ Add another view of your design (side, back, …) — up to 3 more</div>
+        <p class="hint-note">More views let the AI judge traits that a single picture hides.</p>
       </div>
       <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+      <input type="file" id="view-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
       <div id="compare-progress" class="progress-box" hidden aria-live="polite"></div>
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="back-to-traits-btn">← Style DNA</button>
@@ -381,7 +389,9 @@
           <span class="label-mono">Your design</span>
           <div class="sketch-wrap" id="compare-sketch"></div>
           <p class="mono muted" id="compare-sketch-label" style="font-size:11px;margin-top:6px;"></p>
+          <div id="compare-views" class="view-thumbs"></div>
           <div class="dropzone" id="replace-design-dropzone" tabindex="0" role="button" style="margin-top:10px;">Replace design</div>
+          <div class="dropzone" id="add-view-compare-dropzone" tabindex="0" role="button" style="margin-top:6px;">+ Add another view</div>
         </div>
         <div>
           <span class="fit-label">Overall fit</span>
@@ -456,7 +466,8 @@
     colors: [],            // Color[] from /api/dna/extract
     extractedFrom: 0,      // number of included images sent to extraction
     package: null,         // HouseStylePackage, built when the designer locks the style
-    design: null,          // { dataUrl, label } — the design sent to /api/compare
+    design: null,          // { dataUrl, label } — the main view of the design sent to /api/compare
+    moreDesigns: [],       // up to 3 more views of the same design (additional_design_images)
     compare: null,         // CompareResult from /api/compare
     hiddenDeparts: {},     // departure text -> true, for departures the designer hid
     showHidden: false,
@@ -1028,7 +1039,8 @@
           if (c && refs.indexOf(c) === -1) refs.push(c);
         });
       });
-      return api('/api/compare', {package: state.package, design_image: design.dataUrl, reference_images: refs});
+      var extraViews = state.design === design ? state.moreDesigns.map(function(d){ return d.dataUrl; }) : [];
+      return api('/api/compare', {package: state.package, design_image: design.dataUrl, additional_design_images: extraViews, reference_images: refs});
     }).then(function(data){
       state.compare = data;
       state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
@@ -1085,7 +1097,11 @@
     document.getElementById('compare-sketch').innerHTML = state.design
       ? '<img src="' + esc(state.design.dataUrl) + '" alt="Your design">'
       : '';
-    document.getElementById('compare-sketch-label').textContent = state.design ? state.design.label : '';
+    var moreCount = state.design ? state.moreDesigns.length : 0;
+    document.getElementById('compare-sketch-label').textContent = state.design
+      ? state.design.label + (moreCount ? ' + ' + moreCount + (moreCount === 1 ? ' more view' : ' more views') : '')
+      : '';
+    renderViewThumbs('compare-views');
 
     var fitEl = document.getElementById('fit-score');
     var fitNote = document.getElementById('fit-note');
@@ -1198,6 +1214,7 @@
   // ---- design upload ----
   var MAX_DESIGN_SIDE = 1600;   // longer side in px; bigger images are shrunk before sending
   var MAX_DESIGN_BYTES = 15 * 1024 * 1024;
+  var MAX_MORE_VIEWS = 3;       // the main design plus up to 3 more views
   function readDesignFile(file){
     return new Promise(function(resolve, reject){
       if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)){
@@ -1238,11 +1255,13 @@
     box.innerHTML = state.design
       ? '<img src="' + esc(state.design.dataUrl) + '" alt="Your design"><span class="mono muted" style="font-size:11px;">' + esc(state.design.label) + '</span>'
       : '<span class="mono muted" style="font-size:11px;">No design chosen — a bundled sample sketch will be compared.</span>';
+    renderViewThumbs('view-thumbs');
   }
   function chooseDesign(file, thenCompare){
     if (!file) return;
     readDesignFile(file).then(function(design){
       state.design = design;
+      state.moreDesigns = [];
       state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
       renderDesignPreview();
       if (thenCompare) runCompare();
@@ -1258,6 +1277,57 @@
     zone.addEventListener('drop', function(e){
       e.preventDefault(); zone.classList.remove('dragover');
       chooseDesign(e.dataTransfer.files[0], thenCompare);
+    });
+  }
+
+  function renderViewThumbs(boxId){
+    var box = document.getElementById(boxId);
+    if (!box) return;
+    box.innerHTML = state.moreDesigns.map(function(d, i){
+      return '<div class="view-thumb"><img src="' + esc(d.dataUrl) + '" alt="Extra view ' + (i + 2) + '" title="' + esc(d.label) + '">' +
+        '<button type="button" class="view-remove" data-i="' + i + '" aria-label="Remove view ' + (i + 2) + '">×</button></div>';
+    }).join('');
+    box.querySelectorAll('.view-remove').forEach(function(b){
+      b.addEventListener('click', function(){ removeView(parseInt(this.getAttribute('data-i'), 10)); });
+    });
+  }
+  function removeView(i){
+    state.moreDesigns.splice(i, 1);
+    state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+    renderViewThumbs('view-thumbs');
+    renderViewThumbs('compare-views');
+    if (currentStep === 5) runCompare();
+  }
+  // Adds files as views of the same design: the first becomes the main design when there is none yet.
+  function addDesignFiles(files, thenCompare){
+    var list = Array.prototype.slice.call(files || []);
+    if (!list.length) return;
+    var chain = Promise.resolve();
+    var added = 0;
+    list.forEach(function(file){
+      chain = chain.then(function(){
+        return readDesignFile(file).then(function(design){
+          if (!state.design){ state.design = design; added++; }
+          else if (state.moreDesigns.length < MAX_MORE_VIEWS){ state.moreDesigns.push(design); added++; }
+          else { showToast('At most ' + (MAX_MORE_VIEWS + 1) + ' images of your design can be compared at once.', {duration: 6000}); }
+        }).catch(function(err){ showToast(err.message, {duration: 8000}); });
+      });
+    });
+    chain.then(function(){
+      if (!added) return;   // nothing changed, so there is nothing to compare again
+      state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+      renderDesignPreview();
+      if (thenCompare) runCompare();
+    });
+  }
+  function wireViewDropzone(zone, thenCompare){
+    var input = document.getElementById('view-file');
+    onActivate(zone, function(){ input.onchange = function(){ addDesignFiles(input.files, thenCompare); input.value = ''; }; input.click(); });
+    zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function(){ zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', function(e){
+      e.preventDefault(); zone.classList.remove('dragover');
+      addDesignFiles(e.dataTransfer.files, thenCompare);
     });
   }
 
@@ -1309,6 +1379,8 @@
 
     wireDesignDropzone(document.getElementById('design-dropzone'), false);
     wireDesignDropzone(document.getElementById('replace-design-dropzone'), true);
+    wireViewDropzone(document.getElementById('add-view-dropzone'), false);
+    wireViewDropzone(document.getElementById('add-view-compare-dropzone'), true);
     document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(4); });
   }
 

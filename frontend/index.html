@@ -320,15 +320,15 @@
   .compare-columns h3{margin-top:0;}
   .compare-columns ul{margin:0; padding-left:18px; font-size:12.5px;}
   .compare-columns li{margin-bottom:8px;}
-  .directions-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:12px;}
-  .direction-tile{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:12px; display:flex; flex-direction:column; gap:6px;}
+  .directions-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:20px; margin-top:16px;}
+  .direction-tile{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:20px; display:flex; flex-direction:column; gap:10px;}
   .direction-media{background:var(--bg); border:1px solid var(--line); border-radius:3px; padding:8px;}
   .direction-media svg{width:100%; height:auto; color:var(--ink);}
-  .direction-title{font-family:var(--font-heading); font-weight:700; font-size:13px;}
-  .direction-desc{font-size:11.5px; color:var(--muted); flex:1;}
-  .direction-ref{font-size:10.5px;}
+  .direction-title{font-family:var(--font-heading); font-weight:700; font-size:20px; line-height:1.2;}
+  .direction-desc{font-size:14px; line-height:1.5; color:var(--muted); flex:1;}
+  .direction-ref{font-size:12px;}
   .direction-actions{display:flex; gap:8px; margin-top:4px;}
-  .btn-toggle{flex:1; border:1px solid var(--line); background:var(--field); border-radius:var(--radius); padding:6px 0; font-size:12px; color:var(--muted);}
+  .btn-toggle{flex:1; border:1px solid var(--line); background:var(--field); border-radius:var(--radius); padding:10px 0; font-size:14px; color:var(--muted);}
   .btn-toggle[aria-pressed="true"]{color:var(--field); font-weight:500;}
   .btn-accept[aria-pressed="true"]{background:var(--positive); border-color:var(--positive);}
   .btn-reject[aria-pressed="true"]{background:var(--danger); border-color:var(--danger);}
@@ -372,7 +372,10 @@
 
   /* compare: the design and the reference images side by side */
   .compare-top{display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:24px; align-items:start; margin:0 auto 32px; max-width:1240px;}
-  .compare-layout{max-width:920px; margin-left:auto; margin-right:auto;}
+  .compare-layout{max-width:1240px; margin-left:auto; margin-right:auto;}
+  .compare-split{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:32px; align-items:start;}
+  .compare-split .compare-columns{grid-template-columns:minmax(0,1fr); margin-top:0; gap:20px;}
+  @media (max-width:900px){ .compare-split{grid-template-columns:minmax(0,1fr);} }
   .sketch-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
   .dropzone.dropzone-small{width:auto; margin:0; padding:6px 12px; font-size:12px;}
   @media (max-width:760px){ .compare-top{grid-template-columns:minmax(0,1fr);} }
@@ -405,6 +408,23 @@
   .traits-list.compact .trait-actions{margin:0; flex-wrap:nowrap; flex:none;}
   @media (max-width:900px){
     .traits-list.compact .trait-card{grid-template-columns:minmax(0,1fr);}
+  }
+
+  /* print / save as PDF: only the page that is open, without buttons and menus */
+  @media print{
+    @page{margin:12mm;}
+    html,body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .topbar,.step-rail,.btn-row,.help,#toast-container,.drawer,.drawer-scrim,.dropzone,.sketch-actions,.notes-actions,.palette-actions,
+    .swatch-remove,.view-remove,.direction-actions,.hidden-toggle,.finding-hide,.progress-box,.lightbox,dialog,.panel-intro{display:none !important;}
+    .app-shell{display:block;}
+    .workspace{padding:0;}
+    .panel,.panel-wide,.compare-layout,.compare-top{max-width:none !important; margin:0 !important;}
+    .panel > h2{font-size:30px; margin:0 0 12px;}
+    .compare-top,.compare-split{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; gap:16px !important;}
+    .directions-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+    .doc{max-width:none; border:none; padding:0;}
+    .direction-tile,.swatch,.sketch-panel,.score-row,.dodont-row,.feature-row,.notes-box{break-inside:avoid;}
+    .fit-score{width:120px; height:120px; font-size:34px;}
   }
 
   /* the button that goes on to the next step: same size on every step */
@@ -440,7 +460,7 @@
     .step-btn .step-state{display:none;}
     .workspace{padding:18px 16px 50px;}
     .compare-layout{grid-template-columns:1fr;}
-    .directions-grid{grid-template-columns:1fr;}
+    .directions-grid{grid-template-columns:minmax(0,1fr);}
     .compare-columns{grid-template-columns:1fr;}
     .dodont-row{grid-template-columns:1fr;}
     .feature-row{grid-template-columns:120px 1fr 30px;}
@@ -701,6 +721,8 @@
 
       <div class="compare-layout">
         <div>
+          <div class="compare-split">
+          <div class="compare-left">
           <div class="fit-row">
             <div class="fit-dial">
               <span class="fit-label">Overall fit</span>
@@ -710,6 +732,8 @@
             <div class="score-rows" id="score-rows"></div>
           </div>
           <p class="mono muted" id="fit-note" style="font-size:11.5px;margin-top:12px;" hidden></p>
+          </div>
+          <div class="compare-right">
 
           <div class="compare-columns">
             <div>
@@ -721,6 +745,9 @@
               <ul id="departs-list"></ul>
               <button type="button" class="btn-ghost hidden-toggle" id="hidden-toggle" hidden></button>
             </div>
+          </div>
+
+          </div>
           </div>
 
           <div id="unjudged-section" hidden>
@@ -747,6 +774,7 @@
 
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="back-to-house-btn">← Your design</button>
+        <button type="button" class="btn-secondary" id="export-pdf-compare-btn">Export PDF</button>
       </div>
     </section>
 
@@ -814,7 +842,8 @@
       directionStatus: {},   // direction id → 'accepted' | 'rejected'
       designIsSketch: false, // the designer says the design is a sketch or black and white: colour is not judged
       designDescription: '', // a short text about the design, at most 500 characters
-      traitView: 'cards'     // 'cards' or 'compact': how step 3 shows the traits
+      traitView: 'cards',    // 'cards' or 'compact': how step 3 shows the traits
+      removedColors: []      // colours taken out of the palette, newest last, for the undo button
     };
   }
   var state = freshState();   // replaced when a project is opened
@@ -850,13 +879,15 @@
     more_views:   {step: 5, label: 'More views', text: 'Add up to three more pictures of the same design, such as the side or the back. One picture hides things, and more views let the AI judge more traits.'},
     sketch:       {step: 5, label: 'Sketch or black and white', text: 'Switch this on when your design is a pencil sketch or has no colour yet. The AI then leaves colour and material out instead of marking them down, and the score is based on form only.'},
     description:  {step: 5, label: 'Description', text: 'A short note about what the design is meant to be. It gives the AI context, but it can only judge what it sees in your pictures, so the note never raises a score.'},
-    palette:      {step: 4, label: 'Download palette', text: 'Saves the brand colours as one image, or as a list of hex codes you can copy or download as a text file. Use the × on a colour to take it out of the palette; you can undo right after.'},
+    pdf_house:    {step: 4, label: 'Export PDF', text: 'Opens your browser\'s print window with this page laid out for paper. Choose Save as PDF as the destination to get a PDF file.'},
+    palette:      {step: 4, label: 'Download palette', text: 'Saves the brand colours as one image, or as a list of hex codes you can copy or download as a text file. Use the × on a colour to take it out of the palette; the undo button below the palette puts the last removed colour back.'},
     fit:          {step: 6, label: 'Overall fit', text: 'One number for how close your design is to the brand: higher is closer. It is an average of the trait scores, weighted by the importance you set.'},
     coverage:     {step: 6, label: 'Coverage', text: 'How much of the total importance the AI could actually judge from your pictures. Low coverage means the fit rests on little, so add more views or a clearer picture.'},
     trait_scores: {step: 6, label: 'Trait scores', text: 'One score per trait, with a short reason when you hover over it. Traits the AI could not see are listed apart and do not count as zero.'},
     findings:     {step: 6, label: 'Matches and departures', text: 'What your design shares with the brand and where it moves away from it. Departures that belong only to traits with importance 0 are greyed out; you can hide them.'},
     directions:   {step: 6, label: 'Suggested directions', text: 'Ideas for closing the biggest gaps, each pointing back to the traits it comes from. Accept the ones you like and reject the others; you decide.'},
     notes:        {step: 6, label: 'Design notes', text: 'Accepted directions land here as notes. You can edit the text directly, then copy the notes or download them as a text file.'},
+    pdf_compare:  {step: 6, label: 'Export PDF', text: 'Saves this comparison, with your design, the reference images, the scores and the directions, as a PDF through your browser\'s print window.'},
     refs:         {step: 6, label: 'Reference images', text: 'The pictures where the traits were seen, next to your design so you can compare them by eye. Click one to see them all larger.'},
     replace:      {step: 6, label: 'Replace design or add a view', text: 'Upload another version or an extra view and the comparison runs again with it.'}
   };
@@ -1253,6 +1284,7 @@
       state.toneWords = data.tone_words || [];
       state.selectedTones = state.toneWords.slice();
       state.colors = data.colors || [];
+      state.removedColors = [];
       state.doDont = clone(data.do_dont || []);
       state.skippedImages = clone(data.skipped_images || []);
       // "seen in N/M images" counts only the images the AI really looked at
@@ -1432,6 +1464,7 @@
     renderTraits();
   }
   function lockPackage(){
+    state.removedColors = [];
     if (state.traits.length === 0){
       showToast('Keep or add at least one trait before locking the house style.');
       return;
@@ -1476,6 +1509,11 @@
           '<button type="button" class="btn-ghost" id="copy-hex-btn">Copy hex codes</button>' +
         '</div>'
       : '<p class="mono muted" style="font-size:11.5px;margin-top:10px;">No colours in the palette.</p>';
+    if (state.removedColors.length){
+      var last = state.removedColors[state.removedColors.length - 1].color;
+      colorsHtml += '<div class="palette-actions" style="margin-top:8px;"><button type="button" class="btn-ghost" id="undo-color-btn">↶ Undo remove · ' + esc(last.name) +
+        (state.removedColors.length > 1 ? ' (' + state.removedColors.length + ' removed)' : '') + '</button></div>';
+    }
     var pairsHtml = pkg.do_dont.length
       ? '<div class="dodont-list">' + pkg.do_dont.map(function(p){
           return '<div class="dodont-row"><div><span class="label-mono text-good">Do</span>' + esc(p.do) + '</div>' +
@@ -1510,9 +1548,23 @@
     if (dlHex) dlHex.addEventListener('click', function(){ downloadText(fileSlug(pkg.brand.name) + '-palette.txt', hexCodes()); });
     var cpHex = document.getElementById('copy-hex-btn');
     if (cpHex) cpHex.addEventListener('click', function(){ copyText(hexCodes(), 'Hex codes copied.'); });
+    var undo = document.getElementById('undo-color-btn');
+    if (undo) undo.addEventListener('click', undoColor);
     el.querySelectorAll('.swatch-remove').forEach(function(b){
       b.addEventListener('click', function(){ removeColor(parseInt(this.getAttribute('data-i'), 10)); });
     });
+  }
+
+  // PDF without a library: the browser's print window, with a print layout that shows only this page.
+  // The file name comes from the page title, so it is set for the moment of printing.
+  function exportPdf(kind){
+    var brand = state.package ? state.package.brand.name : state.brand.name;
+    var oldTitle = 'CopyCat';
+    document.title = 'CopyCat - ' + (brand || 'brand') + ' - ' + kind;
+    function restore(){ document.title = oldTitle; window.removeEventListener('afterprint', restore); }
+    window.addEventListener('afterprint', restore);
+    showToast('In the print window, choose "Save as PDF" as the destination.', {duration: 6000});
+    setTimeout(function(){ window.print(); }, 150);
   }
 
   /* ---------- palette and notes: remove, copy, download ---------- */
@@ -1547,15 +1599,16 @@
     var at = -1;
     state.colors.forEach(function(c, k){ if (at === -1 && c.hex === removed.hex && c.name === removed.name) at = k; });
     if (at !== -1) state.colors.splice(at, 1);
+    state.removedColors.push({color: removed, index: i, listIndex: at});
     renderHouseStyle();
-    showToast('Removed ' + removed.name + ' from the palette', {
-      actionLabel: 'Undo',
-      onAction: function(){
-        state.package.colors.splice(i, 0, removed);
-        if (at !== -1) state.colors.splice(at, 0, removed);
-        renderHouseStyle();
-      }
-    });
+  }
+  // Puts back the colour that was removed last; the button stays until nothing is left to undo.
+  function undoColor(){
+    var last = state.removedColors.pop();
+    if (!last) return;
+    state.package.colors.splice(Math.min(last.index, state.package.colors.length), 0, last.color);
+    if (last.listIndex !== -1) state.colors.splice(Math.min(last.listIndex, state.colors.length), 0, last.color);
+    renderHouseStyle();
   }
   function notesText(){
     var items = Array.prototype.map.call(document.querySelectorAll('#design-notes-list li'), function(li){ return li.textContent.trim(); }).filter(Boolean);
@@ -2358,6 +2411,7 @@
       base.extractedFrom = num(base.extractedFrom, 0);
       base.designIsSketch = base.designIsSketch === true;
       base.traitView = base.traitView === 'compact' ? 'compact' : 'cards';
+      base.removedColors = base.removedColors.filter(function(r){ return isObject(r) && isObject(r.color) && typeof r.color.hex === 'string'; });
       base.designDescription = String(base.designDescription || '').slice(0, 500);
 
       if (base.package){
@@ -2683,7 +2737,8 @@
     document.getElementById('lock-style-btn').addEventListener('click', lockPackage);
 
     document.getElementById('back-to-traits-btn').addEventListener('click', function(){ navigateToStep(3); });
-    document.getElementById('export-pdf-btn').addEventListener('click', function(){ showToast('Export is not wired yet.'); });
+    document.getElementById('export-pdf-btn').addEventListener('click', function(){ exportPdf('House style'); });
+    document.getElementById('export-pdf-compare-btn').addEventListener('click', function(){ exportPdf('Compare'); });
     document.getElementById('to-design-btn').addEventListener('click', goToDesign);
     document.getElementById('back-to-house-from-design-btn').addEventListener('click', function(){ navigateToStep(4); });
     document.getElementById('compare-btn').addEventListener('click', runCompare);

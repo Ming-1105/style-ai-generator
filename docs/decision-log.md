@@ -257,3 +257,64 @@
 ## 2026-10-19 — Interface: the fit is always shown with its coverage (Person C)
 - **What:** The overall fit is shown as "based on N% of the importance", with a warning under 50%. Traits that could not be judged are listed separately instead of as empty score rows.
 - **Why:** A fit of 45 from 39% of the importance means something different from 45 from 100%. The designer should not read a confident-looking number that rests on a few traits. The 50% warning threshold is our own choice for the demo.
+
+## 2026-10-07 — Search metadata without inferred visual relevance (Person A)
+
+- **What:** Use SerpAPI google_images with existing httpx. Build one query from brand name, category, keywords and official; return up to 30 image URLs and source domains. No images are downloaded. Keep relevance=null and category=other until the later classification milestone.
+- **Why:** One request limits allowance usage. Provider ranking is not a measured relevance score, and a search query does not prove an image is official. Preserve the working mock path and never commit the private .env file.
+
+## 2026-10-07 — Respect website collection policy (Person A)
+
+- **What:** Check robots.txt and read the exact supplied HTML page. Disallowed, inaccessible, redirected or rate-restricted pages return an actionable error; clear the website field for search only. Missing robots.txt (404) permits collection. No links or image resources are fetched and no JavaScript is run.
+- **Why:** Keep collection inspectable within single-page scope without hiding failures. Support relative and lazy-loading image URLs using existing dependencies. Category and relevance remain unknown. No new dependencies.
+
+## 2026-10-07 — URL dedupe and metadata-based size filtering (Person A)
+
+- **What:** Deduplicate URLs across search and scrape candidates, normalizing hostname/default ports and removing fragments while preserving query parameters. Drop images with a known side below 128 pixels. Use SerpAPI original dimensions or HTML declared dimensions; retain unknown sizes. Return a clear error if no images remain.
+- **Why:** Remove repeated evidence and small icons without new dependencies or downloading source images. HTML dimensions describe display size, not verified intrinsic resolution. Visually similar images at different URLs remain; perceptual hashing is not implemented.
+
+## 2026-10-07 — Review clues, not authenticity verdicts (Person A)
+
+- **What:** Flag reported image sides below 512px, source domains differing from the supplied official website (or brand tokens when no website is supplied), and explicit fan-art/unofficial/render/CGI words in title, alt text or URL. Keep flagged candidates visible with included=false and combine all reasons. Unknown dimensions cause no size flag.
+- **Why:** Let the designer judge questionable evidence. Domain mismatches can be legitimate third-party coverage, and renders can be official. Reasons state this uncertainty. HTML dimensions reflect declared display size, not verified file resolution. No vision model or new dependency is used.
+
+## 2026-10-07 — Keyword category and relevance estimates (Person A)
+
+- **What:** Classify title/alt/URL tokens using ordered keyword dictionaries: logo, packaging, web, product, otherwise other. Relevance weights brand tokens 50%, category 20%, keyword groups 20%, official source 10%, renormalized for absent optional fields. Missing all text yields null; available text with no match yields 0. Preserve flags and inclusion.
+- **Why:** An inspectable first version without vision costs. Scores are text match estimates, not probabilities or visual style scores. CDN hostnames are not category evidence; unrecognized product types remain other. Metadata cannot verify visible content. No new dependencies.
+
+## 2026-10-18 — Setting up billing moved the project to prepaid with no credit (Person B)
+
+- **What:** While adding a payment method in Google AI Studio (the card was refused), the project behind our key was
+  switched to the prepaid tier. From then on every request answers 402 "Your prepayment credits are depleted" even
+  though the free tier had worked an hour earlier. The Gemini connection now maps a 402 to a clear message
+  (`vision_no_credit`) instead of a generic "try again".
+- **Why it matters:** starting the billing set-up is not harmless: the free allowance is replaced by the prepaid balance,
+  so the project is unusable until credit is bought. Before changing billing on a project that is in use, keep a second
+  key from a project that stays on the free tier.
+
+## 2026-10-19 — Sourcing flags only AI, fan-made, poor-quality and user-generated images (decided in the integration session; Person A to review)
+
+- **What:** The review flags in `backend/sourcing/flagging.py` no longer depend on whether the image's source website
+  matches the brand name or the supplied official site. An image is flagged (and starts unselected) only when its
+  metadata suggests it is small or low quality (reported side under 512 px), AI-generated (words such as
+  "AI generated", Midjourney, DALL-E in the title, alt text or URL), fan-made or unofficial (fan art, fan-made,
+  mock-up, parody, concept art), or user-generated or marketplace content (social networks, image boards, art
+  communities, second-hand marketplaces such as eBay). A plain "render" or "CGI" is not flagged any more.
+- **Why:** On a live search, 27 of 30 results were flagged because most image search results are retailers and
+  magazines, so only 3 images started selected and the extraction rested on 3 images. Retailers, press and the
+  brand's own pages are normal sources of reference images; the real risks are fake, fan-made and amateur pictures.
+  After the change, 23 of 30 start selected; the 7 flagged were small images and eBay listings.
+- **Trade-off:** images of a different company with a similar name (for example a tool maker with the same name as a
+  car brand) are no longer flagged by their domain. The relevance estimate still uses the brand words, and the
+  designer reviews the images before extraction. Person A can add a lighter signal for this if it becomes a problem.
+
+## 2026-10-19 — The fictional example brand is now called Acme (decided in the integration session)
+
+- **What:** The made-up brand used in the fixtures, the mock mode, the interface, the tests and the docs was renamed to
+  "Acme" (with "Acme Tools BV" for the different-company example and `acme-auto.example` for its website). It is a
+  plain search-and-replace over 21 files owned by all three of us; no behaviour changed and all tests still pass
+  (A 37, B 143).
+- **Why:** The earlier invented name looked odd in demos and screenshots. "Acme" is the usual placeholder name, a
+  single word like before, so the tests and the brand-word matching behave the same. It is not a real brand, so the
+  rule against real brand names in committed files still holds.

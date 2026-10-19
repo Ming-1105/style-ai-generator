@@ -5,7 +5,7 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## Shared (skeleton)
 
-- **Done:** project skeleton — contracts, Vorden fixtures, mock routers for all three endpoints,
+- **Done:** project skeleton — contracts, Acme fixtures, mock routers for all three endpoints,
   mockup copied to `frontend/index.html`.
 - **Note:** `frontend/index.html` is still the static mockup with its data hard-coded; it does not
   call the API yet.
@@ -15,12 +15,26 @@ If you need something from another folder, add a note under that owner's "Needs 
   write yours after the fact. `python -m http.server 8080 --directory docs/timeline` shows the master flowchart.
   B.csv is done as the example; A and C still to add.
 
+- **Integration (2026-10-19, one PC, branch `integration/a-b-c`):** A's `sourcing/serpapi` (PR #3), B's `ai-core/pipeline-page`
+  and C's merged UI were combined on top of `main`; the only conflict was the shared decision log (both sides appended),
+  resolved by keeping every entry. Results: A's 34 tests and B's 143 tests pass; in mock mode every endpoint, the frontend
+  and the pipeline page work, and C's UI runs Brand -> Sources -> Style DNA -> Lock -> Compare with the fit shown with its
+  coverage, the "could not be judged" group and 3 directions. Live (SerpApi + Gemini, key checked): search 30 candidates in
+  7 s, extraction and comparison worked through the combined code in about 26 s for about 0.3 cents. Findings: (1) A flags
+  27 of 30 results (domain does not match the brand or official site), so only 3 start selected and extraction rests on 3
+  images unless the designer ticks more or enters the official website; (2) the images A pre-selects can be downloaded by B;
+  (3) the contract proposals `skipped_images` and `coverage` in `docs/contract-changes.md` still need a team decision.
+
 ## A — Sourcing (`/backend/sourcing/`)
 
-- **Done:**
-- **In progress:**
+- **Done:** Milestone 1 — SerpAPI live image search using existing httpx; mock path preserved. One request per search, up to 30 candidates, and clear configuration/provider errors. Five unittest checks pass; a live search returned 30 candidates with HTTP 200.
+- **In progress:** Milestones 1–5 ready for review and integration on `sourcing/serpapi` (PR #3). Added keyword categories and weighted text relevance from title/alt/URL and official source. Review flags and inclusion are preserved. Thirty-four tests pass; live endpoint returned 49 candidates with categories and relevance scores.
 - **Blocked:**
 - **Needs from others:**
+- **Run the tests:** `python -m unittest backend.sourcing.test_search backend.sourcing.test_website backend.sourcing.test_filtering backend.sourcing.test_flagging backend.sourcing.test_classification`
+- **Changed in the integration session (2026-10-19), please review:** flagging no longer looks at whether the source domain matches
+  the brand; it flags only small, AI-generated, fan-made and user-generated/marketplace images (see the decision log). Tests updated
+  (37 pass). 23 of 30 live results now start selected instead of 3.
 
 ## B — AI core (`/backend/ai_core/`)
 
@@ -35,13 +49,17 @@ If you need something from another folder, add a note under that owner's "Needs 
   - Cost controls (branch `ai-core/cost-controls`): cheap defaults (low image detail, minimal thinking), a per-request
     ceiling, a token/cost ledger and an optional spending limit (`VISION_BUDGET_USD`). A comparison costs about 0.2 cents
     on Flash-Lite.
+  - Full-pipeline test page (branch `ai-core/pipeline-page`): `http://localhost:8000/api/dev/pipeline` walks brand and reference
+    images, extraction, editing the traits, a design and the comparison on one screen, with the running cost. Developer tool.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
   `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `ai-core/cost-controls`, `docs/timeline`,
   `chore/ignore-loose-notes`.
 - **In progress:** nothing. Milestone 4 (image embeddings) needs a large new package and is skipped unless the
   team approves the dependency.
-- **Blocked:** nothing on my side. A real end-to-end test needs Person A's search merged and Person C's screen connected.
+- **Blocked:** the Google project behind the API key was switched to the prepaid tier while setting up billing and now answers
+  402 "prepayment credits are depleted" until $5 of credit is bought (or a key from a project still on the free tier is used).
+  The code now explains this. Otherwise nothing on my side. A real end-to-end test needs Person A's search merged and Person C's screen connected.
 - **Needs from others:**
   - C: send `reference_images` (the candidates cited by the traits' `evidence_image_ids`) with `/api/compare`; show
     `overall_fit` together with how much of the importance could be judged and warn when that share is low; show traits

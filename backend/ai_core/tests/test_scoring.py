@@ -1,4 +1,4 @@
-"""Unit tests for the scoring rules, based on the Vorden fixture numbers.
+"""Unit tests for the scoring rules, based on the Acme fixture numbers.
 
 Run from the repo root:  python -m unittest discover -s backend/ai_core/tests -t .
 """
@@ -182,7 +182,7 @@ class MockCompareEndpointTests(unittest.TestCase):
         self.package = load("house_style_package.json")
 
     def post(self) -> dict:
-        body = {"package": self.package, "design_image": "https://vorden-auto.example/design.png"}
+        body = {"package": self.package, "design_image": "https://acme-auto.example/design.png"}
         response = self.client.post("/api/compare", json=body)
         self.assertEqual(response.status_code, 200)
         return response.json()

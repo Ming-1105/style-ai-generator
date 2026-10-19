@@ -19,13 +19,13 @@ from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
 from backend.main import app
 from contracts.models import Brand, ImageCandidate
 
-BRAND = Brand(name="Vorden", category="automotive", keywords=["GT", "crest"], values="Precise.")
+BRAND = Brand(name="Acme", category="automotive", keywords=["GT", "crest"], values="Precise.")
 
 
 def candidate(id: str, included: bool = True, relevance: float = 0.9) -> ImageCandidate:
     return ImageCandidate(
-        id=id, url=f"https://vorden-auto.example/{id}.jpg", thumbnail_url="",
-        source_domain="vorden-auto.example", source_type="scrape", category="product",
+        id=id, url=f"https://acme-auto.example/{id}.jpg", thumbnail_url="",
+        source_domain="acme-auto.example", source_type="scrape", category="product",
         relevance=relevance, included=included,
     )
 
@@ -104,7 +104,7 @@ class WhatIsSentTests(unittest.TestCase):
         model = FakeModel({"traits": []})
         run(model)
         prompt = model.calls[0][0]
-        for expected in ("Vorden", "automotive", "GT, crest", "img_01, img_02, img_03"):
+        for expected in ("Acme", "automotive", "GT, crest", "img_01, img_02, img_03"):
             self.assertIn(expected, prompt)
         self.assertNotIn("{{", prompt)
 

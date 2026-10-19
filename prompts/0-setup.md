@@ -18,7 +18,7 @@ Create the skeleton so that all three people can start in parallel today:
 4. `/contracts/models.py` with pydantic models that exactly match the data contract in
    AGENTS.md (ImageCandidate, Trait, Brand, HouseStylePackage, TraitScore, CompareResult, …).
 5. `/fixtures/` with realistic example JSON for every endpoint, using the fictional brand
-   "Vorden". If `mockup.html` exists, take the data from it (18 image candidates with 4 flagged,
+   "Acme". If `mockup.html` exists, take the data from it (18 image candidates with 4 flagged,
    6 traits, the package, and a compare result with overall fit 61, one `not_assessable`
    trait and 3 directions). Image URLs can be placeholders such as `/static/placeholder/img_01.svg`.
 6. `/backend/main.py` creating the FastAPI app, mounting `/frontend` as static files at `/`,

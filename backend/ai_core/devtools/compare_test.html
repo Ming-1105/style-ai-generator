@@ -62,6 +62,7 @@
   <span class="wordmark">Brand DNA</span>
   <span class="tag">Developer tool · compare step</span>
   <span id="mode" class="tag">checking…</span>
+  <a href="/api/dev/pipeline" style="margin-left:auto; color:var(--accent); font-size:12.5px;">Full pipeline</a>
 </header>
 
 <main>
@@ -71,7 +72,7 @@
     <h2>1. House style package</h2>
     <div class="row">
       <input type="file" id="pkg-file" accept=".json,application/json" aria-label="Package JSON file">
-      <button id="sample-btn" type="button">Use the Vorden sample package</button>
+      <button id="sample-btn" type="button">Use the Acme sample package</button>
     </div>
     <p id="pkg-info" class="muted mono" style="margin:8px 0 0;">No package loaded. Make one with <code>try_extract --save-package</code>.</p>
   </div>
@@ -96,7 +97,7 @@
 
   <section id="results" hidden>
     <h3 style="border-top:none; padding-top:0;">Result</h3>
-    <div id="mock-banner" class="banner" hidden>Mock mode: these scores are the Vorden sample data, whatever image you upload. Set MOCK_MODE=0 in .env and restart the server to use the AI.</div>
+    <div id="mock-banner" class="banner" hidden>Mock mode: these scores are the Acme sample data, whatever image you upload. Set MOCK_MODE=0 in .env and restart the server to use the AI.</div>
     <div class="label">Overall fit</div>
     <div id="fit" class="fit mono"></div>
     <div id="fit-note" class="note"></div>

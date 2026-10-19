@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline test</title>
+<style>
+  :root{
+    --bg:#EEF0EC; --surface:#FAFBF8; --ink:#1B2024; --muted:#5D666C; --line:#D3D8D2;
+    --accent:#2447C4; --accent-soft:#DDE4FA; --good:#2E7D4F; --warn:#B8730F; --bad:#B0432F; --radius:5px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14181B; --surface:#1D2226; --ink:#E7EAE6; --muted:#98A1A6; --line:#30373C;
+           --accent:#7E9BFF; --accent-soft:#22304F; --good:#5BBF86; --warn:#E0A247; --bad:#E07A63; }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .mono{font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums;}
+  .muted{color:var(--muted);}
+  header{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 20px; background:var(--surface); border-bottom:1px solid var(--line);}
+  .wordmark{font-weight:800; font-size:16px;}
+  .tag{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:2px 7px;}
+  .tag.live{color:var(--good); border-color:var(--good);} .tag.mock{color:var(--warn); border-color:var(--warn);}
+  header a{color:var(--accent); font-size:12.5px; margin-left:auto;}
+  main{max-width:960px; margin:0 auto; padding:20px 20px 70px;}
+  h2{font-size:15px; margin:0 0 8px;}
+  h3{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:22px 0 8px; padding-top:14px; border-top:1px solid var(--line);}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; margin-bottom:14px;}
+  .card.off{opacity:.55;}
+  .row{display:flex; flex-wrap:wrap; align-items:center; gap:10px;}
+  label.f{display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted);}
+  input[type=text], textarea{font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:var(--radius); padding:6px 9px;}
+  textarea{width:100%; min-height:54px; resize:vertical; font-size:12.5px;}
+  button{font:inherit; cursor:pointer; border-radius:var(--radius); padding:7px 14px; border:1px solid var(--line); background:var(--surface); color:var(--ink);}
+  button.primary{background:var(--accent); border-color:var(--accent); color:var(--surface); font-weight:600;}
+  button:disabled{opacity:.5; cursor:not-allowed;}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  .thumbs{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .thumb{width:92px; border:1px solid var(--line); border-radius:3px; background:var(--bg); padding:4px; font-size:10px; position:relative;}
+  .thumb img{width:100%; height:62px; object-fit:cover; display:block; border-radius:2px;}
+  .thumb.excluded{opacity:.35;}
+  .thumb .nm{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .thumb label{display:flex; gap:4px; align-items:center; cursor:pointer;}
+  .banner{border:1px solid var(--warn); color:var(--warn); border-radius:var(--radius); padding:8px 12px; margin:10px 0; font-size:12.5px;}
+  .error{border:1px solid var(--bad); color:var(--bad); border-radius:var(--radius); padding:10px 12px; margin-top:12px;}
+  .trait{display:grid; grid-template-columns:1fr 200px; gap:14px; border-top:1px solid var(--line); padding:12px 0;}
+  .trait:first-child{border-top:none;}
+  @media (max-width:700px){ .trait{grid-template-columns:1fr;} }
+  .trait input.name{font-weight:600; width:100%;}
+  .ev{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; align-items:center;}
+  .ev img{width:38px; height:28px; object-fit:cover; border:1px solid var(--line); border-radius:2px;}
+  .ev .idchip{font:10px ui-monospace,Consolas,monospace; border:1px solid var(--line); border-radius:3px; padding:1px 4px;}
+  .chip{display:inline-block; font:9px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; border:1px solid var(--warn); color:var(--warn); border-radius:3px; padding:1px 5px; margin-left:6px;}
+  .pill{display:inline-block; border:1px solid var(--line); border-radius:20px; padding:2px 10px; margin:2px 4px 2px 0; font-size:12px;}
+  .sw{display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid var(--line); vertical-align:-2px; margin-right:5px;}
+  .fit{font:500 46px/1 ui-monospace,Consolas,monospace; color:var(--accent);}
+  .label{font:10px ui-monospace,Consolas,monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .score{padding:8px 0; border-top:1px solid var(--line);}
+  .score-head{display:grid; grid-template-columns:minmax(120px,220px) 1fr 52px; align-items:center; gap:10px;}
+  .bar{height:8px; background:var(--line); border-radius:4px; overflow:hidden;} .bar > div{height:100%;}
+  .good{background:var(--good);} .warnc{background:var(--warn);} .bad{background:var(--bad);}
+  .t-good{color:var(--good);} .t-warn{color:var(--warn);} .t-bad{color:var(--bad);}
+  .pct{text-align:right;} .na{grid-column:2/4; font-size:12px;}
+  .note{font-size:12.5px; color:var(--muted); margin-top:3px;}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:700px){ .cols{grid-template-columns:1fr;} .score-head{grid-template-columns:1fr 1fr 44px;} }
+  ul{margin:0; padding-left:18px;} li{margin-bottom:7px; font-size:13px;}
+  li.greyed{opacity:.45;} li.hidden{display:none;}
+  .dir{border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; margin-bottom:8px;}
+  .preview{max-width:240px; max-height:170px; border:1px solid var(--line); border-radius:3px; margin-top:10px; display:block;}
+  .cost{margin-top:14px; font-size:12px;}
+</style>
+</head>
+<body>
+<header>
+  <span class="wordmark">Brand DNA</span>
+  <span class="tag">Developer tool · full pipeline</span>
+  <span id="mode" class="tag">checking…</span>
+  <a href="/api/dev/compare">Compare step only</a>
+</header>
+
+<main>
+  <p class="muted">Walk the whole chain with your own images: reference images → Style DNA traits → your design → comparison. This is a test page for the AI core, not the app's real screen.</p>
+  <div id="mock-banner" class="banner" hidden>Mock mode: every answer is the Acme sample data, whatever you upload. Set MOCK_MODE=0 in .env and restart the server to use the AI.</div>
+
+  <div class="card" id="c1">
+    <h2>1. Brand and reference images</h2>
+    <div class="row">
+      <label class="f">Brand name<input type="text" id="brand-name" value="Test brand"></label>
+      <label class="f">Category<input type="text" id="brand-category" value="product design"></label>
+      <label class="f">Keywords (comma-separated)<input type="text" id="brand-keywords" placeholder="optional"></label>
+    </div>
+    <p style="margin:12px 0 4px;"><b>Reference images</b> <span class="muted">(photos of the brand's real products; 6 to 12 work well)</span></p>
+    <input type="file" id="ref-files" accept="image/png,image/jpeg,image/webp,image/gif" multiple aria-label="Reference images">
+    <details style="margin-top:8px;"><summary class="muted">or paste image addresses (one per line)</summary>
+      <textarea id="ref-urls" placeholder="https://…/image1.jpg"></textarea>
+      <button type="button" id="add-urls" style="margin-top:6px;">Add these addresses</button>
+    </details>
+    <div id="thumbs" class="thumbs"></div>
+    <div class="row" style="margin-top:12px;">
+      <button id="extract" class="primary" type="button" disabled>Extract Style DNA</button>
+      <span id="extract-status" class="muted mono"></span>
+    </div>
+    <div id="extract-error" class="error" role="alert" hidden></div>
+    <details style="margin-top:10px;"><summary class="muted">or load a saved package (skips the extraction)</summary>
+      <p class="note" style="margin:6px 0;">A package you downloaded earlier with "Download package JSON", or made with try_extract. Reference images are not stored in it: add the same images above, in the same order, if you want them sent along with the comparison.</p>
+      <input type="file" id="pkg-file" accept=".json,application/json" aria-label="Saved package JSON">
+    </details>
+  </div>
+
+  <div class="card off" id="c2">
+    <h2>2. Style DNA <span class="muted" style="font-weight:400;">(edit before you lock it)</span></h2>
+    <div id="traits"></div>
+    <div id="tone"></div>
+    <div class="row" style="margin-top:10px;"><button id="download-pkg" type="button" disabled>Download package JSON</button></div>
+  </div>
+
+  <div class="card off" id="c3">
+    <h2>3. Your design</h2>
+    <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Design image">
+    <details style="margin-top:8px;"><summary class="muted">or an image address</summary>
+      <input type="text" id="design-url" style="width:100%; margin-top:6px;" placeholder="https://…/design.png">
+    </details>
+    <img id="preview" class="preview" alt="Your design" hidden>
+    <div class="row" style="margin-top:12px;">
+      <button id="compare" class="primary" type="button" disabled>Compare with the brand</button>
+      <label style="font-size:12.5px;"><input type="checkbox" id="send-refs" checked> send the reference images along</label>
+      <span id="compare-status" class="muted mono"></span>
+    </div>
+    <div id="compare-error" class="error" role="alert" hidden></div>
+  </div>
+
+  <section id="results" hidden>
+    <h3 style="border-top:none; padding-top:0;">Result</h3>
+    <div class="label">Overall fit</div>
+    <div id="fit" class="fit mono"></div>
+    <div id="fit-note" class="note"></div>
+    <div id="low-coverage" class="banner" hidden></div>
+
+    <h3>Scores per trait</h3>
+    <div id="scores"></div>
+
+    <div class="cols">
+      <div><h3>Matches the brand</h3><ul id="matches"></ul></div>
+      <div>
+        <h3>Departs from the brand</h3>
+        <label class="note"><input type="checkbox" id="hide-zero"> Hide departures of traits with importance 0</label>
+        <ul id="departures" style="margin-top:8px;"></ul>
+      </div>
+    </div>
+
+    <h3>Could not be judged</h3>
+    <p class="note" style="margin-top:0;">The AI could not see enough in this design to judge these traits. They are not counted in the fit.</p>
+    <ul id="unjudged"></ul>
+
+    <h3>Suggested directions</h3>
+    <div id="directions"></div>
+  </section>
+  <div id="cost" class="cost muted mono"></div>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const MAX_SIDE = 1600;       // reference images and the design are shrunk in the browser before they are sent
+let images = [];             // {id, name, shown, send, included}
+let extraction = null;       // {traits, tone_words, colors}
+let designSend = null, designShown = null;
+let sentImportance = {};
+
+// Model output is untrusted text, so everything below uses textContent, never innerHTML.
+function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
+function showError(id, message) { const b = $(id); b.hidden = !message; b.textContent = message || ""; }
+
+async function post(path, body) {
+  let response;
+  try {
+    response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch {
+    // The browser could not reach the server at all (it was stopped, restarted, or this page came from a server that is gone).
+    throw new Error("Cannot reach the server. Is it still running? Start it from the project folder with: python -m uvicorn backend.main:app --reload   then open this page again from the address it shows (usually http://localhost:8000/api/dev/pipeline). Tip: use Download package JSON first, then load it again after a restart.");
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error?.message || `The server answered with error ${response.status}.`);
+  return data;
+}
+
+async function refreshStatus() {
+  try {
+    const s = await (await fetch("/api/dev/status")).json();
+    const tag = $("mode");
+    if (s.mock_mode) { tag.textContent = "Mock mode · sample data"; tag.className = "tag mock"; }
+    else { tag.textContent = `Live · ${s.provider || "no provider"} / ${s.model || "default model"}`; tag.className = "tag live"; }
+    $("mock-banner").hidden = !s.mock_mode;
+    $("cost").textContent = (await (await fetch("/api/dev/usage")).json()).summary;
+  } catch { $("mode").textContent = "server not reachable"; }
+}
+
+// ---------- reading images ----------
+function toShrunkDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error(`${file.name} is not an image the browser can open.`));
+      img.onload = () => {
+        const scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale); canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.88));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function nextId() { return "img_" + String(images.length + 1).padStart(2, "0"); }
+
+function renderThumbs() {
+  const box = $("thumbs"); box.replaceChildren();
+  for (const image of images) {
+    const t = el("div", "thumb" + (image.included ? "" : " excluded"));
+    const pic = el("img"); pic.src = image.shown; pic.alt = image.name; t.append(pic);
+    t.append(el("div", "nm mono", `${image.id} ${image.name}`));
+    const label = el("label"); const box2 = document.createElement("input"); box2.type = "checkbox"; box2.checked = image.included;
+    box2.addEventListener("change", () => { image.included = box2.checked; renderThumbs(); });
+    label.append(box2, document.createTextNode("use")); t.append(label);
+    box.append(t);
+  }
+  const used = images.filter((i) => i.included).length;
+  $("extract").disabled = used < 2;
+  $("extract").textContent = used ? `Extract Style DNA from ${used} images` : "Extract Style DNA";
+}
+
+$("ref-files").addEventListener("change", async (event) => {
+  showError("extract-error", "");
+  for (const file of event.target.files) {
+    try { const url = await toShrunkDataUrl(file); images.push({ id: nextId(), name: file.name, shown: url, send: url, included: true }); }
+    catch (problem) { showError("extract-error", problem.message); }
+  }
+  event.target.value = ""; renderThumbs();
+});
+$("add-urls").addEventListener("click", () => {
+  for (const line of $("ref-urls").value.split("\n").map((l) => l.trim()).filter(Boolean)) {
+    images.push({ id: nextId(), name: line.split("/").pop() || line, shown: line, send: line, included: true });
+  }
+  $("ref-urls").value = ""; renderThumbs();
+});
+
+function candidate(image) {
+  const domain = image.send.startsWith("data:") ? "local file" : (image.send.split("/")[2] || "web");
+  return { id: image.id, url: image.send, thumbnail_url: "", source_domain: domain, source_type: "upload", category: "other",
+           relevance: 1.0, flagged: false, flag_reason: null, included: image.included };
+}
+
+// ---------- step 1 -> 2: extraction ----------
+$("extract").addEventListener("click", async () => {
+  showError("extract-error", "");
+  const button = $("extract"); button.disabled = true;
+  $("extract-status").textContent = "Reading the images… this can take 10 to 60 seconds.";
+  const started = performance.now();
+  try {
+    const brand = { name: $("brand-name").value.trim(), category: $("brand-category").value.trim(), website: "",
+                    keywords: $("brand-keywords").value.split(",").map((k) => k.trim()).filter(Boolean), values: "" };
+    extraction = await post("/api/dna/extract", { brand, images: images.map(candidate) });
+    renderTraits();
+    $("c2").classList.remove("off"); $("c3").classList.remove("off");
+    $("extract-status").textContent = `Done in ${((performance.now() - started) / 1000).toFixed(1)} s: ${extraction.traits.length} traits.`;
+  } catch (problem) { $("extract-status").textContent = ""; showError("extract-error", problem.message); }
+  finally { renderThumbs(); refreshStatus(); }
+});
+
+$("pkg-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0]; if (!file) return;
+  showError("extract-error", "");
+  try {
+    const pkg = JSON.parse(await file.text());
+    if (!Array.isArray(pkg.traits) || !pkg.traits.length) throw new Error("That file has no traits.");
+    extraction = { traits: pkg.traits, tone_words: pkg.tone_words || [], colors: pkg.colors || [] };
+    $("brand-name").value = pkg.brand?.name || ""; $("brand-category").value = pkg.brand?.category || "";
+    $("brand-keywords").value = (pkg.brand?.keywords || []).join(", ");
+    renderTraits();
+    $("c2").classList.remove("off"); $("c3").classList.remove("off");
+    $("extract-status").textContent = `Loaded ${pkg.traits.length} traits from ${file.name}.`;
+  } catch (problem) { showError("extract-error", problem instanceof SyntaxError ? "That file could not be read as JSON." : problem.message); }
+  event.target.value = "";
+});
+
+function imageFor(id) { return images.find((i) => i.id === id); }
+
+function renderTraits() {
+  const box = $("traits"); box.replaceChildren();
+  if (!extraction.traits.length) box.append(el("p", "muted", "The AI found no recurring traits in these images."));
+  for (const trait of extraction.traits) {
+    const row = el("div", "trait");
+    const main = el("div");
+    const name = el("input", "name"); name.type = "text"; name.value = trait.name; name.setAttribute("aria-label", "Trait name");
+    name.addEventListener("input", () => { trait.name = name.value; });
+    main.append(name);
+    if (trait.low_confidence) main.append(el("span", "chip", "low confidence"));
+    main.append(el("div", "note", trait.description));
+    const ev = el("div", "ev");
+    for (const id of trait.evidence_image_ids) {
+      const image = imageFor(id);
+      if (image) { const pic = el("img"); pic.src = image.shown; pic.alt = id; pic.title = `${id} ${image.name}`; ev.append(pic); } else ev.append(el("span", "idchip", id));
+    }
+    ev.append(el("span", "mono muted", `seen in ${trait.seen_count} images · confidence ${trait.confidence === null ? "—" : Math.round(trait.confidence * 100) + "%"}`));
+    main.append(ev);
+    const side = el("div");
+    side.append(el("div", "label", "importance"));
+    const range = el("input"); range.type = "range"; range.min = 0; range.max = 100; range.value = trait.importance; range.style.width = "100%"; range.setAttribute("aria-label", "Importance");
+    const value = el("span", "mono", String(trait.importance));
+    range.addEventListener("input", () => { trait.importance = Number(range.value); value.textContent = range.value; });
+    const remove = el("button", "", "Remove"); remove.type = "button";
+    remove.addEventListener("click", () => { extraction.traits = extraction.traits.filter((t) => t !== trait); renderTraits(); });
+    side.append(range, value, el("div"), remove);
+    row.append(main, side); box.append(row);
+  }
+  const tone = $("tone"); tone.replaceChildren();
+  if (extraction.tone_words.length) { tone.append(el("div", "label", "tone")); extraction.tone_words.forEach((w) => tone.append(el("span", "pill", w))); }
+  if (extraction.colors.length) {
+    tone.append(el("div", "label", "colors"));
+    for (const c of extraction.colors) { const pill = el("span", "pill"); const sw = el("span", "sw"); sw.style.background = /^#[0-9a-fA-F]{3,8}$/.test(c.hex) ? c.hex : "transparent"; pill.append(sw, document.createTextNode(`${c.name} ${c.hex}`)); tone.append(pill); }
+  }
+  $("download-pkg").disabled = !extraction.traits.length;
+  updateCompareButton();
+}
+
+function buildPackage() {
+  return {
+    version: 1, created_at: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
+    brand: { name: $("brand-name").value.trim(), category: $("brand-category").value.trim(), website: "",
+             keywords: $("brand-keywords").value.split(",").map((k) => k.trim()).filter(Boolean), values: "" },
+    traits: extraction.traits, tone_words: extraction.tone_words, colors: extraction.colors, do_dont: [],
+    source_image_ids: images.filter((i) => i.included).map((i) => i.id),
+  };
+}
+$("download-pkg").addEventListener("click", () => {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(buildPackage(), null, 2)], { type: "application/json" }));
+  const a = document.createElement("a"); a.href = url; a.download = "house_style_package.json"; a.click(); URL.revokeObjectURL(url);
+});
+
+// ---------- step 3: the design ----------
+function updateCompareButton() { $("compare").disabled = !(extraction && extraction.traits.length && (designSend || $("design-url").value.trim())); }
+$("design-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0]; if (!file) return;
+  try { designSend = designShown = await toShrunkDataUrl(file); $("preview").src = designShown; $("preview").hidden = false; showError("compare-error", ""); }
+  catch (problem) { showError("compare-error", problem.message); }
+  updateCompareButton();
+});
+$("design-url").addEventListener("input", () => {
+  const address = $("design-url").value.trim();
+  if (address) { designSend = designShown = address; $("preview").src = address; $("preview").hidden = false; }
+  updateCompareButton();
+});
+
+// ---------- step 3 -> result ----------
+function coverageOf(scores) {  // same formula as scoring.coverage in the backend
+  const total = Object.values(sentImportance).reduce((a, b) => a + b, 0);
+  if (total === 0) return null;
+  const judged = scores.filter((s) => s.score !== null && (s.status === "ok" || s.status === "low_confidence")).reduce((sum, s) => sum + (sentImportance[s.trait_id] || 0), 0);
+  return Math.round((judged / total) * 100);
+}
+function levelOf(score) { return score >= 70 ? "good" : score >= 50 ? "warn" : "bad"; }
+
+$("compare").addEventListener("click", async () => {
+  showError("compare-error", "");
+  const button = $("compare"); button.disabled = true;
+  $("compare-status").textContent = "Comparing… this can take 10 to 60 seconds.";
+  const started = performance.now();
+  const pkg = buildPackage();
+  sentImportance = Object.fromEntries(pkg.traits.map((t) => [t.id, t.importance]));
+  const cited = new Set(pkg.traits.flatMap((t) => t.evidence_image_ids));
+  const refs = $("send-refs").checked ? images.filter((i) => cited.has(i.id) && i.included).map(candidate) : [];
+  try {
+    const result = await post("/api/compare", { package: pkg, design_image: designSend || $("design-url").value.trim(), reference_images: refs });
+    render(result, pkg);
+    $("compare-status").textContent = `Done in ${((performance.now() - started) / 1000).toFixed(1)} s${refs.length ? `, with ${refs.length} reference images` : ""}.`;
+  } catch (problem) { $("compare-status").textContent = ""; showError("compare-error", problem.message); }
+  finally { updateCompareButton(); refreshStatus(); }
+});
+
+function render(result, pkg) {
+  const names = Object.fromEntries(pkg.traits.map((t) => [t.id, t.name]));
+  $("results").hidden = false;
+  $("fit").textContent = result.overall_fit === null ? "—" : String(result.overall_fit);
+  const judged = result.trait_scores.filter((s) => s.score !== null && (s.status === "ok" || s.status === "low_confidence")).length;
+  const share = coverageOf(result.trait_scores);
+  $("fit-note").textContent = result.overall_fit === null ? "No trait could be assessed, so there is no overall fit."
+    : `Based on ${share}% of the total importance (${judged} of ${result.trait_scores.length} traits could be judged).`;
+  const warn = $("low-coverage");
+  warn.hidden = !(result.overall_fit !== null && share !== null && share < 50);
+  warn.textContent = `Only ${share}% of the importance could be judged, so treat this fit with care. Add colour, material or see-through cues to the design (or a render) so the remaining traits can be judged.`;
+
+  const scores = $("scores"); scores.replaceChildren();
+  for (const s of result.trait_scores) {
+    const block = el("div", "score"); const head = el("div", "score-head");
+    const name = el("span", "", names[s.trait_id] || s.trait_id);
+    if (s.status === "low_confidence") name.append(el("span", "chip", "low confidence"));
+    head.append(name);
+    if (s.score === null) head.append(el("span", "na mono muted", "not assessable"));
+    else { const bar = el("div", "bar"); const fill = el("div", levelOf(s.score) === "warn" ? "warnc" : levelOf(s.score)); fill.style.width = s.score + "%"; bar.append(fill); head.append(bar, el("span", `pct mono t-${levelOf(s.score)}`, String(s.score))); }
+    block.append(head, el("div", "note", (s.note || "") + `  (importance ${sentImportance[s.trait_id] ?? "?"})`));
+    scores.append(block);
+  }
+
+  const unjudgedIds = new Set(result.trait_scores.filter((s) => s.status === "not_assessable").map((s) => s.trait_id));
+  const isUnjudged = (item) => item.trait_ids.length > 0 && item.trait_ids.every((id) => unjudgedIds.has(id));
+  const fill = (listId, items, greyZero) => {
+    const list = $(listId); list.replaceChildren();
+    if (!items.length) list.append(el("li", "muted", "None."));
+    for (const item of items) {
+      const li = el("li", "", item.text); li.append(el("span", "mono muted", "  " + item.trait_ids.map((id) => names[id] || id).join(", ")));
+      if (greyZero && item.trait_ids.length && item.trait_ids.every((id) => sentImportance[id] === 0)) { li.classList.add("greyed", "zero-item"); li.append(el("span", "mono muted", "  importance 0")); }
+      list.append(li);
+    }
+  };
+  fill("matches", result.matches, false);
+  fill("departures", result.departures.filter((d) => !isUnjudged(d)), true);
+  fill("unjudged", result.departures.filter(isUnjudged), false);
+  applyHide();
+
+  const dirs = $("directions"); dirs.replaceChildren();
+  if (!result.directions.length) dirs.append(el("p", "muted", "No directions: there was no judged gap to work on, or the suggestion step could not be read."));
+  for (const d of result.directions) {
+    const card = el("div", "dir"); card.append(el("strong", "", d.title), el("div", "note", d.rationale));
+    if (d.trait_ids.length) card.append(el("div", "note mono", "↳ " + d.trait_ids.map((id) => names[id] || id).join(", ")));
+    dirs.append(card);
+  }
+  $("results").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+function applyHide() { const hide = $("hide-zero").checked; document.querySelectorAll("#departures .zero-item").forEach((li) => li.classList.toggle("hidden", hide)); }
+$("hide-zero").addEventListener("change", applyHide);
+
+refreshStatus();
+</script>
+</body>
+</html>

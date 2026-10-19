@@ -45,7 +45,7 @@
   .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   .start-stack{max-width:560px; margin:48px auto 0; display:flex; flex-direction:column; align-items:stretch; gap:20px;}
   .brand-big{width:100%; font-family:var(--font-heading); font-weight:700; font-size:34px; text-align:center; padding:20px 24px; border:1px solid var(--ink); background:var(--field);}
-  .btn-large{width:100%; font-size:18px; padding:18px 24px;}
+  .btn-primary.btn-large{width:100%; font-size:18px; padding:18px 24px;}
   .more-info-toggle{align-self:center; display:inline-flex; align-items:center; gap:10px; background:none; border:1px dashed var(--ink); border-radius:var(--radius); padding:10px 20px; color:var(--ink); font-family:var(--font-mono); font-size:12.5px;}
   .more-info-toggle:hover{background:var(--surface);}
   .drawer-scrim{position:fixed; inset:0; z-index:70; background:rgba(42,40,37,.35);}
@@ -338,18 +338,18 @@
   .toast-action{background:none; border:1px solid var(--bg); color:var(--bg); border-radius:3px; padding:3px 9px; font-size:11px; flex-shrink:0;}
 
   /* style DNA: tight, nearly square cards, three in a row so six fit on a screen */
-  .traits-list{gap:12px; max-width:1100px; margin-left:auto; margin-right:auto;}
-  @media (min-width:1000px){ .traits-list{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  .traits-list{gap:16px; max-width:880px; margin-left:auto; margin-right:auto;}
+  @media (min-width:641px){ .traits-list{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:640px){ .traits-list{grid-template-columns:minmax(0,1fr);} }
-  .trait-card{padding:14px; gap:8px;}
-  .trait-name{font-size:18px;}
-  .trait-desc{font-size:12.5px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .trait-card{padding:16px; gap:10px;}
+  .trait-name{font-size:20px;}
+  .trait-desc{font-size:13px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
   .trait-body{flex-wrap:nowrap; gap:12px; align-items:stretch;}
-  .trait-evidence{flex:0 0 52%; min-width:0;}
+  .trait-evidence{flex:0 0 64%; min-width:0;}
   .evidence-grid{gap:4px;}
   .evidence-grid .evidence-thumb{position:relative; overflow:hidden; min-height:0;}
-  .evidence-grid .thumb-domain{position:absolute; left:0; right:0; bottom:0; background:rgba(239,235,227,.9); border-top:none; font-size:8.5px; padding:1px 3px;}
-  .evidence-label{font-size:10.5px; margin-top:4px; line-height:1.3;}
+  .evidence-grid .thumb-domain{position:absolute; left:0; right:0; bottom:0; background:rgba(239,235,227,.9); border-top:none; font-size:9.5px; padding:2px 4px;}
+  .evidence-label{font-size:11px; margin-top:6px; line-height:1.3;}
   .trait-controls{flex:1 1 0; min-width:0; gap:8px;}
   .trait-controls .trait-actions{flex-wrap:wrap; gap:6px; margin-top:auto;}
   .trait-controls .btn-ghost{padding:4px 8px;}
@@ -359,7 +359,11 @@
   #step-panel-3 .tone-field{max-width:none; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 12px; margin-bottom:12px;}
   #step-panel-3 .tone-field > label{margin:0;}
   #step-panel-3 .tone-field .add-keyword-row{margin-top:0;}
-  .evidence-grid button.evidence-thumb img{aspect-ratio:16/10;}
+  .evidence-grid button.evidence-thumb img{aspect-ratio:4/3;}
+
+  /* the button that goes on to the next step: same size on every step */
+  .btn-row{flex-wrap:wrap;}
+  .btn-row .btn-primary{order:-1; flex:1 0 100%; width:100%; max-width:560px; font-size:18px; padding:18px 24px;}
 
   /* centred layout: titles, intros, forms and button rows sit on the middle axis; lists and tables stay left-aligned inside */
   .panel{margin-left:auto; margin-right:auto;}
@@ -546,7 +550,7 @@
 
       <div class="btn-row">
         <button type="button" class="btn-secondary" id="back-to-sources-btn">← Sources</button>
-        <button type="button" class="btn-primary" id="lock-style-btn">Lock house style package</button>
+        <button type="button" class="btn-primary" id="lock-style-btn">Lock house style package →</button>
       </div>
     </section>
 
@@ -1091,7 +1095,7 @@
     var included = includedCandidates().length;
     document.getElementById('sources-count-line').textContent = state.candidates.length + ' candidates · ' + included + ' selected · review before extraction';
     var btn = document.getElementById('extract-dna-btn');
-    btn.textContent = 'Extract Style DNA from ' + included + ' image' + (included === 1 ? '' : 's');
+    btn.textContent = 'Extract Style DNA from ' + included + ' image' + (included === 1 ? '' : 's') + ' →';
     btn.disabled = included === 0;
   }
   function thumbCard(c){

@@ -25,6 +25,8 @@ log = logging.getLogger(__name__)
 PROMPT_FILE = Path(__file__).parent / "prompts" / "compare_traits.md"
 REFERENCES_FILE = Path(__file__).parent / "prompts" / "compare_references.md"
 
+DESIGN_VIEWS_FILE = Path(__file__).parent / "prompts" / "compare_design_views.md"
+MAX_DESIGN_IMAGES = 4  # the main design plus up to 3 more views
 MAX_REFERENCES_PER_TRAIT = 3
 MAX_REFERENCES_TOTAL = 12  # distinct images in one request
 
@@ -52,6 +54,7 @@ def compare_design(
     ask: Optional[VisionProvider] = None,
     load: Optional[Callable[[str, str], LoadedImage]] = None,
     reference_images: Optional[list[ImageCandidate]] = None,
+    additional_design_images: Optional[list[str]] = None,
 ) -> CompareResult:
     """`ask` and `load` can be replaced in tests, so no API key or network is needed."""
     ask = ask or get_provider()  # fail early if no model is set up
@@ -63,18 +66,18 @@ def compare_design(
             "The house style package has no traits to compare against — keep or add at least one trait.",
             status=422,
         )
-    try:
-        design = load("design", design_image)
-    except ImageLoadError as problem:
+    sources = [design_image, *(additional_design_images or [])]
+    if len(sources) > MAX_DESIGN_IMAGES:
         raise AiCoreError(
-            "design_not_loaded",
-            f"The design image could not be used ({problem}) — upload a jpg, png, gif or webp file under 5 MB.",
+            "too_many_design_images",
+            f"At most {MAX_DESIGN_IMAGES} design images (the design plus {MAX_DESIGN_IMAGES - 1} more views) can be compared at once.",
             status=422,
         )
+    designs = load_designs(sources, load)
 
     references, refs_by_trait = load_references(package.traits, reference_images or [], load)
     answer = ask_and_parse(
-        ask, build_prompt(package, design, refs_by_trait), [design, *references], parse_answer,
+        ask, build_prompt(package, designs, refs_by_trait), [*designs, *references], parse_answer,
         "The AI's answer could not be read, even on a second try. "
         "No scores were made up to fill the gap — please run the comparison again.",
     )
@@ -85,7 +88,7 @@ def compare_design(
     # A second request words concrete directions for the biggest gaps. If it fails, the scores are
     # still returned: the designer loses the suggestions, not the whole comparison.
     try:
-        directions = generate_directions(ask, package.brand.name, design, package.traits, scores)
+        directions = generate_directions(ask, package.brand.name, designs, package.traits, scores)
     except AiCoreError as problem:
         log.warning("No directions this time: %s", problem.message)
         directions = []
@@ -140,7 +143,24 @@ def load_references(
     return [image for image in loaded.values() if image is not None], ids_by_trait
 
 
-def build_prompt(package: HouseStylePackage, design: LoadedImage, refs_by_trait: Optional[dict[str, list[str]]] = None) -> str:
+def load_designs(sources: list[str], load: Callable[[str, str], LoadedImage]) -> list[LoadedImage]:
+    """The main design ("design") and any further views ("design_2", "design_3", ...), in memory only."""
+    designs = []
+    for number, source in enumerate(sources, start=1):
+        label = "design" if number == 1 else f"design_{number}"
+        try:
+            designs.append(load(label, source))
+        except ImageLoadError as problem:
+            which = "The design image" if len(sources) == 1 else f"Design image {number} of {len(sources)}"
+            raise AiCoreError(
+                "design_not_loaded",
+                f"{which} could not be used ({problem}) — upload a jpg, png, gif or webp file under 5 MB.",
+                status=422,
+            )
+    return designs
+
+
+def build_prompt(package: HouseStylePackage, designs: list[LoadedImage], refs_by_trait: Optional[dict[str, list[str]]] = None) -> str:
     # Deliberately name and description only: the model must not see the importance values.
     refs_by_trait = refs_by_trait or {}
     trait_lines = []
@@ -153,12 +173,22 @@ def build_prompt(package: HouseStylePackage, design: LoadedImage, refs_by_trait:
         "brand_name": package.brand.name or "(not given)",
         "traits": "\n".join(trait_lines),
         "trait_ids": ", ".join(t.id for t in package.traits),
+        "design_views_section": views_section(designs),
         "reference_section": REFERENCES_FILE.read_text(encoding="utf-8") if any(refs_by_trait.values()) else "",
     }
     prompt = PROMPT_FILE.read_text(encoding="utf-8")
     for key, value in values.items():
         prompt = prompt.replace("{{" + key + "}}", value)
     return prompt
+
+
+def views_section(designs: list[LoadedImage]) -> str:
+    """Extra prompt text, only when the design comes as more than one view."""
+    if len(designs) < 2:
+        return ""
+    text = DESIGN_VIEWS_FILE.read_text(encoding="utf-8")
+    labels = ", ".join(f'"Image {d.id}"' for d in designs)
+    return text.replace("{{design_count}}", str(len(designs))).replace("{{design_labels}}", labels)
 
 
 def parse_answer(text: str) -> ModelAnswer:

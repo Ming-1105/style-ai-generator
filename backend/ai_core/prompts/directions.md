@@ -7,8 +7,9 @@ Brand: {{brand_name}}
 
 ## The design
 
-You will see one image, labelled "Image design". It is the designer's own work. It may be a
-photo, a render, or a rough sketch.
+The designer's own work is the image labelled "Image design". Any further images, labelled
+"Image design_2", "Image design_3" and so on, show other views of the same design. They may be
+photos, renders or rough sketches.
 
 ## Where the design falls short
 

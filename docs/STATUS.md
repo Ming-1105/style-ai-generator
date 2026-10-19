@@ -74,6 +74,7 @@ If you need something from another folder, add a note under that owner's "Needs 
   re-compares at once. Images over 1600 px on the long side are shrunk to JPEG in the browser before
   being sent as a data URL in `design_image`. Wrong file types and unreadable images give a clear
   message. With no upload, the bundled sample sketch is still used and labelled as such.
+- **Done (after merging main):** Compare now sends `reference_images` (the evidence images of the traits, each once), as B's contract change requires.
 - **In progress:** nothing planned yet; milestone 5 not defined.
 - **Blocked:**
 - **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.

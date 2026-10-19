@@ -1014,7 +1014,15 @@
     var designReady = state.design ? Promise.resolve(state.design) : loadSampleDesign();
     designReady.then(function(design){
       state.design = design;
-      return api('/api/compare', {package: state.package, design_image: design.dataUrl});
+      // the images the traits cite as evidence, each once (contract: reference_images)
+      var refs = [];
+      state.package.traits.forEach(function(t){
+        (t.evidence_image_ids || []).forEach(function(id){
+          var c = findCandidate(id);
+          if (c && refs.indexOf(c) === -1) refs.push(c);
+        });
+      });
+      return api('/api/compare', {package: state.package, design_image: design.dataUrl, reference_images: refs});
     }).then(function(data){
       state.compare = data;
       state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;

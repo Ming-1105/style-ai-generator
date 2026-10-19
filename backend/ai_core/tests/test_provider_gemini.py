@@ -137,6 +137,9 @@ class FailureTests(unittest.TestCase):
     def test_bad_key(self):
         self.assertEqual(self.code_for(reply(403)), "vision_auth")
 
+    def test_no_prepaid_credit_left(self):
+        self.assertEqual(self.code_for(reply(402)), "vision_no_credit")
+
     def test_unknown_or_closed_model(self):
         self.assertEqual(self.code_for(reply(404)), "vision_model_unavailable")
 

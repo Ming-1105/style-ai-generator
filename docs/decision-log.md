@@ -282,3 +282,13 @@
 
 - **What:** Classify title/alt/URL tokens using ordered keyword dictionaries: logo, packaging, web, product, otherwise other. Relevance weights brand tokens 50%, category 20%, keyword groups 20%, official source 10%, renormalized for absent optional fields. Missing all text yields null; available text with no match yields 0. Preserve flags and inclusion.
 - **Why:** An inspectable first version without vision costs. Scores are text match estimates, not probabilities or visual style scores. CDN hostnames are not category evidence; unrecognized product types remain other. Metadata cannot verify visible content. No new dependencies.
+
+## 2026-10-18 — Setting up billing moved the project to prepaid with no credit (Person B)
+
+- **What:** While adding a payment method in Google AI Studio (the card was refused), the project behind our key was
+  switched to the prepaid tier. From then on every request answers 402 "Your prepayment credits are depleted" even
+  though the free tier had worked an hour earlier. The Gemini connection now maps a 402 to a clear message
+  (`vision_no_credit`) instead of a generic "try again".
+- **Why it matters:** starting the billing set-up is not harmless: the free allowance is replaced by the prepaid balance,
+  so the project is unusable until credit is bought. Before changing billing on a project that is in use, keep a second
+  key from a project that stays on the free tier.

@@ -11,6 +11,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
+from backend.ai_core import usage
 from backend.ai_core.compare import compare_design
 from backend.ai_core.errors import AiCoreError
 from backend.ai_core.extract import extract_dna
@@ -70,6 +71,17 @@ DEVTOOLS = Path(__file__).parent / "devtools"
 @router.get("/dev/compare", include_in_schema=False)
 def dev_compare_page():
     return FileResponse(DEVTOOLS / "compare_test.html")
+
+
+@router.get("/dev/pipeline", include_in_schema=False)
+def dev_pipeline_page():
+    return FileResponse(DEVTOOLS / "pipeline_test.html")
+
+
+@router.get("/dev/usage", include_in_schema=False)
+def dev_usage():
+    """Tokens and estimated cost of the requests this server has made since it started."""
+    return {"summary": usage.session_summary()}
 
 
 @router.get("/dev/status", include_in_schema=False)

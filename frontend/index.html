@@ -401,6 +401,12 @@
             </div>
           </div>
 
+          <div id="unjudged-section" hidden>
+            <h3>Could not be judged</h3>
+            <p class="hint-note" style="margin-top:0;">The AI could not see enough in this design to judge these traits. They are not counted in the fit.</p>
+            <ul id="unjudged-list"></ul>
+          </div>
+
           <h3>Suggested directions</h3>
           <div class="directions-grid" id="directions-grid"></div>
           <p class="hint-note">Directions are suggestions — you decide.</p>
@@ -1059,6 +1065,19 @@
     }
     return '<li class="' + (ignored ? 'finding-ignored' : '') + '"' + (ignored ? ' title="All linked traits have importance 0"' : '') + '>' + esc(f.text) + btn + '</li>';
   }
+  // Share of the total importance that could be judged. Uses the API's `coverage` when it
+  // sends one, otherwise the same formula as scoring.coverage in the backend.
+  function coverageOf(r){
+    if (r.coverage !== undefined && r.coverage !== null) return r.coverage;
+    var total = 0, judged = 0;
+    state.package.traits.forEach(function(t){ total += t.importance; });
+    if (total === 0) return null;
+    r.trait_scores.forEach(function(s){
+      var t = findTrait(s.trait_id, state.package.traits);
+      if (t && s.score !== null && s.score !== undefined && s.status !== 'not_assessable') judged += t.importance;
+    });
+    return Math.round(judged / total * 100);
+  }
   function renderCompare(){
     var r = state.compare;
     if (!r || !state.package) return;
@@ -1070,34 +1089,43 @@
 
     var fitEl = document.getElementById('fit-score');
     var fitNote = document.getElementById('fit-note');
+    function isJudged(x){ return x.score !== null && x.score !== undefined && x.status !== 'not_assessable'; }
+    var judged = r.trait_scores.filter(isJudged);
+    var unjudged = r.trait_scores.filter(function(x){ return !isJudged(x); });
+    var coverage = coverageOf(r);
+    var shaky = judged.filter(function(x){ return x.status === 'low_confidence'; }).length;
     if (r.overall_fit === null){
       fitEl.textContent = '—';
       fitNote.hidden = false;
-      fitNote.textContent = 'No trait could be assessed from this design.';
+      fitNote.className = 'mono muted';
+      fitNote.textContent = 'No trait could be assessed from this design, so there is no overall fit.';
     } else {
       fitEl.textContent = r.overall_fit + '%';
-      var skipped = r.trait_scores.filter(function(x){ return x.score === null || x.status === 'not_assessable'; }).length;
-      var shaky = r.trait_scores.filter(function(x){ return x.status === 'low_confidence'; }).length;
       var parts = [];
-      if (skipped) parts.push(skipped + ' trait' + (skipped === 1 ? '' : 's') + ' could not be assessed and ' + (skipped === 1 ? 'is' : 'are') + ' left out');
+      if (coverage !== null) parts.push('Based on ' + coverage + '% of the importance (' + judged.length + ' of ' + r.trait_scores.length + ' traits could be judged)');
+      else parts.push(judged.length + ' of ' + r.trait_scores.length + ' traits could be judged');
       if (shaky) parts.push(shaky + ' score' + (shaky === 1 ? ' is' : 's are') + ' low confidence');
-      fitNote.hidden = parts.length === 0;
-      fitNote.textContent = capitalise(parts.join('; ')) + '.';
+      var lowCoverage = coverage !== null && coverage < 50;
+      if (lowCoverage) parts.push('Low coverage — treat this number with care; a clearer or more detailed design would let more traits be judged');
+      fitNote.hidden = false;
+      fitNote.className = 'mono ' + (lowCoverage ? 'text-warn' : 'muted');
+      fitNote.textContent = parts.join('. ') + '.';
     }
 
-    document.getElementById('score-rows').innerHTML = r.trait_scores.map(function(s){
+    document.getElementById('score-rows').innerHTML = judged.map(function(s){
       var name = esc(traitNames([s.trait_id])[0]);
       var note = s.note ? ' title="' + esc(s.note) + '"' : '';
-      if (s.score === null || s.status === 'not_assessable'){
-        return '<div class="score-row" id="score-' + esc(s.trait_id) + '"><span class="score-name">' + name + '</span>' +
-          '<span class="score-na mono muted">' + esc(s.note || 'Not assessable') + '</span></div>';
-      }
       var level = scoreLevel(s.score);
       return '<div class="score-row" id="score-' + esc(s.trait_id) + '"' + note + '>' +
         '<span class="score-name">' + name + (s.status === 'low_confidence' ? ' <span class="chip chip-warn">low conf.</span>' : '') + '</span>' +
         '<div class="score-bar"><div class="score-bar-fill level-' + level + '" style="width:' + s.score + '%"></div></div>' +
         '<span class="mono score-pct level-' + level + '-text">' + s.score + '%</span>' +
         '</div>';
+    }).join('');
+
+    document.getElementById('unjudged-section').hidden = unjudged.length === 0;
+    document.getElementById('unjudged-list').innerHTML = unjudged.map(function(s){
+      return '<li><strong>' + esc(traitNames([s.trait_id])[0]) + '</strong>' + (s.note ? ' — ' + esc(s.note) : '') + '</li>';
     }).join('');
 
     document.getElementById('matches-list').innerHTML = r.matches.map(function(f){ return findingItem(f, false); }).join('') ||

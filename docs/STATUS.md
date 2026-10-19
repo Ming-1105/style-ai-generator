@@ -75,7 +75,12 @@ If you need something from another folder, add a note under that owner's "Needs 
   being sent as a data URL in `design_image`. Wrong file types and unreadable images give a clear
   message. With no upload, the bundled sample sketch is still used and labelled as such.
 - **Done (after merging main):** Compare now sends `reference_images` (the evidence images of the traits, each once), as B's contract change requires.
-- **In progress:** nothing planned yet; milestone 5 not defined.
+- **Done (milestone 5, branch `ui/coverage-display`):** Compare shows the overall fit with its coverage
+  ("Based on 92% of the importance (5 of 6 traits could be judged)") and a warning when coverage is under
+  50%. Uses the API's `coverage` field if it is ever sent, otherwise the same formula as
+  `scoring.coverage`. Traits that could not be judged are their own group, "Could not be judged", with
+  the AI's note, and no longer appear among the score bars. Requests from B on 2026-10-14 are done.
+- **In progress:** nothing planned yet.
 - **Blocked:**
 - **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.
 - **Request from B** (agreed with the designer on 2026-10-07; greying and hide control done) —

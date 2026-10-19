@@ -59,6 +59,19 @@
   .drawer .chip-row,.drawer .add-keyword-row{justify-content:flex-start;}
   .drawer .toggle-row{margin-left:0;}
 
+  /* step 1: own images and colours */
+  .own-panel{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:16px; display:flex; flex-direction:column; gap:12px; text-align:left;}
+  .own-panel[hidden]{display:none;}
+  .own-panel .dropzone{margin-top:0;}
+  .own-thumbs{display:flex; flex-wrap:wrap; gap:8px;}
+  .own-thumb{position:relative; width:76px;}
+  .own-thumb img{display:block; width:76px; height:57px; object-fit:cover; border:1px solid var(--line); border-radius:3px; background:var(--bg);}
+  .own-colors{display:flex; flex-wrap:wrap; align-items:center; gap:8px;}
+  .own-colors input[type=color]{width:44px; height:34px; padding:2px; border:1px solid var(--ink); border-radius:var(--radius); background:var(--field); cursor:pointer;}
+  .color-dot{display:inline-block; width:14px; height:14px; border-radius:50%; border:1px solid var(--ink);}
+  .only-box{display:flex; align-items:center; gap:10px; align-self:center; border:1px solid var(--ink); border-radius:var(--radius); background:var(--field); padding:8px 14px; font-size:13px; color:var(--ink); margin:0; cursor:pointer;}
+  .only-box input{margin:0;}
+
   /* step 5: your design */
   .panel-center{text-align:center;}
   .panel > h2,.design-title{font-size:44px; line-height:1.1; text-align:center; margin:16px 0 8px; letter-spacing:.01em;}
@@ -506,6 +519,24 @@
       <div class="start-stack">
         <label class="sr-only" for="brand-name">Brand name</label>
         <input type="text" id="brand-name" class="brand-big" placeholder="Brand name" autocomplete="off">
+        <button type="button" class="more-info-toggle" id="own-btn" aria-expanded="false" aria-controls="own-panel">
+          <span aria-hidden="true">+</span><span id="own-label">Upload your own images and colours (optional)</span>
+        </button>
+        <div class="own-panel" id="own-panel" hidden>
+          <div class="dropzone" id="own-dropzone" tabindex="0" role="button">Drop, paste (Ctrl+V) or click to browse for images</div>
+          <input type="file" id="own-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+          <div class="own-thumbs" id="own-thumbs"></div>
+          <div class="own-colors">
+            <label class="label-mono" for="own-color" style="margin:0;">colours</label>
+            <input type="color" id="own-color" value="#ED8008" aria-label="Pick a colour">
+            <button type="button" class="btn-ghost" id="own-color-add">Add colour</button>
+            <div class="chip-row" id="own-color-chips" style="justify-content:flex-start;"></div>
+          </div>
+        </div>
+        <label class="only-box" for="only-uploads">
+          <input type="checkbox" id="only-uploads">
+          <span>Only use my uploaded images for analysis</span>
+        </label>
         <button type="button" class="btn-primary btn-large" id="find-images-btn">Find reference images →</button>
         <button type="button" class="more-info-toggle" id="more-info-btn" aria-expanded="false" aria-controls="brand-drawer">
           <span aria-hidden="true">+</span><span id="more-info-label">Add more info</span>
@@ -565,9 +596,7 @@
             <span class="toggle-item"><input type="checkbox" id="src-toggle-api" checked><label for="src-toggle-api" style="margin:0;">Image search API</label></span>
             <span class="toggle-item"><input type="checkbox" id="src-toggle-scrape" checked><label for="src-toggle-scrape" style="margin:0;">Official website scrape</label></span>
             <span class="toggle-item"><input type="checkbox" id="src-toggle-presskit"><label for="src-toggle-presskit" style="margin:0;">Press kit URL</label></span>
-            <span class="toggle-item"><input type="checkbox" id="src-toggle-uploads"><label for="src-toggle-uploads" style="margin:0;">My own uploads</label></span>
           </div>
-          <div class="dropzone" id="upload-dropzone" tabindex="0" role="button">Drop image files here, or click to browse</div>
         </div>
         <button type="button" class="btn-primary" id="drawer-done" style="width:100%;">Done</button>
       </aside>
@@ -577,7 +606,7 @@
     <section class="panel panel-wide" id="step-panel-2" hidden>
       <h2>Sources</h2>
       <div class="help" data-help-step="2"></div>
-      <p class="panel-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine <span class="js-brand-name"></span> reference before the AI reads them.</p>
+      <p class="panel-intro" id="sources-intro">The tool searched the web and your brand's own site. Check the results — deselect anything that isn't a genuine <span class="js-brand-name"></span> reference before the AI reads them.</p>
 
       <div class="sources-head">
         <span class="sources-count mono" id="sources-count-line"></span>
@@ -661,7 +690,7 @@
       <div class="design-stack">
         <div class="design-block">
           <span class="label-mono">main image</span>
-          <div class="dropzone dropzone-big" id="design-dropzone" tabindex="0" role="button">Drop your main image here, or click to browse</div>
+          <div class="dropzone dropzone-big" id="design-dropzone" tabindex="0" role="button">Drop, paste (Ctrl+V) or click to browse for your main image</div>
           <div id="design-preview" class="design-preview" hidden></div>
         </div>
 
@@ -843,7 +872,10 @@
       designIsSketch: false, // the designer says the design is a sketch or black and white: colour is not judged
       designDescription: '', // a short text about the design, at most 500 characters
       traitView: 'cards',    // 'cards' or 'compact': how step 3 shows the traits
-      removedColors: []      // colours taken out of the palette, newest last, for the undo button
+      removedColors: [],     // colours taken out of the palette, newest last, for the undo button
+      uploads: [],           // the designer's own images (ImageCandidate, source_type 'upload', data URL)
+      ownColors: [],         // colours the designer added on the brand page: { name, hex }
+      onlyUploads: false     // use only the uploaded images for the analysis (no web search)
     };
   }
   var state = freshState();   // replaced when a project is opened
@@ -859,6 +891,8 @@
     keywords:     {step: 1, label: 'Keywords', text: 'Extra words that steer the picture search, such as a model name or a part of the product. Add more to narrow the results, remove some to widen them.'},
     values:       {step: 1, label: 'Brand values', text: 'A sentence or two about what the brand stands for. It gives the AI context when it reads the pictures; it does not change which pictures are found.'},
     projects:     {step: 1, label: 'Projects (top of the page)', text: 'Each project keeps its own brand, pictures, traits and designs, and is saved in this browser as you work. Use the project menu to start another one, rename, copy or delete it, or export it as a file to open on another computer.'},
+    own_uploads:  {step: 1, label: 'Your own images and colours', text: 'Optional. Add pictures you already have of the brand, and any colours you want in the palette. Your pictures are added to the search results, and your colours are added to the palette when the style DNA is made. You can add up to 20 pictures.'},
+    only_uploads: {step: 1, label: 'Only use my uploaded images', text: 'When this is ticked, CopyCat does not search the web at all. Only the pictures you uploaded go on to the next step. You need at least one uploaded picture.'},
     where:        {step: 1, label: 'Where should the tool look?', text: 'The places CopyCat searches. Switching one off means no pictures are collected from that place.'},
     include:      {step: 2, label: 'Include or leave out an image', text: 'Use the box at the top of a picture to include it or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand. Pictures you leave out move to the bottom, and you can tick them again to bring them back.'},
     flagged:      {step: 2, label: 'Flagged images', text: 'CopyCat flags pictures it doubts, for example very small ones or ones that look AI-made or fan-made. A flag is a warning, not a verdict: you decide whether to keep the picture.'},
@@ -875,7 +909,7 @@
     rules:        {step: 3, label: 'Do / don\'t rules', text: 'Short design rules the AI drew from the traits. Remove any you disagree with; the ones that stay are part of the house style.'},
     lock:         {step: 3, label: 'Lock the house style package', text: 'Locking turns your edited traits, tone and rules into the package that designs are compared against. You can come back and change things, but then you lock again.'},
     package:      {step: 4, label: 'The house style package', text: 'Everything you decided in one place: traits with their importance, tone, colours, rules and the pictures they came from. This is what your design will be measured against.'},
-    design:       {step: 5, label: 'Main image', text: 'Upload a picture of your own design. If you skip this, a built-in sample sketch is compared so you can try the tool.'},
+    design:       {step: 5, label: 'Main image', text: 'Upload a picture of your own design, or paste one with Ctrl+V (for example a screenshot). If you skip this, a built-in sample sketch is compared so you can try the tool.'},
     more_views:   {step: 5, label: 'More views', text: 'Add up to three more pictures of the same design, such as the side or the back. One picture hides things, and more views let the AI judge more traits.'},
     sketch:       {step: 5, label: 'Sketch or black and white', text: 'Switch this on when your design is a pencil sketch or has no colour yet. The AI then leaves colour and material out instead of marking them down, and the score is based on form only.'},
     description:  {step: 5, label: 'Description', text: 'A short note about what the design is meant to be. It gives the AI context, but it can only judge what it sees in your pictures, so the note never raises a score.'},
@@ -1145,6 +1179,7 @@
   function renderBrand(){
     document.getElementById('brand-name').value = state.brand.name;
     document.getElementById('brand-category').value = state.brand.category;
+    renderOwn();
     document.getElementById('brand-website').value = state.brand.website;
     document.getElementById('brand-values').value = state.brand.values;
     renderKeywordChips();
@@ -1176,12 +1211,31 @@
     input.value = '';
     renderKeywordChips();
   }
+  // New sources make everything downstream stale.
+  function useCandidates(list){
+    state.candidates = list;
+    state.traits = []; state.doDont = []; state.skippedImages = []; state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
+    currentFilter = 'all';
+    setActiveFilterChip();
+    hideProgress('brand-progress');
+    advanceToStep(2);
+  }
   function findImages(){
     readBrandForm();
     renderBrandName();
     if (!state.brand.name){
       showToast('Enter a brand name first.');
       document.getElementById('brand-name').focus();
+      return;
+    }
+    var uploads = clone(state.uploads);
+    // Only the designer's own images: no web search at all.
+    if (state.onlyUploads){
+      if (!uploads.length){
+        showError('brand-progress', 'Upload at least one image, or switch off "Only use my uploaded images for analysis".');
+        return;
+      }
+      useCandidates(uploads);
       return;
     }
     var btn = document.getElementById('find-images-btn');
@@ -1191,18 +1245,133 @@
       if (!data.candidates || data.candidates.length === 0){
         throw new Error('No reference images were found for ' + state.brand.name + '. Try adding the official website or more keywords.');
       }
-      state.candidates = data.candidates;
-      // new sources make everything downstream stale
-      state.traits = []; state.doDont = []; state.skippedImages = []; state.package = null; state.compare = null; state.directionStatus = {}; state.hiddenDeparts = {}; state.showHidden = false;
-      currentFilter = 'all';
-      setActiveFilterChip();
-      hideProgress('brand-progress');
-      advanceToStep(2);
+      useCandidates(uploads.concat(data.candidates));   // the designer's own images come first
     }).catch(function(err){
-      showError('brand-progress', err.message, findImages);
+      if (uploads.length){
+        showToast('The image search did not work (' + err.message + ') — continuing with your uploaded images.', {duration: 9000});
+        useCandidates(uploads);
+      } else {
+        showError('brand-progress', err.message, findImages);
+      }
     }).then(function(){
       btn.disabled = false;
     });
+  }
+
+  /* ---------- step 1: the designer's own images and colours ---------- */
+  var MAX_UPLOADS = 20;   // the same limit as the analysis itself
+  function readUploadFile(file){
+    return new Promise(function(resolve, reject){
+      if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)){ reject(new Error(file.name + ' is not a PNG, JPG, WebP or GIF image.')); return; }
+      if (file.size > MAX_DESIGN_BYTES){ reject(new Error(file.name + ' is larger than 15 MB.')); return; }
+      var reader = new FileReader();
+      reader.onerror = function(){ reject(new Error(file.name + ' could not be read.')); };
+      reader.onload = function(){
+        var img = new Image();
+        img.onerror = function(){ reject(new Error(file.name + ' could not be opened — the file may be damaged.')); };
+        img.onload = function(){
+          // always a JPEG of at most 1600 px: small enough for the analysis, whatever the original was
+          var scale = Math.min(1, MAX_DESIGN_SIDE / Math.max(img.width, img.height));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          var ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.88));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  function makeUpload(dataUrl){
+    var n = 0;
+    state.uploads.forEach(function(u){ var m = /^img_up_(\d+)$/.exec(u.id); if (m) n = Math.max(n, parseInt(m[1], 10)); });
+    n++;
+    return {id: 'img_up_' + (n < 10 ? '0' + n : n), url: dataUrl, thumbnail_url: dataUrl, source_domain: 'your upload', source_type: 'upload',
+            category: 'other', relevance: 1, flagged: false, flag_reason: null, included: true};
+  }
+  function addUploads(fileList){
+    var files = Array.prototype.slice.call(fileList || []);
+    if (!files.length) return;
+    var tooMany = false, chain = Promise.resolve();
+    files.forEach(function(file){
+      chain = chain.then(function(){
+        if (state.uploads.length >= MAX_UPLOADS){ tooMany = true; return; }
+        return readUploadFile(file).then(function(dataUrl){ state.uploads.push(makeUpload(dataUrl)); })
+          .catch(function(err){ showToast(err.message, {duration: 8000}); });
+      });
+    });
+    chain.then(function(){
+      if (tooMany) showToast('At most ' + MAX_UPLOADS + ' images can be analysed at once.', {duration: 6000});
+      renderOwn();
+    });
+  }
+  function addOwnColor(){
+    var hex = document.getElementById('own-color').value.toUpperCase();
+    if (!/^#[0-9A-F]{6}$/.test(hex)) return;
+    if (state.ownColors.some(function(c){ return c.hex.toUpperCase() === hex; })) return;
+    state.ownColors.push({name: hex, hex: hex});
+    renderOwn();
+  }
+  function renderOwn(){
+    document.getElementById('own-thumbs').innerHTML = state.uploads.map(function(u, i){
+      return '<div class="own-thumb"><img src="' + esc(u.thumbnail_url) + '" alt="Your upload ' + (i + 1) + '">' +
+        '<button type="button" class="view-remove own-remove" data-i="' + i + '" aria-label="Remove upload ' + (i + 1) + '">×</button></div>';
+    }).join('');
+    document.getElementById('own-color-chips').innerHTML = state.ownColors.map(function(c, i){
+      return '<span class="chip"><span class="color-dot" style="background:' + esc(c.hex) + '"></span><span class="mono">' + esc(c.hex) + '</span>' +
+        '<button type="button" class="chip-remove own-color-remove" data-i="' + i + '" aria-label="Remove ' + esc(c.hex) + '">×</button></span>';
+    }).join('');
+    document.querySelectorAll('.own-remove').forEach(function(b){
+      b.addEventListener('click', function(){ state.uploads.splice(parseInt(this.getAttribute('data-i'), 10), 1); renderOwn(); });
+    });
+    document.querySelectorAll('.own-color-remove').forEach(function(b){
+      b.addEventListener('click', function(){ state.ownColors.splice(parseInt(this.getAttribute('data-i'), 10), 1); renderOwn(); });
+    });
+    var n = state.uploads.length, k = state.ownColors.length;
+    document.getElementById('own-label').textContent = (n || k)
+      ? 'Your uploads · ' + n + (n === 1 ? ' image' : ' images') + ', ' + k + (k === 1 ? ' colour' : ' colours')
+      : 'Upload your own images and colours (optional)';
+    document.getElementById('only-uploads').checked = state.onlyUploads;
+  }
+  // Pasting an image (a screenshot, or an image copied from a page): into the design step, or into the uploads on step 1.
+  function wirePaste(){
+    document.addEventListener('paste', function(e){
+      var files = Array.prototype.slice.call((e.clipboardData && e.clipboardData.files) || []).filter(function(f){ return /^image\//.test(f.type); });
+      if (!files.length) return;   // plain text pastes into the fields as usual
+      if (!document.getElementById('step-panel-5').hidden){
+        e.preventDefault();
+        if (!state.design || state.design.isSample){
+          chooseDesign(files[0], false);                      // becomes the main image
+          if (files.length > 1) setTimeout(function(){ addDesignFiles(files.slice(1), false); }, 300);
+        } else {
+          addDesignFiles(files, false);                       // a main image exists: pasted images become extra views
+        }
+        showToast('Image pasted.');
+      } else if (!document.getElementById('step-panel-1').hidden && !document.getElementById('own-panel').hidden){
+        e.preventDefault();
+        addUploads(files);
+        showToast('Image pasted.');
+      }
+    });
+  }
+  function wireOwn(){
+    var btn = document.getElementById('own-btn'), panel = document.getElementById('own-panel'), input = document.getElementById('own-file');
+    btn.addEventListener('click', function(){
+      var open = panel.hidden;
+      panel.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    var zone = document.getElementById('own-dropzone');
+    onActivate(zone, function(){ input.click(); });
+    input.addEventListener('change', function(){ addUploads(input.files); input.value = ''; });
+    zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function(){ zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', function(e){ e.preventDefault(); zone.classList.remove('dragover'); addUploads(e.dataTransfer.files); });
+    document.getElementById('own-color-add').addEventListener('click', addOwnColor);
+    document.getElementById('only-uploads').addEventListener('change', function(){ state.onlyUploads = this.checked; });
   }
 
   /* ---------- step 2: sources ---------- */
@@ -1235,7 +1404,13 @@
     });
     return shown.filter(function(c){ return c.included; }).concat(shown.filter(function(c){ return !c.included; }));
   }
+  var DEFAULT_SOURCES_INTRO = null;
   function renderSources(){
+    var intro = document.getElementById('sources-intro');
+    if (DEFAULT_SOURCES_INTRO === null) DEFAULT_SOURCES_INTRO = intro.innerHTML;
+    var allOwn = state.candidates.length > 0 && state.candidates.every(function(c){ return c.source_type === 'upload'; });
+    intro.innerHTML = allOwn ? 'These are the images you uploaded. Untick any you do not want the AI to read.' : DEFAULT_SOURCES_INTRO;
+    renderBrandName();
     var grid = document.getElementById('sources-grid');
     var filtered = filteredCandidates();
     var kept = filtered.filter(function(c){ return c.included; });
@@ -1283,7 +1458,10 @@
       state.traits = clone(data.traits);
       state.toneWords = data.tone_words || [];
       state.selectedTones = state.toneWords.slice();
-      state.colors = data.colors || [];
+      var own = state.ownColors.map(function(c){ return {name: c.name, hex: c.hex.toUpperCase()}; });
+      var taken = {};
+      own.forEach(function(c){ taken[c.hex.toLowerCase()] = true; });
+      state.colors = own.concat((data.colors || []).filter(function(c){ return !taken[String(c.hex).toLowerCase()]; }));
       state.removedColors = [];
       state.doDont = clone(data.do_dont || []);
       state.skippedImages = clone(data.skipped_images || []);
@@ -1626,7 +1804,7 @@
   function candidateItem(c){
     var flag = c.flagged ? ' · flagged' + (c.flag_reason ? ': ' + c.flag_reason : '') : '';
     var rel = pct(c.relevance);
-    var relevance = ' · relevance ' + (rel === null ? '—' : rel + '% (text match)');
+    var relevance = c.source_type === 'upload' ? ' · your upload' : ' · relevance ' + (rel === null ? '—' : rel + '% (text match)');
     return {src: c.url, thumb: c.thumbnail_url, alt: 'Reference image ' + c.id + ' from ' + c.source_domain, domain: c.source_domain,
             caption: c.id + ' · ' + c.source_domain + ' · ' + c.category + relevance + flag};
   }
@@ -1858,7 +2036,7 @@
         reader.readAsDataURL(blob);
       });
     }).then(function(dataUrl){
-      return {dataUrl: dataUrl, label: 'Sample sketch (no design uploaded)'};
+      return {dataUrl: dataUrl, label: 'Sample sketch (no design uploaded)', isSample: true};
     });
   }
   function runCompare(){
@@ -2181,7 +2359,7 @@
     list.forEach(function(file){
       chain = chain.then(function(){
         return readDesignFile(file).then(function(design){
-          if (!state.design){ state.design = design; added++; }
+          if (!state.design || state.design.isSample){ state.design = design; state.moreDesigns = []; added++; }
           else if (state.moreDesigns.length < MAX_MORE_VIEWS){ state.moreDesigns.push(design); added++; }
           else { showToast('At most ' + (MAX_MORE_VIEWS + 1) + ' images of your design can be compared at once.', {duration: 6000}); }
         }).catch(function(err){ showToast(err.message, {duration: 8000}); });
@@ -2315,6 +2493,7 @@
     if (!document.getElementById('step-panel-1').hidden) readBrandForm();
     var s = clone(state);
     s.candidates.forEach(function(c){
+      if (c.source_type === 'upload') return;   // the designer's own images may be stored
       if (/^data:/i.test(c.url || '')) c.url = '';
       if (/^data:/i.test(c.thumbnail_url || '')) c.thumbnail_url = '';
     });
@@ -2411,6 +2590,12 @@
       base.extractedFrom = num(base.extractedFrom, 0);
       base.designIsSketch = base.designIsSketch === true;
       base.traitView = base.traitView === 'compact' ? 'compact' : 'cards';
+      base.uploads = base.uploads.filter(function(c){ return isObject(c) && typeof c.id === 'string' && typeof c.url === 'string' && /^data:image\//.test(c.url); }).map(function(c){
+        c.thumbnail_url = c.url; c.source_domain = 'your upload'; c.source_type = 'upload'; c.category = 'other'; c.relevance = 1; c.flagged = false; c.flag_reason = null; c.included = true;
+        return c;
+      });
+      base.ownColors = base.ownColors.filter(function(c){ return isObject(c) && typeof c.hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(c.hex); }).map(function(c){ c.name = String(c.name || c.hex); return c; });
+      base.onlyUploads = base.onlyUploads === true;
       base.removedColors = base.removedColors.filter(function(r){ return isObject(r) && isObject(r.color) && typeof r.color.hex === 'string'; });
       base.designDescription = String(base.designDescription || '').slice(0, 500);
 
@@ -2710,7 +2895,6 @@
     document.getElementById('keyword-input').addEventListener('keydown', function(e){
       if (e.key === 'Enter'){ e.preventDefault(); addKeyword(); }
     });
-    onActivate(document.getElementById('upload-dropzone'), function(){ showToast('Uploading your own reference images is not wired yet.'); });
     document.getElementById('find-images-btn').addEventListener('click', findImages);
 
     document.querySelectorAll('.filter-chip').forEach(function(chip){
@@ -2763,6 +2947,8 @@
     document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(5); });
 
     wireDrawer();
+    wireOwn();
+    wirePaste();
     wireProjects();
     bootProjects();
   }

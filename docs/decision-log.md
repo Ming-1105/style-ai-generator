@@ -332,3 +332,16 @@
   than one. A real test with two views gave a comparison and directions for about 0.2 cents.
 - **Note:** this is a contract change (`docs/contract-changes.md`) and touches Person C's `frontend/index.html`; both need the team's
   review.
+
+## 2026-10-19 — Three agreed contract fields are built: skipped images, do/don't rules, coverage (Person B)
+
+- **What:** After the team meeting the three open proposals were applied. `POST /api/dna/extract` also returns `skipped_images`
+  (every selected image that was not analysed, with the reason: could not be downloaded, wrong file type, too large, or beyond the 20
+  most relevant) and `do_dont` (up to 6 design rules; the model is asked to draw each only from the traits it found, and
+  incomplete pairs are dropped in code). `POST /api/compare` also returns `coverage`, computed by the same function as before.
+  Contract, fixtures and tests are updated together.
+- **Why:** The designer should know what the traits are based on (a trait seen in 3 images is weaker when 4 more images were never
+  analysed), the House Style Package had an empty "do/don't" section no endpoint filled, and the fit should always be read together
+  with how much of the importance could be judged, computed once instead of in every screen.
+- **Seen on real images:** 12 screenshots gave 3 do/don't pairs, each matching a found trait; two images that could not be
+  downloaded were reported with their reasons while the other 12 still produced traits.

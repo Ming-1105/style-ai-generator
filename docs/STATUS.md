@@ -53,6 +53,9 @@ If you need something from another folder, add a note under that owner's "Needs 
     images, extraction, editing the traits, a design and the comparison on one screen, with the running cost. Developer tool.
   - Several views of the design (branch `ai-core/design-views`): optional `additional_design_images` (up to 3) on `/api/compare`;
     all views go to the model as one design. Contract change, see `docs/contract-changes.md`.
+  - Agreed contract fields (branch `contract/agreed-fields`): `/api/dna/extract` returns `skipped_images` (selected images that could not be
+    analysed, with the reason) and `do_dont` (rules drawn from the traits); `/api/compare` returns `coverage`. In `AGENTS.md`,
+    `contracts/models.py` and the fixtures.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
   `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `ai-core/cost-controls`, `docs/timeline`,
@@ -71,6 +74,11 @@ If you need something from another folder, add a note under that owner's "Needs 
   of each file; `--detail`, `--runs`, `--references` options). Tests: `python -m unittest discover -s backend/ai_core/tests -t .`
 
 ## C — Interface (`/frontend/`)
+
+- **Needs from C (agreed in the team meeting, 2026-10-19):** `/api/dna/extract` now returns `do_dont` (use it for the package's do/don't
+  rules instead of `[]`) and `skipped_images` (show something like "2 images could not be analysed: img_13 (could not be downloaded)"
+  next to the extraction result). `/api/compare` now returns `coverage` (already used when present). The fixtures contain an example of
+  each, so mock mode shows them.
 
 - **Changed by B at the designer's request (2026-10-19), please review:** `frontend/index.html` now lets the designer add up to 3 more views of
   the design (step 4 and the Compare screen) and sends them as `additional_design_images`; first image stays `design_image`. A refused

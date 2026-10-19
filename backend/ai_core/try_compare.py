@@ -6,6 +6,7 @@ First make a package (traits from your reference images), then compare a design 
     python -m backend.ai_core.try_compare local_test_images/pkg.json local_test_images/my_design.png
 
 Options:
+    --also IMAGE..  more views of the same design (side, back, ...), up to 3
     --runs 3        compare 3 times and show how much each score moves (each run is one API request)
     --model NAME    overrides VISION_MODEL from .env
     --importance tr_01=30 tr_02=0   change the designer's importance values for this run
@@ -83,6 +84,8 @@ def main(argv: list[str]) -> None:
     parser = argparse.ArgumentParser(description="Try design comparison on a real image.")
     parser.add_argument("package", help="House Style Package JSON (from try_extract --save-package)")
     parser.add_argument("design", help="design image: file path or web address")
+    parser.add_argument("--also", nargs="*", default=[], metavar="IMAGE",
+                        help="more views of the same design (side, back, ...), up to 3: file paths or web addresses")
     parser.add_argument("--runs", type=int, default=1)
     parser.add_argument("--references", metavar="FOLDER",
                         help="folder with the reference images the package was extracted from, in the same "
@@ -116,12 +119,13 @@ def main(argv: list[str]) -> None:
         reference_images = build_candidates([str(f) for f in files])
         print(f"Sending {len(files)} reference images from {args.references} along")
     design = design_as_url(args.design)
+    more_views = [design_as_url(source) for source in args.also]
     print(f"\nModel: {os.getenv('VISION_PROVIDER')} / {os.getenv('VISION_MODEL') or '(default)'}")
     results = []
     for number in range(1, args.runs + 1):
         started = time.time()
         try:
-            results.append(compare_design(package, design, reference_images=reference_images))
+            results.append(compare_design(package, design, reference_images=reference_images, additional_design_images=more_views))
         except AiCoreError as problem:
             print(f"run {number}/{args.runs}: FAILED ({problem.code}): {problem.message}")
             break

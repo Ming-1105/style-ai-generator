@@ -117,11 +117,13 @@
 
   <div class="card off" id="c3">
     <h2>3. Your design</h2>
-    <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Design image">
+    <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple aria-label="Design images">
+    <span class="muted" style="font-size:12px;">Choose 1 to 4 images: the first is the main view, the others are more views of the same design (side, back, …).</span>
     <details style="margin-top:8px;"><summary class="muted">or an image address</summary>
       <input type="text" id="design-url" style="width:100%; margin-top:6px;" placeholder="https://…/design.png">
     </details>
     <img id="preview" class="preview" alt="Your design" hidden>
+    <div id="design-extra" class="thumbs"></div>
     <div class="row" style="margin-top:12px;">
       <button id="compare" class="primary" type="button" disabled>Compare with the brand</button>
       <label style="font-size:12.5px;"><input type="checkbox" id="send-refs" checked> send the reference images along</label>
@@ -166,6 +168,8 @@ const MAX_SIDE = 1600;       // reference images and the design are shrunk in th
 let images = [];             // {id, name, shown, send, included}
 let extraction = null;       // {traits, tone_words, colors}
 let designSend = null, designShown = null;
+let extraViews = [];         // more views of the same design (additional_design_images)
+const MAX_DESIGN_VIEWS = 4;  // the main design plus 3 more
 let sentImportance = {};
 
 // Model output is untrusted text, so everything below uses textContent, never innerHTML.
@@ -346,9 +350,17 @@ $("download-pkg").addEventListener("click", () => {
 // ---------- step 3: the design ----------
 function updateCompareButton() { $("compare").disabled = !(extraction && extraction.traits.length && (designSend || $("design-url").value.trim())); }
 $("design-file").addEventListener("change", async (event) => {
-  const file = event.target.files[0]; if (!file) return;
-  try { designSend = designShown = await toShrunkDataUrl(file); $("preview").src = designShown; $("preview").hidden = false; showError("compare-error", ""); }
-  catch (problem) { showError("compare-error", problem.message); }
+  const files = [...event.target.files].slice(0, MAX_DESIGN_VIEWS); if (!files.length) return;
+  showError("compare-error", "");
+  try {
+    const urls = [];
+    for (const file of files) urls.push(await toShrunkDataUrl(file));
+    designSend = designShown = urls[0]; extraViews = urls.slice(1);
+    $("preview").src = designShown; $("preview").hidden = false;
+    const box = $("design-extra"); box.replaceChildren();
+    extraViews.forEach((url, i) => { const pic = el("img", "preview"); pic.src = url; pic.alt = `View ${i + 2}`; pic.style.maxWidth = "120px"; pic.style.maxHeight = "90px"; box.append(pic); });
+    if (event.target.files.length > MAX_DESIGN_VIEWS) showError("compare-error", `Only the first ${MAX_DESIGN_VIEWS} images are used (the design plus ${MAX_DESIGN_VIEWS - 1} more views).`);
+  } catch (problem) { showError("compare-error", problem.message); }
   updateCompareButton();
 });
 $("design-url").addEventListener("input", () => {
@@ -376,9 +388,11 @@ $("compare").addEventListener("click", async () => {
   const cited = new Set(pkg.traits.flatMap((t) => t.evidence_image_ids));
   const refs = $("send-refs").checked ? images.filter((i) => cited.has(i.id) && i.included).map(candidate) : [];
   try {
-    const result = await post("/api/compare", { package: pkg, design_image: designSend || $("design-url").value.trim(), reference_images: refs });
+    const main = designSend || $("design-url").value.trim();
+    const more = main === designSend ? extraViews : [];
+    const result = await post("/api/compare", { package: pkg, design_image: main, additional_design_images: more, reference_images: refs });
     render(result, pkg);
-    $("compare-status").textContent = `Done in ${((performance.now() - started) / 1000).toFixed(1)} s${refs.length ? `, with ${refs.length} reference images` : ""}.`;
+    $("compare-status").textContent = `Done in ${((performance.now() - started) / 1000).toFixed(1)} s${more.length ? `, ${more.length + 1} design views` : ""}${refs.length ? `, with ${refs.length} reference images` : ""}.`;
   } catch (problem) { $("compare-status").textContent = ""; showError("compare-error", problem.message); }
   finally { updateCompareButton(); refreshStatus(); }
 });

@@ -114,6 +114,25 @@
   is to run extraction 3 times and show "found in 3/3 runs" next to each trait; it costs 3x the
   API calls, so it needs the team's agreement.
 
+## 2026-10-07 — The interface only shows what the API returned (Person C)
+
+- **What:** Milestone 1 replaced all hard-coded mockup data with the three API calls. Where the
+  mockup showed things the contract does not provide, the interface now leaves them out instead of
+  inventing them: no image captions (shows id, source type and domain instead), no hand-placed pins
+  on the design, no sketched variant per direction (only `image_url` when the API sends one), no
+  do/don't rules (none returned yet — proposed in contract-changes.md).
+- **Why:** "the AI measures and suggests, the designer decides" only works if what the designer
+  sees is what the AI actually produced. Departures whose traits all have importance 0 are shown
+  greyed out, as agreed with B.
+
+## 2026-10-07 — Interface: failures stay visible (milestone 2)
+- **What:** API errors are shown inline in the step with a retry button, and empty AI/search results are treated as an error with advice. The overall fit explains how many traits were left out or low confidence.
+- **Why:** The core principle is that the AI must report honestly when it cannot judge. A toast disappears and an empty screen looks like a bug; designers need to see what failed and why.
+
+## 2026-10-19 — Interface: designs are shrunk in the browser before comparison (milestone 4)
+- **What:** Uploaded designs are limited to 15 MB and downscaled to at most 1600 px (JPEG) before being sent to `/api/compare` as a data URL.
+- **Why:** Vision models do not need full-resolution files, and a small payload keeps the comparison fast and avoids request-size errors. The designer still sees their original-looking image in the preview.
+
 ## 2026-10-07 — Comparison: the model judges, the code decides everything else (Person B)
 
 - **What:** `POST /api/compare` sends the design image and each trait's name and description to the

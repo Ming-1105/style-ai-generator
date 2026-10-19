@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" role="img" aria-label="Sample design: car front with round lamps and an offset stripe">
+  <rect width="200" height="100" fill="#EEF0EC"/>
+  <path d="M22,92 L28,48 Q55,12 100,12 Q145,12 172,48 L178,92 Z" fill="none" stroke="#1B2024" stroke-width="2"/>
+  <circle cx="52" cy="56" r="11" fill="none" stroke="#1B2024" stroke-width="2.5"/>
+  <circle cx="148" cy="56" r="11" fill="none" stroke="#1B2024" stroke-width="2.5"/>
+  <rect x="74" y="8" width="6" height="44" fill="#2447C4"/>
+  <rect x="83" y="8" width="3" height="44" fill="#2447C4"/>
+  <path d="M100,59 L108,62 L108,70 Q108,77 100,80 Q92,77 92,70 L92,62 Z" fill="none" stroke="#1B2024" stroke-width="1.2"/>
+</svg>

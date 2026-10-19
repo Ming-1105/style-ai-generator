@@ -52,11 +52,34 @@ If you need something from another folder, add a note under that owner's "Needs 
 
 ## C — Interface (`/frontend/`)
 
-- **Done:**
-- **In progress:**
+- **Done:** Milestone 1 (branch `ui/api-wiring`) — `frontend/index.html` no longer has hard-coded
+  data. One `state` object (brand, candidates, traits, tone words, colors, package, compare result)
+  and every screen renders from it. Brand → `POST /api/sources/search`, Sources →
+  `POST /api/dna/extract` with the included images, Lock builds the `HouseStylePackage` client-side,
+  Compare → `POST /api/compare`. Until upload exists, Compare sends a bundled sample sketch
+  (`frontend/static/sample/design_sample.svg`) as a data URL. Departures whose traits all have
+  importance 0 are greyed out (hide control comes in milestone 3). API errors show `error.message`
+  in a toast. Re-running an earlier step locks the later ones again.
+- **Done (milestone 2):** loading state on all three API calls (spinner + seconds counter). Errors now
+  stay in the step as an inline box with `error.message` and a "Try again" button (they used to be a
+  toast that vanished). Empty results (0 candidates, 0 traits) are shown as a clear message instead of
+  an empty screen. Honest display: `confidence: null` shows "not rated", and the overall fit shows a
+  note when traits were left out (`not_assessable`) or scored with low confidence. Broken images hide
+  instead of showing the browser's broken icon.
+- **Done (milestone 3):** greyed-out departures (all linked traits importance 0) have a Hide button;
+  hidden ones leave the list and a "N hidden — show" toggle brings them back. Frontend only, nothing
+  sent to the backend. Resets when sources, DNA, package or compare change.
+- **Done (milestone 4):** design upload. Step 4 has a drop/click area for the designer's own image
+  (PNG/JPG/WebP/GIF, max 15 MB, preview shown); "Replace design" on the Compare screen uploads and
+  re-compares at once. Images over 1600 px on the long side are shrunk to JPEG in the browser before
+  being sent as a data URL in `design_image`. Wrong file types and unreadable images give a clear
+  message. With no upload, the bundled sample sketch is still used and labelled as such.
+- **Done (after merging main):** Compare now sends `reference_images` (the evidence images of the traits, each once), as B's contract change requires.
+- **In progress:** nothing planned yet; milestone 5 not defined.
 - **Blocked:**
-- **Needs from others:** from B (agreed with the designer on 2026-10-07) — departures of traits whose
-  importance is 0:
+- **Needs from others:** B — no endpoint returns `do_dont`; proposal in `docs/contract-changes.md`.
+- **Request from B** (agreed with the designer on 2026-10-07; greying and hide control done) —
+  departures of traits whose importance is 0:
   - `/api/compare` keeps listing them. Each departure has `trait_ids`; look those up in the package
     you sent. If every linked trait has `importance` 0, show the departure **greyed out**.
   - Give the designer a control to **hide** (deselect) such departures, so the list can be reduced to

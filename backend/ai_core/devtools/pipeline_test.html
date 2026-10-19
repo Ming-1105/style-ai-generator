@@ -102,6 +102,10 @@
       <span id="extract-status" class="muted mono"></span>
     </div>
     <div id="extract-error" class="error" role="alert" hidden></div>
+    <details style="margin-top:10px;"><summary class="muted">or load a saved package (skips the extraction)</summary>
+      <p class="note" style="margin:6px 0;">A package you downloaded earlier with "Download package JSON", or made with try_extract. Reference images are not stored in it: add the same images above, in the same order, if you want them sent along with the comparison.</p>
+      <input type="file" id="pkg-file" accept=".json,application/json" aria-label="Saved package JSON">
+    </details>
   </div>
 
   <div class="card off" id="c2">
@@ -169,7 +173,13 @@ function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.
 function showError(id, message) { const b = $(id); b.hidden = !message; b.textContent = message || ""; }
 
 async function post(path, body) {
-  const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let response;
+  try {
+    response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch {
+    // The browser could not reach the server at all (it was stopped, restarted, or this page came from a server that is gone).
+    throw new Error("Cannot reach the server. Is it still running? Start it from the project folder with: python -m uvicorn backend.main:app --reload   then open this page again from the address it shows (usually http://localhost:8000/api/dev/pipeline). Tip: use Download package JSON first, then load it again after a restart.");
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error?.message || `The server answered with error ${response.status}.`);
   return data;
@@ -261,6 +271,22 @@ $("extract").addEventListener("click", async () => {
     $("extract-status").textContent = `Done in ${((performance.now() - started) / 1000).toFixed(1)} s: ${extraction.traits.length} traits.`;
   } catch (problem) { $("extract-status").textContent = ""; showError("extract-error", problem.message); }
   finally { renderThumbs(); refreshStatus(); }
+});
+
+$("pkg-file").addEventListener("change", async (event) => {
+  const file = event.target.files[0]; if (!file) return;
+  showError("extract-error", "");
+  try {
+    const pkg = JSON.parse(await file.text());
+    if (!Array.isArray(pkg.traits) || !pkg.traits.length) throw new Error("That file has no traits.");
+    extraction = { traits: pkg.traits, tone_words: pkg.tone_words || [], colors: pkg.colors || [] };
+    $("brand-name").value = pkg.brand?.name || ""; $("brand-category").value = pkg.brand?.category || "";
+    $("brand-keywords").value = (pkg.brand?.keywords || []).join(", ");
+    renderTraits();
+    $("c2").classList.remove("off"); $("c3").classList.remove("off");
+    $("extract-status").textContent = `Loaded ${pkg.traits.length} traits from ${file.name}.`;
+  } catch (problem) { showError("extract-error", problem instanceof SyntaxError ? "That file could not be read as JSON." : problem.message); }
+  event.target.value = "";
 });
 
 function imageFor(id) { return images.find((i) => i.id === id); }

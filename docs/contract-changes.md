@@ -2,6 +2,7 @@
 
 ## Proposal (Person B, 2026-10-07): tell the designer which images were skipped
 
+- **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).
 - **What:** add an optional `skipped_images: [{ "id": "img_07", "reason": "could not be downloaded" }]`
   to the response of `POST /api/dna/extract`.
 - **Why:** extraction skips images it cannot download. Today that is only written to the server
@@ -10,6 +11,7 @@
 
 ## Proposal (Person C, 2026-10-07): return do/don't rules from extraction
 
+- **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).
 - **What:** add an optional `do_dont: [{ "do": "…", "dont": "…" }]` to the response of
   `POST /api/dna/extract`, next to `tone_words` and `colors`.
 - **Why:** `HouseStylePackage.do_dont` exists and the House style screen has a "Form language"
@@ -72,6 +74,7 @@
 
 ## Proposal (Person B, 2026-10-14): `coverage` on the compare result
 
+- **Status:** agreed by all three of us in the team meeting of 2026-10-19 and applied in `AGENTS.md`, `contracts/models.py`, the fixtures and the AI core (pull request `contract/agreed-fields`).
 - **What:** add an optional integer `coverage` (0-100, or `null`) to `CompareResult`: the share of the
   designer's total trait importance that could be judged (traits with status `ok` or `low_confidence`, weighed by
   importance, divided by the importance of all traits). `scoring.coverage` in `backend/ai_core/scoring.py`

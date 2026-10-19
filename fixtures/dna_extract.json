@@ -112,5 +112,25 @@
       "name": "White",
       "hex": "#FFFFFF"
     }
+  ],
+  "do_dont": [
+    {
+      "do": "Taper light graphics to a point",
+      "dont": "Round or oval lamp shapes"
+    },
+    {
+      "do": "Keep the body graphite or silver with one signal accent",
+      "dont": "Multiple bright accent colors on one surface"
+    },
+    {
+      "do": "One crisp crease along the shoulder",
+      "dont": "Several soft, blended character lines"
+    }
+  ],
+  "skipped_images": [
+    {
+      "id": "img_14",
+      "reason": "could not be downloaded"
+    }
   ]
 }

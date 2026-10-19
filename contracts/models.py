@@ -101,6 +101,7 @@ class CompareResult(BaseModel):
     matches: list[Finding] = []
     departures: list[Finding] = []
     directions: list[Direction] = []
+    coverage: Optional[int] = Field(default=None, ge=0, le=100)  # % of the total importance that could be judged
 
 
 # ---------- API request / response bodies ----------
@@ -118,10 +119,19 @@ class ExtractRequest(BaseModel):
     images: list[ImageCandidate]
 
 
+class SkippedImage(BaseModel):
+    """An image that was selected but not analysed, and why. Shown to the designer."""
+
+    id: str
+    reason: str
+
+
 class ExtractResponse(BaseModel):
     traits: list[Trait]
     tone_words: list[str] = []
     colors: list[Color] = []
+    do_dont: list[DoDont] = []  # design rules drawn from the traits (optional)
+    skipped_images: list[SkippedImage] = []  # selected images that could not be analysed (optional)
 
 
 class CompareRequest(BaseModel):

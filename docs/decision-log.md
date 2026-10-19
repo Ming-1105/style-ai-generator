@@ -253,3 +253,7 @@
 - **Side result for the report:** on the same sketch the larger Flash model scored the perforation trait 60 where
   Flash-Lite scored 30 (overall fit 67 against 52, both based on 39% of the importance), so the choice of model
   moves the numbers more than the settings above do.
+
+## 2026-10-19 — Interface: the fit is always shown with its coverage (Person C)
+- **What:** The overall fit is shown as "based on N% of the importance", with a warning under 50%. Traits that could not be judged are listed separately instead of as empty score rows.
+- **Why:** A fit of 45 from 39% of the importance means something different from 45 from 100%. The designer should not read a confident-looking number that rests on a few traits. The 50% warning threshold is our own choice for the demo.

@@ -294,7 +294,7 @@
   .mini-thumb svg{width:80%; height:80%;}
 
   /* compare */
-  .fit-score{display:flex; align-items:center; justify-content:center; width:112px; height:112px; border-radius:50%; border:6px solid var(--line); background:var(--field); font-family:var(--font-mono); font-size:30px; font-weight:500; color:var(--ink); line-height:1;}
+  .fit-score{display:flex; align-items:center; justify-content:center; width:152px; height:152px; border-radius:50%; border:8px solid var(--line); background:var(--field); font-family:var(--font-mono); font-size:42px; font-weight:500; color:var(--ink); line-height:1;}
   .fit-score.level-good{border-color:var(--positive); background:var(--field);} .fit-score.level-warn{border-color:var(--accent); background:var(--field);} .fit-score.level-bad{border-color:var(--danger); background:var(--field);}
   .fit-level{display:block; margin:6px 0 8px; font-size:11px; color:var(--muted);}
   .fit-label{display:block; font-family:var(--font-mono); font-size:10.5px; text-transform:lowercase; letter-spacing:.04em; color:var(--muted); margin-bottom:8px;}
@@ -304,8 +304,10 @@
   .sketch-wrap svg{width:100%; height:auto; display:block; color:var(--ink);}
   .pin{position:absolute; width:22px; height:22px; border-radius:50%; background:var(--accent); color:var(--ink); border:1px solid var(--ink); font-family:var(--font-mono); font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; transform:translate(-50%,-50%);}
   .pin:hover{background:var(--accent-strong); color:var(--field);}
-  .score-rows{display:flex; flex-direction:column; gap:10px; margin:14px 0 20px;}
-  .score-row{display:grid; grid-template-columns:180px 1fr 124px; align-items:center; gap:10px; border-radius:3px; padding:4px 6px; transition:background .3s;}
+  .fit-row{display:flex; flex-wrap:wrap; gap:24px 32px; align-items:center; margin-top:4px;}
+  .fit-dial{flex:0 0 auto;}
+  .score-rows{display:flex; flex-direction:column; gap:6px; margin:0; flex:1 1 320px; max-width:540px; min-width:0;}
+  .score-row{display:grid; grid-template-columns:minmax(140px,220px) 80px 112px; align-items:center; gap:10px; border-radius:3px; padding:4px 6px; transition:background .3s;}
   .score-row.flash{background:var(--surface);}
   .score-name{font-size:12.5px;}
   .score-bar{height:8px; background:var(--surface); border:1px solid var(--line); border-radius:4px; overflow:hidden;}
@@ -671,11 +673,15 @@
 
       <div class="compare-layout">
         <div>
-          <span class="fit-label">Overall fit</span>
-          <div class="fit-score mono" id="fit-score">—</div>
-          <span class="mono fit-level" id="fit-level"></span>
-          <p class="mono muted" id="fit-note" style="font-size:11.5px;" hidden></p>
-          <div class="score-rows" id="score-rows"></div>
+          <div class="fit-row">
+            <div class="fit-dial">
+              <span class="fit-label">Overall fit</span>
+              <div class="fit-score mono" id="fit-score">—</div>
+              <span class="mono fit-level" id="fit-level"></span>
+            </div>
+            <div class="score-rows" id="score-rows"></div>
+          </div>
+          <p class="mono muted" id="fit-note" style="font-size:11.5px;margin-top:12px;" hidden></p>
 
           <div class="compare-columns">
             <div>

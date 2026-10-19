@@ -462,12 +462,27 @@
         </div>
         <div class="field">
           <label for="brand-category">Category</label>
-          <select id="brand-category">
-            <option value="automotive">Automotive</option>
-            <option value="electronics">Consumer electronics</option>
-            <option value="furniture">Furniture</option>
-            <option value="footwear">Footwear</option>
-          </select>
+          <input type="text" id="brand-category" list="category-options" placeholder="Optional: pick one or type your own" autocomplete="off">
+          <datalist id="category-options">
+            <option value="Automotive"></option>
+            <option value="Bicycles and mobility"></option>
+            <option value="Consumer electronics"></option>
+            <option value="Home appliances"></option>
+            <option value="Furniture"></option>
+            <option value="Lighting"></option>
+            <option value="Footwear"></option>
+            <option value="Fashion and apparel"></option>
+            <option value="Bags and accessories"></option>
+            <option value="Watches and jewellery"></option>
+            <option value="Cosmetics and personal care"></option>
+            <option value="Food and beverage"></option>
+            <option value="Packaging"></option>
+            <option value="Toys and games"></option>
+            <option value="Sports and outdoor"></option>
+            <option value="Tools and hardware"></option>
+            <option value="Medical devices"></option>
+            <option value="Audio equipment"></option>
+          </datalist>
         </div>
         <div class="field">
           <label for="brand-website">Official website</label>
@@ -715,18 +730,10 @@
   "use strict";
 
   /* ---------- state: every screen renders from this ---------- */
-  // Pre-filled with the fictional sample brand so the very first project starts quickly;
-  // every project created afterwards starts empty.
-  var SAMPLE_BRAND = {
-    name: 'Acme',
-    category: 'automotive',
-    website: 'acme-auto.example',
-    keywords: ['GT', 'sports car', 'crest', 'headlight'],
-    values: 'Precise and restrained — nothing on the car is there without a reason. Should look fast-looking even when parked, through stance and line rather than decoration.'
-  };
-  function freshState(sample){
+  // Every project starts empty: nothing is pre-filled.
+  function freshState(){
     return {
-      brand: sample ? JSON.parse(JSON.stringify(SAMPLE_BRAND)) : {name: '', category: 'automotive', website: '', keywords: [], values: ''},
+      brand: {name: '', category: '', website: '', keywords: [], values: ''},
       candidates: [],        // ImageCandidate[] from /api/sources/search (designer toggles `included`)
       traits: [],            // Trait[] from /api/dna/extract, edited by the designer
       toneWords: [],         // tone words suggested by the AI
@@ -746,7 +753,7 @@
       designDescription: ''  // a short text about the design, at most 500 characters
     };
   }
-  var state = freshState(true);   // replaced when a project is opened
+  var state = freshState();   // replaced when a project is opened
 
 
   /* ---------- help texts: edit them here, nowhere else ---------- */
@@ -754,7 +761,7 @@
   var HELP = {
     brand_name:   {step: 1, label: 'Brand name', text: 'The brand you want to study. It is used to search for pictures, so spell it the way people write it.'},
     more_info:    {step: 1, label: 'More info', text: 'Only the brand name is needed. Open the menu to add the category, official website, keywords and brand values; they make the picture search more accurate.'},
-    category:     {step: 1, label: 'Category', text: 'The kind of product the brand makes. It helps the search find the right pictures; change it if the results show the wrong kind of product.'},
+    category:     {step: 1, label: 'Category', text: 'The kind of product the brand makes. Optional: pick one from the list, type your own, or leave it empty. It helps the search find the right pictures; change it if the results show the wrong kind of product.'},
     website:      {step: 1, label: 'Official website', text: 'The brand\'s own site. If you fill it in, CopyCat also looks there for pictures, which are usually the most reliable ones. Leave it empty to search the web only.'},
     keywords:     {step: 1, label: 'Keywords', text: 'Extra words that steer the picture search, such as a model name or a part of the product. Add more to narrow the results, remove some to widen them.'},
     values:       {step: 1, label: 'Brand values', text: 'A sentence or two about what the brand stands for. It gives the AI context when it reads the pictures; it does not change which pictures are found.'},
@@ -996,6 +1003,7 @@
   // The extra brand fields live in a menu that slides in from the left.
   function moreInfoCount(){
     var b = state.brand, n = 0;
+    if (b.category) n++;
     if (b.website) n++;
     if (b.keywords.length) n++;
     if (b.values) n++;
@@ -1032,6 +1040,9 @@
     });
     document.getElementById('brand-name').addEventListener('keydown', function(e){
       if (e.key === 'Enter'){ e.preventDefault(); findImages(); }
+    });
+    document.getElementById('brand-category').addEventListener('click', function(){
+      try { if (!this.value && this.showPicker) this.showPicker(); } catch (e){}   // list of suggestions; typing your own or leaving it empty is fine
     });
   }
   function renderBrand(){
@@ -2153,13 +2164,13 @@
 
   function normaliseProject(rec){
     try {
-      var base = freshState(false);
+      var base = freshState();
       var data = rec && isObject(rec.data) ? rec.data : {};
       var s = isObject(data.state) ? data.state : {};
       Object.keys(base).forEach(function(k){
         if (s[k] !== undefined && sameKind(s[k], base[k])) base[k] = s[k];
       });
-      var model = freshState(false).brand, b = isObject(s.brand) ? s.brand : {};
+      var model = freshState().brand, b = isObject(s.brand) ? s.brand : {};
       Object.keys(model).forEach(function(k){ base.brand[k] = sameKind(b[k], model[k]) ? b[k] : model[k]; });
       base.brand.keywords = strings(base.brand.keywords);
 
@@ -2235,7 +2246,7 @@
       base.traits.forEach(function(tr){ var m = /^tr_m(\d+)$/.exec(tr.id); if (m) counter = Math.max(counter, parseInt(m[1], 10)); });
       return {state: base, currentStep: step, maxReached: reached, currentFilter: typeof data.currentFilter === 'string' ? data.currentFilter : 'all', manualCounter: counter};
     } catch (e){
-      return {state: freshState(false), currentStep: 1, maxReached: 1, currentFilter: 'all', manualCounter: 0};
+      return {state: freshState(), currentStep: 1, maxReached: 1, currentFilter: 'all', manualCounter: 0};
     }
   }
 
@@ -2288,7 +2299,7 @@
   function newEmptyRecord(name, autoName){
     var now = new Date().toISOString();
     return {id: newProjectId(), name: name, autoName: autoName, schemaVersion: SCHEMA_VERSION, createdAt: now, updatedAt: now,
-            data: {state: freshState(false), currentStep: 1, maxReached: 1, currentFilter: 'all'}};
+            data: {state: freshState(), currentStep: 1, maxReached: 1, currentFilter: 'all'}};
   }
   function newProject(){
     if (busy()) return;

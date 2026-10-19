@@ -40,6 +40,26 @@
   .field textarea{width:100%; min-height:64px; resize:vertical;}
   .field input[type=text]{width:100%;}
 
+  /* projects */
+  .proj{position:relative; margin-left:auto;}
+  .proj-trigger{display:inline-flex; align-items:center; gap:8px; background:var(--field); border:1px solid var(--ink); border-radius:var(--radius); padding:6px 12px; color:var(--ink); max-width:260px;}
+  .proj-trigger b{font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .proj-menu{position:absolute; right:0; top:calc(100% + 4px); z-index:60; width:300px; max-width:calc(100vw - 32px); background:var(--bg); border:1px solid var(--ink); border-radius:var(--radius); padding:8px;}
+  .proj-list{list-style:none; margin:0 0 8px; padding:0; max-height:240px; overflow-y:auto;}
+  .proj-item{display:flex; justify-content:space-between; gap:8px; width:100%; text-align:left; background:none; border:none; border-radius:var(--radius); padding:8px; color:var(--ink);}
+  .proj-item:hover{background:var(--surface);}
+  .proj-item[aria-current="true"]{background:var(--surface); font-weight:500;}
+  .proj-item-name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .proj-actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--line); padding-top:8px;}
+  .proj-actions button{padding:6px 8px; font-size:12px;}
+  .save-state{font-size:11px; color:var(--muted); min-width:84px;}
+  .save-state.unsaved{color:var(--danger-ink);}
+  dialog{border:1px solid var(--ink); border-radius:var(--radius); background:var(--bg); color:var(--ink); padding:24px; width:calc(100% - 32px); max-width:420px;}
+  dialog::backdrop{background:rgba(42,40,37,.5);}
+  dialog input[type=text]{width:100%; margin-top:8px;}
+  .btn-danger{background:var(--danger); color:var(--field);}
+  @media (max-width:760px){ .topbar{flex-wrap:wrap; gap:8px 12px; padding:12px 16px;} .proj{margin-left:0;} .save-state{min-width:0;} }
+
   /* learn more */
   .help{margin:0 0 24px; max-width:640px;}
   .help-toggle{display:inline-flex; align-items:center; gap:8px; background:none; border:none; padding:4px 0; font-family:var(--font-mono); font-size:11.5px; color:var(--ink); text-transform:lowercase; letter-spacing:.04em;}
@@ -56,8 +76,6 @@
   .topbar{grid-area:header; display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid var(--line); background:var(--bg);}
   .wordmark{font-family:var(--font-heading); font-weight:700; font-size:18px; letter-spacing:.02em;}
   .proto-tag{font-family:var(--font-mono); font-size:10px; text-transform:lowercase; letter-spacing:.04em; color:var(--muted); border:1px solid var(--line); border-radius:3px; padding:2px 7px;}
-  .project-name{margin-left:auto; font-family:var(--font-mono); font-size:12px; color:var(--muted);}
-  .project-name b{color:var(--ink); font-weight:500;}
 
   .step-rail{grid-area:rail; border-right:1px solid var(--line); padding:16px 0; background:var(--bg);}
   .step-btn{display:grid; grid-template-columns:28px 1fr; column-gap:12px; align-items:center; width:100%; text-align:left; background:none; border:none; border-left:3px solid transparent; padding:12px 16px; color:var(--ink);}
@@ -269,7 +287,23 @@
   <header class="topbar">
     <span class="wordmark">CopyCat</span>
     <span class="proto-tag">Prototype</span>
-    <span class="project-name">Project: <b id="project-name">—</b></span>
+    <div class="proj">
+      <button type="button" class="proj-trigger" id="proj-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="proj-menu">
+        <span class="label-mono" style="display:inline;margin:0;">project</span><b id="project-name">—</b><span aria-hidden="true">▾</span>
+      </button>
+      <div class="proj-menu" id="proj-menu" hidden>
+        <ul class="proj-list" id="proj-list"></ul>
+        <div class="proj-actions">
+          <button type="button" class="btn-secondary" data-proj-action="new">New project</button>
+          <button type="button" class="btn-secondary" data-proj-action="rename">Rename</button>
+          <button type="button" class="btn-secondary" data-proj-action="duplicate">Duplicate</button>
+          <button type="button" class="btn-secondary" data-proj-action="delete">Delete</button>
+          <button type="button" class="btn-secondary" data-proj-action="export">Export project</button>
+          <button type="button" class="btn-secondary" data-proj-action="import">Import project</button>
+        </div>
+      </div>
+    </div>
+    <span class="save-state mono" id="save-state" role="status" aria-live="polite"></span>
   </header>
 
   <nav class="step-rail" id="step-rail" aria-label="Workflow steps"></nav>
@@ -477,36 +511,55 @@
 
 <div id="toast-container" aria-live="polite"></div>
 
+<input type="file" id="project-import-file" accept="application/json,.json" hidden>
+<dialog id="dialog" aria-labelledby="dialog-title">
+  <form id="dialog-form">
+    <h2 id="dialog-title"></h2>
+    <p id="dialog-text" class="muted"></p>
+    <input type="text" id="dialog-input" aria-labelledby="dialog-title" hidden>
+    <div class="btn-row">
+      <button type="button" class="btn-secondary" id="dialog-cancel">Cancel</button>
+      <button type="submit" class="btn-primary" id="dialog-ok">OK</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 (function(){
   "use strict";
 
   /* ---------- state: every screen renders from this ---------- */
-  var state = {
-    // Pre-filled with the fictional sample brand so the demo starts quickly; the designer edits it.
-    brand: {
-      name: 'Acme',
-      category: 'automotive',
-      website: 'acme-auto.example',
-      keywords: ['GT', 'sports car', 'crest', 'headlight'],
-      values: 'Precise and restrained — nothing on the car is there without a reason. Should look fast-looking even when parked, through stance and line rather than decoration.'
-    },
-    candidates: [],        // ImageCandidate[] from /api/sources/search (designer toggles `included`)
-    traits: [],            // Trait[] from /api/dna/extract, edited by the designer
-    toneWords: [],         // tone words suggested by the AI
-    selectedTones: [],     // the ones the designer keeps
-    colors: [],            // Color[] from /api/dna/extract
-    doDont: [],            // { do, dont }[] from /api/dna/extract; the designer can remove rules
-    skippedImages: [],     // { id, reason }[] from /api/dna/extract: selected images that were not analysed
-    extractedFrom: 0,      // number of included images sent to extraction
-    package: null,         // HouseStylePackage, built when the designer locks the style
-    design: null,          // { dataUrl, label } — the main view of the design sent to /api/compare
-    moreDesigns: [],       // up to 3 more views of the same design (additional_design_images)
-    compare: null,         // CompareResult from /api/compare
-    hiddenDeparts: {},     // departure text -> true, for departures the designer hid
-    showHidden: false,
-    directionStatus: {}    // direction id → 'accepted' | 'rejected'
+  // Pre-filled with the fictional sample brand so the very first project starts quickly;
+  // every project created afterwards starts empty.
+  var SAMPLE_BRAND = {
+    name: 'Acme',
+    category: 'automotive',
+    website: 'acme-auto.example',
+    keywords: ['GT', 'sports car', 'crest', 'headlight'],
+    values: 'Precise and restrained — nothing on the car is there without a reason. Should look fast-looking even when parked, through stance and line rather than decoration.'
   };
+  function freshState(sample){
+    return {
+      brand: sample ? JSON.parse(JSON.stringify(SAMPLE_BRAND)) : {name: '', category: 'automotive', website: '', keywords: [], values: ''},
+      candidates: [],        // ImageCandidate[] from /api/sources/search (designer toggles `included`)
+      traits: [],            // Trait[] from /api/dna/extract, edited by the designer
+      toneWords: [],         // tone words suggested by the AI
+      selectedTones: [],     // the ones the designer keeps
+      colors: [],            // Color[] from /api/dna/extract
+      doDont: [],            // { do, dont }[] from /api/dna/extract; the designer can remove rules
+      skippedImages: [],     // { id, reason }[] from /api/dna/extract: selected images that were not analysed
+      extractedFrom: 0,      // number of included images sent to extraction
+      package: null,         // HouseStylePackage, built when the designer locks the style
+      design: null,          // { dataUrl, label } — the main view of the design sent to /api/compare
+      moreDesigns: [],       // up to 3 more views of the same design (additional_design_images)
+      compare: null,         // CompareResult from /api/compare
+      hiddenDeparts: {},     // departure text -> true, for departures the designer hid
+      showHidden: false,
+      directionStatus: {}    // direction id → 'accepted' | 'rejected'
+    };
+  }
+  var state = freshState(true);   // replaced when a project is opened
+
 
   /* ---------- help texts: edit them here, nowhere else ---------- */
   // One entry per option the designer can change. `step` says under which tab it is shown.
@@ -516,6 +569,7 @@
     website:      {step: 1, label: 'Official website', text: 'The brand\'s own site. If you fill it in, CopyCat also looks there for pictures, which are usually the most reliable ones. Leave it empty to search the web only.'},
     keywords:     {step: 1, label: 'Keywords', text: 'Extra words that steer the picture search, such as a model name or a part of the product. Add more to narrow the results, remove some to widen them.'},
     values:       {step: 1, label: 'Brand values', text: 'A sentence or two about what the brand stands for. It gives the AI context when it reads the pictures; it does not change which pictures are found.'},
+    projects:     {step: 1, label: 'Projects (top of the page)', text: 'Each project keeps its own brand, pictures, traits and designs, and is saved in this browser as you work. Use the project menu to start another one, rename, copy or delete it, or export it as a file to open on another computer.'},
     where:        {step: 1, label: 'Where should the tool look?', text: 'The places CopyCat searches. Switching one off means no pictures are collected from that place.'},
     include:      {step: 2, label: 'Include or leave out an image', text: 'Click a picture to include or leave it out. Only the included pictures are read by the AI, so leave out anything that is not a genuine example of the brand.'},
     flagged:      {step: 2, label: 'Flagged images', text: 'CopyCat flags pictures it doubts, for example very small ones or ones that look AI-made or fan-made. A flag is a warning, not a verdict: you decide whether to keep the picture.'},
@@ -590,7 +644,9 @@
   /* ---------- API ---------- */
   // Every call goes through here. On failure it throws an Error whose message is the
   // API's error.message, which is written for the designer.
+  var pendingRequests = 0;   // projects cannot be switched while a request is running
   function api(path, body){
+    pendingRequests++;
     return fetch(path, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -601,11 +657,12 @@
           var msg = data && data.error && data.error.message;
           throw new Error(msg || ('The server answered with an error (HTTP ' + res.status + ').'));
         }
+        scheduleSave();
         return data;
       });
     }, function(){
       throw new Error('Could not reach the CopyCat server — is it running on localhost:8000?');
-    });
+    }).then(function(data){ pendingRequests--; return data; }, function(err){ pendingRequests--; throw err; });
   }
 
   // Loading: a spinner and a seconds counter, so a slow AI call does not look frozen.
@@ -672,7 +729,6 @@
   }
 
   function renderBrandName(){
-    document.getElementById('project-name').textContent = state.brand.name || '—';
     document.querySelectorAll('.js-brand-name').forEach(function(el){ el.textContent = state.brand.name || 'brand'; });
   }
 
@@ -691,6 +747,7 @@
     showPanel(n);
     renderStepRail();
     window.scrollTo(0, 0);
+    scheduleSave();
   }
   function advanceToStep(n){
     maxReached = n;   // later steps are based on old data, so they lock again
@@ -1468,6 +1525,481 @@
       if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fn(); }
     });
   }
+  /* ---------- projects: several per designer, saved in this browser (IndexedDB) ---------- */
+  // Everything lives in the browser. Only the URLs and metadata of reference images are stored,
+  // never their pixels; the designer's own design may be stored.
+  var SCHEMA_VERSION = 1;
+  var DEFAULT_PROJECT_NAME = 'New project';
+
+  var Store = (function(){
+    var db = null, mem = {}, memMeta = {}, problem = '';
+    function failure(e){
+      problem = (e && (e.name === 'QuotaExceededError' || /quota/i.test(String(e.message || '')))) ? 'full' : 'unavailable';
+    }
+    function run(storeName, mode, action){
+      return new Promise(function(resolve, reject){
+        try {
+          var tx = db.transaction(storeName, mode);
+          var req = action(tx.objectStore(storeName));
+          tx.oncomplete = function(){ resolve(req ? req.result : undefined); };
+          tx.onabort = tx.onerror = function(){ reject(tx.error || new Error('The browser could not complete the storage request.')); };
+        } catch (e){ reject(e); }
+      });
+    }
+    return {
+      problem: function(){ return problem; },
+      open: function(){
+        return new Promise(function(resolve){
+          try {
+            if (!window.indexedDB){ problem = 'unavailable'; resolve(); return; }
+            var req = indexedDB.open('copycat', 1);
+            req.onupgradeneeded = function(){
+              req.result.createObjectStore('projects', {keyPath: 'id'});
+              req.result.createObjectStore('meta', {keyPath: 'key'});
+            };
+            req.onsuccess = function(){ db = req.result; resolve(); };
+            req.onerror = req.onblocked = function(){ problem = 'unavailable'; resolve(); };
+          } catch (e){ problem = 'unavailable'; resolve(); }
+        });
+      },
+      get: function(id){
+        if (mem[id]) return Promise.resolve(mem[id]);
+        if (!db) return Promise.resolve(null);
+        return run('projects', 'readonly', function(s){ return s.get(id); }).then(function(r){ return r || null; }, function(e){ failure(e); return null; });
+      },
+      // Resolves true when the record reached the browser's storage, false when it only lives in memory.
+      put: function(rec){
+        if (!db){ mem[rec.id] = rec; return Promise.resolve(false); }
+        return run('projects', 'readwrite', function(s){ return s.put(rec); }).then(function(){ delete mem[rec.id]; return true; },
+          function(e){ failure(e); mem[rec.id] = rec; return false; });
+      },
+      remove: function(id){
+        delete mem[id];
+        if (!db) return Promise.resolve();
+        return run('projects', 'readwrite', function(s){ return s['delete'](id); }).then(function(){}, function(e){ failure(e); });
+      },
+      all: function(){
+        var fromMem = Object.keys(mem).map(function(k){ return mem[k]; });
+        if (!db) return Promise.resolve(fromMem);
+        return run('projects', 'readonly', function(s){ return s.getAll(); }).then(function(list){
+          return (list || []).filter(function(r){ return !mem[r.id]; }).concat(fromMem);
+        }, function(e){ failure(e); return fromMem; });
+      },
+      getMeta: function(key){
+        if (memMeta.hasOwnProperty(key)) return Promise.resolve(memMeta[key]);
+        if (!db) return Promise.resolve(undefined);
+        return run('meta', 'readonly', function(s){ return s.get(key); }).then(function(r){ return r ? r.value : undefined; }, function(e){ failure(e); return undefined; });
+      },
+      setMeta: function(key, value){
+        if (!db){ memMeta[key] = value; return Promise.resolve(false); }
+        return run('meta', 'readwrite', function(s){ return s.put({key: key, value: value}); }).then(function(){ delete memMeta[key]; return true; },
+          function(e){ failure(e); memMeta[key] = value; return false; });
+      }
+    };
+  })();
+
+  var current = null;          // { id, name, autoName, createdAt } of the open project
+  var projectIndex = [];       // [{ id, name, updatedAt }] for the switcher
+  var projectsReady = false;   // nothing is saved before the stored project has been loaded
+  var lastSavedJson = '';
+  var saveTimer = null;
+  var saveChain = Promise.resolve();
+  var warnedAboutStorage = false;
+
+  function newProjectId(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function setSaveState(kind){
+    var el = document.getElementById('save-state');
+    el.className = 'save-state mono' + (kind === 'unsaved' ? ' unsaved' : '');
+    if (kind === 'saving') el.textContent = 'Saving…';
+    else if (kind === 'saved') el.textContent = 'Saved';
+    else {
+      el.textContent = Store.problem() === 'full' ? 'Not saved — storage full' : 'Not saved';
+      if (!warnedAboutStorage){
+        warnedAboutStorage = true;
+        showToast(Store.problem() === 'full'
+          ? 'This browser has no room left to save your projects. CopyCat keeps working, but your changes are lost when you close the page. Export the project to keep it.'
+          : 'This browser does not allow CopyCat to save projects. CopyCat keeps working, but your changes are lost when you close the page. Export the project to keep it.', {duration: 12000});
+      }
+    }
+  }
+
+  // The part of the working state that is saved. Reference images keep their URLs only.
+  function snapshotData(){
+    if (!document.getElementById('step-panel-1').hidden) readBrandForm();
+    var s = clone(state);
+    s.candidates.forEach(function(c){
+      if (/^data:/i.test(c.url || '')) c.url = '';
+      if (/^data:/i.test(c.thumbnail_url || '')) c.thumbnail_url = '';
+    });
+    return {state: s, currentStep: currentStep, maxReached: maxReached, currentFilter: currentFilter};
+  }
+  function buildRecord(){
+    var data = snapshotData();
+    if (current.autoName && data.state.brand.name) current.name = data.state.brand.name;
+    return {
+      id: current.id, name: current.name, autoName: current.autoName, schemaVersion: SCHEMA_VERSION,
+      createdAt: current.createdAt, updatedAt: new Date().toISOString(), data: data
+    };
+  }
+  function signatureOf(rec){ return JSON.stringify([rec.name, rec.data]); }
+
+  function updateIndexEntry(rec){
+    for (var i = 0; i < projectIndex.length; i++){
+      if (projectIndex[i].id === rec.id){ projectIndex[i].name = rec.name; projectIndex[i].updatedAt = rec.updatedAt; return; }
+    }
+    projectIndex.push({id: rec.id, name: rec.name, updatedAt: rec.updatedAt});
+  }
+
+  function scheduleSave(){
+    if (!projectsReady) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNow, 700);
+  }
+  function saveNow(){
+    clearTimeout(saveTimer);
+    saveChain = saveChain.then(function(){
+      if (!projectsReady || !current) return;
+      var rec = buildRecord();
+      var signature = signatureOf(rec);
+      if (signature === lastSavedJson) return;
+      setSaveState('saving');
+      return Store.put(rec).then(function(persisted){
+        lastSavedJson = signature;
+        updateIndexEntry(rec);
+        return Promise.all([Store.setMeta('index', projectIndex), Store.setMeta('active', rec.id)]).then(function(results){
+          setSaveState(persisted && results[0] && results[1] ? 'saved' : 'unsaved');
+          renderProjectUI();
+        });
+      });
+    }).catch(function(){ setSaveState('unsaved'); });
+    return saveChain;
+  }
+
+  /* --- reading a stored project safely: an old or unknown shape is repaired or replaced, never a crash --- */
+  function isObject(x){ return x !== null && typeof x === 'object' && !Array.isArray(x); }
+  function sameKind(value, model){
+    if (model === null) return value === null || isObject(value);
+    if (Array.isArray(model)) return Array.isArray(value);
+    return value !== null && typeof value === typeof model;
+  }
+  function num(x, fallback){ return typeof x === 'number' && isFinite(x) ? x : fallback; }
+  function strings(list){ return (Array.isArray(list) ? list : []).filter(function(x){ return typeof x === 'string'; }); }
+
+  function normaliseProject(rec){
+    try {
+      var base = freshState(false);
+      var data = rec && isObject(rec.data) ? rec.data : {};
+      var s = isObject(data.state) ? data.state : {};
+      Object.keys(base).forEach(function(k){
+        if (s[k] !== undefined && sameKind(s[k], base[k])) base[k] = s[k];
+      });
+      var model = freshState(false).brand, b = isObject(s.brand) ? s.brand : {};
+      Object.keys(model).forEach(function(k){ base.brand[k] = sameKind(b[k], model[k]) ? b[k] : model[k]; });
+      base.brand.keywords = strings(base.brand.keywords);
+
+      base.candidates = base.candidates.filter(function(c){ return isObject(c) && typeof c.id === 'string' && typeof c.url === 'string'; }).map(function(c){
+        c.thumbnail_url = typeof c.thumbnail_url === 'string' && c.thumbnail_url ? c.thumbnail_url : c.url;
+        c.source_domain = String(c.source_domain || ''); c.source_type = String(c.source_type || 'search'); c.category = String(c.category || 'other');
+        c.relevance = typeof c.relevance === 'number' ? c.relevance : null;
+        c.flagged = c.flagged === true; c.flag_reason = typeof c.flag_reason === 'string' ? c.flag_reason : null; c.included = c.included !== false;
+        return c;
+      });
+      function cleanTrait(t){
+        t.description = String(t.description || '');
+        t.evidence_image_ids = strings(t.evidence_image_ids);
+        t.seen_count = num(t.seen_count, 0);
+        t.confidence = typeof t.confidence === 'number' ? t.confidence : null;
+        t.importance = Math.max(0, Math.min(100, Math.round(num(t.importance, 50))));
+        t.low_confidence = t.low_confidence === true;
+        t.origin = t.origin === 'manual' ? 'manual' : 'ai';
+        return t;
+      }
+      var validTrait = function(t){ return isObject(t) && typeof t.id === 'string' && typeof t.name === 'string'; };
+      base.traits = base.traits.filter(validTrait).map(cleanTrait);
+      base.toneWords = strings(base.toneWords); base.selectedTones = strings(base.selectedTones);
+      base.colors = base.colors.filter(function(c){ return isObject(c) && typeof c.hex === 'string'; }).map(function(c){ c.name = String(c.name || c.hex); return c; });
+      var validRule = function(r){ return isObject(r) && typeof r['do'] === 'string' && typeof r.dont === 'string'; };
+      base.doDont = base.doDont.filter(validRule);
+      base.skippedImages = base.skippedImages.filter(function(x){ return isObject(x) && typeof x.id === 'string'; }).map(function(x){ x.reason = String(x.reason || ''); return x; });
+      base.extractedFrom = num(base.extractedFrom, 0);
+
+      if (base.package){
+        var pkg = base.package;
+        if (Array.isArray(pkg.traits) && Array.isArray(pkg.tone_words) && Array.isArray(pkg.colors) && Array.isArray(pkg.do_dont) && Array.isArray(pkg.source_image_ids) && isObject(pkg.brand)){
+          pkg.traits = pkg.traits.filter(validTrait).map(cleanTrait);
+          pkg.do_dont = pkg.do_dont.filter(validRule);
+          pkg.created_at = typeof pkg.created_at === 'string' ? pkg.created_at : new Date().toISOString();
+          pkg.version = num(pkg.version, 1);
+          pkg.brand.name = String(pkg.brand.name || '');
+        } else base.package = null;
+      }
+      if (base.design && typeof base.design.dataUrl !== 'string') base.design = null;
+      base.moreDesigns = base.moreDesigns.filter(function(d){ return isObject(d) && typeof d.dataUrl === 'string'; }).slice(0, 3).map(function(d){ d.label = String(d.label || 'Extra view'); return d; });
+      if (base.design) base.design.label = String(base.design.label || 'Your design'); else base.moreDesigns = [];
+      if (base.compare){
+        var r = base.compare;
+        if (!(Array.isArray(r.trait_scores) && Array.isArray(r.matches) && Array.isArray(r.departures) && Array.isArray(r.directions))) base.compare = null;
+        else {
+          r.trait_scores = r.trait_scores.filter(function(x){ return isObject(x) && typeof x.trait_id === 'string'; });
+          r.matches = r.matches.filter(isObject).map(function(f){ f.text = String(f.text || ''); f.trait_ids = strings(f.trait_ids); return f; });
+          r.departures = r.departures.filter(isObject).map(function(f){ f.text = String(f.text || ''); f.trait_ids = strings(f.trait_ids); return f; });
+          r.directions = r.directions.filter(function(d){ return isObject(d) && typeof d.id === 'string'; }).map(function(d){ d.title = String(d.title || ''); d.rationale = String(d.rationale || ''); d.trait_ids = strings(d.trait_ids); return d; });
+        }
+      }
+      if (!base.package) base.compare = null;
+
+      function limit(n){
+        if (n >= 5 && !base.compare) n = 4;
+        if (n >= 4 && !base.package) n = 3;
+        if (n >= 3 && base.traits.length === 0) n = 2;
+        if (n >= 2 && base.candidates.length === 0) n = 1;
+        return n;
+      }
+      var step = Math.max(1, Math.min(5, Math.round(num(data.currentStep, 1))));
+      var reached = Math.max(step, Math.max(1, Math.min(5, Math.round(num(data.maxReached, step)))));
+      reached = limit(reached);
+      step = Math.min(step, reached);
+      var counter = 0;
+      base.traits.forEach(function(tr){ var m = /^tr_m(\d+)$/.exec(tr.id); if (m) counter = Math.max(counter, parseInt(m[1], 10)); });
+      return {state: base, currentStep: step, maxReached: reached, currentFilter: typeof data.currentFilter === 'string' ? data.currentFilter : 'all', manualCounter: counter};
+    } catch (e){
+      return {state: freshState(false), currentStep: 1, maxReached: 1, currentFilter: 'all', manualCounter: 0};
+    }
+  }
+
+  /* --- opening, creating and leaving projects --- */
+  function resetTransientUi(){
+    ['brand-progress', 'extract-progress', 'compare-progress'].forEach(hideProgress);
+    document.getElementById('toast-container').innerHTML = '';
+    document.getElementById('keyword-input').value = '';
+    document.getElementById('add-trait-input').value = '';
+    closeLightbox();
+  }
+  // forceSave: write the project even though nothing changed (new, duplicated or imported projects)
+  function openRecord(rec, forceSave){
+    var n = normaliseProject(rec);
+    current = {id: rec.id, name: String(rec.name || DEFAULT_PROJECT_NAME), autoName: rec.autoName === true, createdAt: rec.createdAt || new Date().toISOString()};
+    state = n.state; currentStep = n.currentStep; maxReached = n.maxReached; currentFilter = n.currentFilter; manualCounter = n.manualCounter;
+    resetTransientUi();
+    setActiveFilterChip();
+    renderStepRail();
+    showPanel(currentStep);
+    window.scrollTo(0, 0);
+    var snapshot = buildRecord();
+    lastSavedJson = forceSave ? '' : signatureOf(snapshot);
+    updateIndexEntry(snapshot);
+    renderProjectUI();
+    Store.setMeta('active', current.id);
+    return forceSave ? saveNow() : Promise.resolve();
+  }
+  function busy(){
+    if (pendingRequests > 0){
+      showToast('Wait until the current step has finished, then switch project.');
+      return true;
+    }
+    return false;
+  }
+  function openProjectById(id){
+    return Store.get(id).then(function(rec){
+      if (rec) return openRecord(rec, false);
+      projectIndex = projectIndex.filter(function(p){ return p.id !== id; });
+      Store.setMeta('index', projectIndex);
+      renderProjectUI();
+      showToast('That project could not be found in this browser any more.');
+    });
+  }
+  function switchProject(id){
+    if (busy() || (current && id === current.id)) return;
+    saveNow().then(function(){ return openProjectById(id); });
+  }
+  function newEmptyRecord(name, autoName){
+    var now = new Date().toISOString();
+    return {id: newProjectId(), name: name, autoName: autoName, schemaVersion: SCHEMA_VERSION, createdAt: now, updatedAt: now,
+            data: {state: freshState(false), currentStep: 1, maxReached: 1, currentFilter: 'all'}};
+  }
+  function newProject(){
+    if (busy()) return;
+    saveNow().then(function(){ return openRecord(newEmptyRecord(DEFAULT_PROJECT_NAME, true), true); }).then(function(){
+      document.getElementById('brand-name').focus();
+    });
+  }
+  function renameProject(){
+    askDialog({title: 'Rename project', text: 'Give this project a name you will recognise.', input: true, value: current.name, okLabel: 'Rename'}).then(function(name){
+      if (!name) return;
+      current.name = name; current.autoName = false;
+      saveNow();
+    });
+  }
+  function duplicateProject(){
+    if (busy()) return;
+    saveNow().then(function(){
+      var rec = buildRecord();
+      rec.id = newProjectId(); rec.name = current.name + ' (copy)'; rec.autoName = false; rec.createdAt = rec.updatedAt = new Date().toISOString();
+      return openRecord(rec, true);
+    }).then(function(){ showToast('Duplicated. You are now working in the copy.'); });
+  }
+  function deleteProject(){
+    if (busy()) return;
+    var doomed = current;
+    askDialog({title: 'Delete project?', text: '"' + doomed.name + '" and everything in it will be removed from this browser. This cannot be undone. Export it first if you may need it again.', okLabel: 'Delete', danger: true}).then(function(yes){
+      if (!yes) return;
+      clearTimeout(saveTimer);
+      projectIndex = projectIndex.filter(function(p){ return p.id !== doomed.id; });
+      current = null;   // nothing may save the project that is being deleted
+      return Store.remove(doomed.id).then(function(){ return Store.setMeta('index', projectIndex); }).then(function(){
+        var next = projectIndex.slice().sort(function(a, b){ return String(b.updatedAt).localeCompare(String(a.updatedAt)); })[0];
+        if (next) return openProjectById(next.id);
+        return openRecord(newEmptyRecord(DEFAULT_PROJECT_NAME, true), true);
+      }).then(function(){ showToast('Project deleted.'); });
+    });
+  }
+  function exportProject(){
+    saveNow().then(function(){
+      var rec = buildRecord();
+      var payload = {app: 'copycat', kind: 'project', schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), name: rec.name, data: rec.data};
+      var blob = new Blob([JSON.stringify(payload)], {type: 'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (rec.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.copycat.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    });
+  }
+  function importProject(file){
+    if (!file) return;
+    if (busy()) return;
+    var reader = new FileReader();
+    reader.onerror = function(){ showToast('That file could not be read.'); };
+    reader.onload = function(){
+      var obj = null;
+      try { obj = JSON.parse(reader.result); } catch (e){ obj = null; }
+      if (!isObject(obj) || obj.app !== 'copycat' || !isObject(obj.data)){
+        showToast('That file is not a CopyCat project. Choose a file made with "Export project".', {duration: 8000});
+        return;
+      }
+      var now = new Date().toISOString();
+      var rec = {id: newProjectId(), name: String(obj.name || 'Imported project'), autoName: false, schemaVersion: SCHEMA_VERSION, createdAt: now, updatedAt: now, data: obj.data};
+      saveNow().then(function(){ return openRecord(rec, true); }).then(function(){
+        showToast(num(obj.schemaVersion, 0) > SCHEMA_VERSION
+          ? 'Imported. This file comes from a newer CopyCat, so some parts may be missing.'
+          : 'Project imported.', {duration: 6000});
+      });
+    };
+    reader.readAsText(file);
+  }
+
+  /* --- the switcher in the header, and a small dialog for names and confirmations --- */
+  function renderProjectUI(){
+    document.getElementById('project-name').textContent = current ? current.name : '—';
+    var sorted = projectIndex.slice().sort(function(a, b){ return String(b.updatedAt).localeCompare(String(a.updatedAt)); });
+    document.getElementById('proj-list').innerHTML = sorted.map(function(p){
+      var on = current && p.id === current.id;
+      return '<li><button type="button" class="proj-item" data-id="' + esc(p.id) + '"' + (on ? ' aria-current="true"' : '') + '>' +
+        '<span class="proj-item-name">' + esc(p.name) + '</span>' + (on ? '<span class="mono muted">open</span>' : '') + '</button></li>';
+    }).join('');
+  }
+  function setMenuOpen(open){
+    var menu = document.getElementById('proj-menu'), trigger = document.getElementById('proj-trigger');
+    menu.hidden = !open;
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open){
+      var first = menu.querySelector('.proj-item[aria-current="true"]') || menu.querySelector('button');
+      if (first) first.focus();
+    }
+  }
+  function askDialog(o){
+    return new Promise(function(resolve){
+      var dlg = document.getElementById('dialog'), form = document.getElementById('dialog-form');
+      var input = document.getElementById('dialog-input'), ok = document.getElementById('dialog-ok'), cancel = document.getElementById('dialog-cancel');
+      document.getElementById('dialog-title').textContent = o.title;
+      document.getElementById('dialog-text').textContent = o.text || '';
+      input.hidden = !o.input; input.value = o.value || '';
+      ok.textContent = o.okLabel || 'OK';
+      ok.className = o.danger ? 'btn-primary btn-danger' : 'btn-primary';
+      function finish(value){
+        form.removeEventListener('submit', onSubmit); dlg.removeEventListener('cancel', onCancel); cancel.removeEventListener('click', onCancel);
+        if (dlg.open) dlg.close();
+        resolve(value);
+      }
+      function onSubmit(e){ e.preventDefault(); finish(o.input ? input.value.trim() : true); }
+      function onCancel(e){ e.preventDefault(); finish(null); }
+      form.addEventListener('submit', onSubmit); dlg.addEventListener('cancel', onCancel); cancel.addEventListener('click', onCancel);
+      dlg.showModal();
+      if (o.input){ input.focus(); input.select(); } else cancel.focus();
+    });
+  }
+
+  function wireProjects(){
+    var trigger = document.getElementById('proj-trigger'), menu = document.getElementById('proj-menu');
+    trigger.addEventListener('click', function(){ setMenuOpen(menu.hidden); });
+    menu.addEventListener('click', function(e){
+      var item = e.target.closest('.proj-item');
+      var action = e.target.closest('[data-proj-action]');
+      if (item){ setMenuOpen(false); switchProject(item.dataset.id); return; }
+      if (!action) return;
+      setMenuOpen(false);
+      var which = action.getAttribute('data-proj-action');
+      if (which === 'new') newProject();
+      else if (which === 'rename') renameProject();
+      else if (which === 'duplicate') duplicateProject();
+      else if (which === 'delete') deleteProject();
+      else if (which === 'export') exportProject();
+      else if (which === 'import') document.getElementById('project-import-file').click();
+    });
+    document.getElementById('project-import-file').addEventListener('change', function(){ importProject(this.files[0]); this.value = ''; });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && !menu.hidden){ setMenuOpen(false); trigger.focus(); }
+    });
+    document.addEventListener('click', function(e){
+      if (!menu.hidden && !e.target.closest('.proj')) setMenuOpen(false);
+    });
+    // Save after any change the designer makes; saveNow skips the write when nothing differs.
+    ['input', 'change', 'click', 'keyup', 'focusout'].forEach(function(type){ document.addEventListener(type, scheduleSave, true); });
+    document.getElementById('step-panel-1').addEventListener('input', readBrandForm);
+    window.addEventListener('pagehide', saveNow);
+    document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') saveNow(); });
+  }
+
+  function bootProjects(){
+    function useDefaultProject(){
+      var now = new Date().toISOString();
+      current = {id: newProjectId(), name: DEFAULT_PROJECT_NAME, autoName: true, createdAt: now};
+      lastSavedJson = '';
+    }
+    return Store.open().then(function(){ return Store.getMeta('index'); }).then(function(index){
+      if (Array.isArray(index)) return index;
+      return Store.all().then(function(list){ return list.map(function(r){ return {id: r.id, name: r.name, updatedAt: r.updatedAt}; }); });
+    }).then(function(index){
+      projectIndex = index.filter(function(p){ return isObject(p) && typeof p.id === 'string'; }).map(function(p){
+        return {id: p.id, name: String(p.name || DEFAULT_PROJECT_NAME), updatedAt: String(p.updatedAt || '')};
+      });
+      return Store.getMeta('active');
+    }).then(function(activeId){
+      var order = projectIndex.slice().sort(function(a, b){ return String(b.updatedAt).localeCompare(String(a.updatedAt)); }).map(function(p){ return p.id; });
+      if (order.indexOf(activeId) > 0) order.splice(order.indexOf(activeId), 1), order.unshift(activeId);
+      function tryNext(){
+        if (!order.length) return Promise.resolve(null);
+        return Store.get(order.shift()).then(function(rec){ return rec || tryNext(); });
+      }
+      return tryNext();
+    }).then(function(rec){
+      if (rec){ projectsReady = true; return openRecord(rec, false); }
+      // first visit: the sample brand that is already on screen becomes the first project
+      useDefaultProject();
+      projectsReady = true;
+      renderProjectUI();
+      return saveNow();
+    }).then(function(){
+      if (Store.problem()) setSaveState('unsaved'); else if (!document.getElementById('save-state').textContent) setSaveState('saved');
+    }).catch(function(){
+      if (!current) useDefaultProject();
+      projectsReady = true;
+      renderProjectUI();
+      setSaveState('unsaved');
+    });
+  }
+
   function init(){
     document.getElementById('hidden-toggle').addEventListener('click', function(){
       state.showHidden = !state.showHidden;
@@ -1514,6 +2046,9 @@
     wireViewDropzone(document.getElementById('add-view-dropzone'), false);
     wireViewDropzone(document.getElementById('add-view-compare-dropzone'), true);
     document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(4); });
+
+    wireProjects();
+    bootProjects();
   }
 
   init();

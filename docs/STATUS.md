@@ -40,6 +40,9 @@ If you need something from another folder, add a note under that owner's "Needs 
   Google sometimes returns nothing with it (for example "Volvo automotive official" gave 0 results, "Volvo automotive" gave 100). `search_images` now
   searches again without that word when the first search comes back empty (one extra SerpAPI request, only in that case). Three tests added (40 pass).
 
+- **Changed by B at the designer's request (2026-10-25), please review:** `build_query` also uses the new optional `brand.product_line`
+  (for example "professional power tools"), so a project can study one range of a company. Proposed contract change, see `docs/contract-changes.md`.
+
 ## B — AI core (`/backend/ai_core/`)
 
 - **Done:**

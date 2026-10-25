@@ -375,3 +375,20 @@
   model noticed; now the designer's own statement decides. The description is context, so it must not raise a score for something the images do not
   show, and it is treated as data, not as instructions. The decision stays with the model plus the existing scoring code; there is no keyword list in
   code that tries to guess which traits are about colour.
+
+## 2026-10-25 — Traits in industrial-design categories, geometry first; projects for one product range (Person B)
+
+- **What:** The extraction prompt now asks for 6 to 12 traits in nine design categories (form and architecture, proportions, edges and radii,
+  angles and inclines, surfaces and transitions, splits and shut lines, interfaces, graphics, colour/material/finish), at least half of them
+  geometric and at most two about colour and material, written in designer vocabulary with estimated sizes and angles always given as a range.
+  The model first writes a short note per image (view and product) and then the traits. Code maps unknown category names to "other" (with a
+  list of common synonyms). The comparison sees each trait's category and has a rule per category on how to judge it (edge type and radius
+  size, the angle only in an unforeshortened view, ratios, blends). A project can name a product range, which goes into the search and into
+  both prompts.
+- **Why:** The old prompt gave mostly colour and branding traits ("blue body with black grip", "white lettering"): in a test on one tool
+  range, all 5 traits were colour or graphics. The same images with the new prompt gave 8 traits over 8 categories, with a grip angle range,
+  a handle-to-height ratio and edge radii. Comparing that package with a held-out product of the same range gave a fit of 93 with full
+  coverage; an unrelated sketch gave 1, with colour left out because it was marked as a sketch. Results vary from run to run on the small
+  model, so the designer still checks and edits every trait.
+- **Seen on real images:** test images were used in memory only; nothing was saved in the repo. The stronger model returned 503 (overloaded)
+  during the test, so all numbers above are from gemini-3.5-flash-lite.

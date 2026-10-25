@@ -39,7 +39,16 @@ class ModelTrait(BaseModel):
     importance: int = Field(default=50, ge=0, le=100)
 
 
+class ImageNote(BaseModel):
+    """What the model saw in one image, written before the traits so the traits rest on it."""
+
+    id: str = ""
+    view: str = ""
+    product: str = ""
+
+
 class ModelAnswer(BaseModel):
+    image_notes: list[ImageNote] = []  # logged only; not part of the contract
     traits: list[ModelTrait]
     tone_words: list[str] = []
     colors: list[Color] = []
@@ -87,6 +96,8 @@ def extract_dna(
         )
 
     answer = ask_for_answer(ask, build_prompt(brand, images), images)
+    for note in answer.image_notes:
+        log.info("Image %s: %s, %s", note.id, note.view, note.product)
     return to_response(answer, sent_ids=[image.id for image in images], skipped=skipped)
 
 
@@ -130,9 +141,24 @@ def clean_rules(rules: list[DoDont]) -> list[DoDont]:
     return kept[:MAX_RULES]
 
 
+# Words the model sometimes uses instead of the category key.
+CATEGORY_SYNONYMS = {
+    "colour": "cmf", "color": "cmf", "material": "cmf", "finish": "cmf", "colour, material & finish": "cmf",
+    "shape": "form", "architecture": "form", "volume": "form", "silhouette": "form",
+    "proportions": "proportion", "ratio": "proportion",
+    "edge": "edges", "radius": "edges", "radii": "edges", "edges & radii": "edges",
+    "angle": "angles", "incline": "angles", "angles & inclines": "angles",
+    "surface": "surfaces", "transition": "surfaces", "transitions": "surfaces",
+    "split": "splits", "parting line": "splits", "parting lines": "splits", "shut lines": "splits",
+    "interface": "interfaces", "detail": "interfaces", "details": "interfaces",
+    "graphic": "graphics", "branding": "graphics", "logo": "graphics",
+}
+
+
 def clean_category(value: str) -> str:
-    """The model's category key, or "other" when it is not one of the known categories."""
+    """The model's category key (or a common synonym of it); "other" when it is neither."""
     key = (value or "").strip().lower()
+    key = CATEGORY_SYNONYMS.get(key, key)
     return key if key in TRAIT_CATEGORIES else "other"
 
 

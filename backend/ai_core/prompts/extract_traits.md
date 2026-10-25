@@ -81,10 +81,13 @@ Rules:
    are relative to. Never pretend to measure more precisely than a photo allows.
 4. Describe the trait itself, not the photograph. Lighting, camera angle, background and
    image quality are not brand traits.
-5. Return between 6 and 12 traits, each about one distinct feature. At least half of the
+5. Return between 6 and 12 traits, each about one distinct feature; aim for 8 to 10 when the
+   images show that much. At least half of the
    traits must be in the geometric categories (`form`, `proportion`, `edges`, `angles`,
    `surfaces`, `splits`). Use at most 2 traits in `cmf`. Return fewer traits, or an empty
    list, if little recurs. Never pad the list, and never split one feature into two traits.
+   A detail that is mostly about texture or colour (for example a rubber grip inlay) belongs in
+   `interfaces` or `cmf`, not in `surfaces`; `surfaces` is about the shape of the surface.
 6. `confidence` is a number from 0 to 1: how sure you are that this is a deliberate,
    recurring part of the design language and not a coincidence of these particular images.
    Use low values freely; the designer is shown which traits are uncertain.
@@ -101,10 +104,16 @@ Rules:
 
 ## Answer format
 
+Start with `image_notes`: one short note per image with the view and the product it shows.
+Write these first, then base the traits on them.
+
 Answer with one JSON object and nothing else: no introduction, no explanation, no code
 fences. Use exactly this shape:
 
 {
+  "image_notes": [
+    { "id": "img_01", "view": "side view, left side and top visible", "product": "cordless drill" }
+  ],
   "traits": [
     {
       "category": "edges",

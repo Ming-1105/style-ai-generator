@@ -77,7 +77,7 @@ class WhatIsSentTests(unittest.TestCase):
     def test_prompt_lists_the_references_under_each_trait_and_explains_them(self):
         _, model = run(candidates())
         prompt = model.calls[0][0]
-        self.assertIn("tr_01 | Blade headlights: Sharp, tapered LED graphic that narrows to a point at the outer edge. | reference images: img_01, img_02, img_05", prompt)
+        self.assertIn("tr_01 | [Interfaces & details] Blade headlights: Sharp, tapered LED graphic that narrows to a point at the outer edge. | reference images: img_01, img_02, img_05", prompt)
         self.assertIn("never score a reference image", prompt)
         self.assertNotIn("importance", prompt.lower())
         self.assertNotIn("{{", prompt)

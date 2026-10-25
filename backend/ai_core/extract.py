@@ -16,7 +16,7 @@ from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
 from backend.ai_core.model_call import ask_and_parse, read_json_object
 from backend.ai_core.providers import VisionProvider, get_provider
-from contracts.models import Brand, Color, DoDont, ExtractResponse, ImageCandidate, SkippedImage, Trait
+from contracts.models import TRAIT_CATEGORIES, Brand, Color, DoDont, ExtractResponse, ImageCandidate, SkippedImage, Trait
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ MAX_RULES = 6               # do/don't pairs returned
 class ModelTrait(BaseModel):
     """One trait as the model is asked to return it (see prompts/extract_traits.md)."""
 
+    category: str = "other"
     name: str = Field(min_length=1)
     description: str
     evidence_image_ids: list[str]
@@ -92,6 +93,7 @@ def extract_dna(
 def build_prompt(brand: Brand, images: list[LoadedImage]) -> str:
     values = {
         "brand_name": brand.name or "(not given)",
+        "brand_product_line": brand.product_line or "(the brand as a whole)",
         "brand_category": brand.category or "(not given)",
         "brand_keywords": ", ".join(brand.keywords) or "(none)",
         "brand_values": brand.values or "(not given)",
@@ -128,6 +130,12 @@ def clean_rules(rules: list[DoDont]) -> list[DoDont]:
     return kept[:MAX_RULES]
 
 
+def clean_category(value: str) -> str:
+    """The model's category key, or "other" when it is not one of the known categories."""
+    key = (value or "").strip().lower()
+    return key if key in TRAIT_CATEGORIES else "other"
+
+
 def to_response(answer: ModelAnswer, sent_ids: list[str], skipped: Optional[list[SkippedImage]] = None) -> ExtractResponse:
     traits = []
     for proposed in answer.traits:
@@ -138,6 +146,7 @@ def to_response(answer: ModelAnswer, sent_ids: list[str], skipped: Optional[list
             continue
         traits.append(Trait(
             id=f"tr_{len(traits) + 1:02d}",
+            category=clean_category(proposed.category),
             name=proposed.name,
             description=proposed.description,
             evidence_image_ids=evidence,

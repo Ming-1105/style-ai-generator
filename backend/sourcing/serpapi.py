@@ -19,7 +19,7 @@ def build_query(brand: Brand, official: bool = True) -> str:
     # One provider request per search keeps the free allowance predictable. The word "official"
     # nudges results towards brand sources, but Google sometimes returns nothing with it
     # (for example "Volvo Automotive official"), so search_images retries once without it.
-    parts = [brand.name, brand.category, *brand.keywords] + (["official"] if official else [])
+    parts = [brand.name, brand.product_line, brand.category, *brand.keywords] + (["official"] if official else [])
     return " ".join(part.strip() for part in parts if part.strip())
 
 

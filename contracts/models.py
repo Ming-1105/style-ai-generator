@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 class Brand(BaseModel):
     name: str = ""
+    product_line: str = ""  # optional: the product range studied, e.g. "professional power tools" (proposed)
     category: str = ""
     website: str = ""
     keywords: list[str] = []
@@ -38,8 +39,24 @@ class ImageCandidate(BaseModel):
 
 # ---------- Style DNA ----------
 
+# Industrial-design categories a trait can belong to (proposed contract change, see docs/contract-changes.md).
+TRAIT_CATEGORIES = {
+    "form": "Form & architecture",
+    "proportion": "Proportions",
+    "edges": "Edges & radii",
+    "angles": "Angles & inclines",
+    "surfaces": "Surfaces & transitions",
+    "splits": "Splits & shut lines",
+    "interfaces": "Interfaces & details",
+    "graphics": "Graphics & branding",
+    "cmf": "Colour, material & finish",
+    "other": "Other",
+}
+
+
 class Trait(BaseModel):
     id: str
+    category: Optional[str] = None  # one of TRAIT_CATEGORIES; None for traits made before categories existed
     name: str
     description: str
     evidence_image_ids: list[str] = []

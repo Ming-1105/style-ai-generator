@@ -3,6 +3,7 @@
   "created_at": "2026-10-05T12:00:00Z",
   "brand": {
     "name": "Acme",
+    "product_line": "",
     "category": "automotive",
     "website": "acme-auto.example",
     "keywords": [
@@ -16,6 +17,7 @@
   "traits": [
     {
       "id": "tr_01",
+      "category": "interfaces",
       "name": "Blade headlights",
       "description": "Sharp, tapered LED graphic that narrows to a point at the outer edge.",
       "evidence_image_ids": [
@@ -31,6 +33,7 @@
     },
     {
       "id": "tr_02",
+      "category": "graphics",
       "name": "Twin centre stripe",
       "description": "Two parallel stripes running the length of the hood and roof, centred.",
       "evidence_image_ids": [
@@ -46,6 +49,7 @@
     },
     {
       "id": "tr_03",
+      "category": "graphics",
       "name": "Hatched shield crest",
       "description": "Shield badge with fine diagonal hatching, used on the hood and interior trim.",
       "evidence_image_ids": [
@@ -61,6 +65,7 @@
     },
     {
       "id": "tr_04",
+      "category": "surfaces",
       "name": "Rising shoulder line",
       "description": "A single crease along the body side that lifts gently toward the rear.",
       "evidence_image_ids": [
@@ -75,6 +80,7 @@
     },
     {
       "id": "tr_05",
+      "category": "cmf",
       "name": "Graphite + single signal color",
       "description": "Body finished in graphite or silver with exactly one bright accent color.",
       "evidence_image_ids": [
@@ -90,6 +96,7 @@
     },
     {
       "id": "tr_06",
+      "category": "proportion",
       "name": "Short front overhang",
       "description": "Minimal distance between the front axle and the nose of the car.",
       "evidence_image_ids": [

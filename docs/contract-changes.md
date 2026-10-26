@@ -72,6 +72,20 @@
 - **Decision needed:** the team agrees on the field name `reference_images` and that C sends it.
   If agreed, one person updates `AGENTS.md`, `contracts/models.py` and this file in a single PR.
 
+## Proposal (Person B, 2026-10-25): industrial-design categories on traits, and a product range on the brand
+
+- **Status:** proposed, needs the team's OK. Built on branch `ai-core/design-categories` (optional fields in `contracts/models.py`,
+  the AI core, the fixtures and the interface). `AGENTS.md` is not updated yet.
+- **What:** `Trait.category` (optional string, one of `form`, `proportion`, `edges`, `angles`, `surfaces`, `splits`, `interfaces`,
+  `graphics`, `cmf`, `other`; `null` for older traits) and `Brand.product_line` (optional string, for example "professional power tools").
+  The category keys and their labels are `TRAIT_CATEGORIES` in `contracts/models.py`.
+- **Why:** designers think about a product in these layers (architecture, proportion, edges and radii, angles, surfaces, splits, interfaces,
+  graphics, CMF). With categories the AI is pushed to describe geometry instead of mostly colour, the designer can see and edit which layer a
+  trait belongs to, and the comparison can judge each layer the right way. A product range lets a project study one range of a company
+  (its professional tools, say) instead of everything the company makes.
+- **Who is affected:** B returns and uses `category` (done). C groups the traits by category and shows the range field (done on the branch).
+  A: `build_query` puts `product_line` in the search (one line, done; please review). Both fields are optional, so old clients keep working.
+
 ## Proposal (Person B, 2026-10-19): say that the design is a sketch, and describe it, in `POST /api/compare`
 
 - **Status:** proposed, needs the team's OK. Built so far on branch `ui/overhaul` (optional fields in `contracts/models.py`, the AI core and the new

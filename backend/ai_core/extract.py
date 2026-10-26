@@ -16,7 +16,7 @@ from backend.ai_core.errors import AiCoreError
 from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
 from backend.ai_core.model_call import ask_and_parse, read_json_object
 from backend.ai_core.providers import VisionProvider, get_provider
-from contracts.models import Brand, Color, DoDont, ExtractResponse, ImageCandidate, SkippedImage, Trait
+from contracts.models import TRAIT_CATEGORIES, Brand, Color, DoDont, ExtractResponse, ImageCandidate, SkippedImage, Trait
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ MAX_RULES = 6               # do/don't pairs returned
 class ModelTrait(BaseModel):
     """One trait as the model is asked to return it (see prompts/extract_traits.md)."""
 
+    category: str = "other"
     name: str = Field(min_length=1)
     description: str
     evidence_image_ids: list[str]
@@ -38,7 +39,16 @@ class ModelTrait(BaseModel):
     importance: int = Field(default=50, ge=0, le=100)
 
 
+class ImageNote(BaseModel):
+    """What the model saw in one image, written before the traits so the traits rest on it."""
+
+    id: str = ""
+    view: str = ""
+    product: str = ""
+
+
 class ModelAnswer(BaseModel):
+    image_notes: list[ImageNote] = []  # logged only; not part of the contract
     traits: list[ModelTrait]
     tone_words: list[str] = []
     colors: list[Color] = []
@@ -86,12 +96,15 @@ def extract_dna(
         )
 
     answer = ask_for_answer(ask, build_prompt(brand, images), images)
+    for note in answer.image_notes:
+        log.info("Image %s: %s, %s", note.id, note.view, note.product)
     return to_response(answer, sent_ids=[image.id for image in images], skipped=skipped)
 
 
 def build_prompt(brand: Brand, images: list[LoadedImage]) -> str:
     values = {
         "brand_name": brand.name or "(not given)",
+        "brand_product_line": brand.product_line or "(the brand as a whole)",
         "brand_category": brand.category or "(not given)",
         "brand_keywords": ", ".join(brand.keywords) or "(none)",
         "brand_values": brand.values or "(not given)",
@@ -128,6 +141,27 @@ def clean_rules(rules: list[DoDont]) -> list[DoDont]:
     return kept[:MAX_RULES]
 
 
+# Words the model sometimes uses instead of the category key.
+CATEGORY_SYNONYMS = {
+    "colour": "cmf", "color": "cmf", "material": "cmf", "finish": "cmf", "colour, material & finish": "cmf",
+    "shape": "form", "architecture": "form", "volume": "form", "silhouette": "form",
+    "proportions": "proportion", "ratio": "proportion",
+    "edge": "edges", "radius": "edges", "radii": "edges", "edges & radii": "edges",
+    "angle": "angles", "incline": "angles", "angles & inclines": "angles",
+    "surface": "surfaces", "transition": "surfaces", "transitions": "surfaces",
+    "split": "splits", "parting line": "splits", "parting lines": "splits", "shut lines": "splits",
+    "interface": "interfaces", "detail": "interfaces", "details": "interfaces",
+    "graphic": "graphics", "branding": "graphics", "logo": "graphics",
+}
+
+
+def clean_category(value: str) -> str:
+    """The model's category key (or a common synonym of it); "other" when it is neither."""
+    key = (value or "").strip().lower()
+    key = CATEGORY_SYNONYMS.get(key, key)
+    return key if key in TRAIT_CATEGORIES else "other"
+
+
 def to_response(answer: ModelAnswer, sent_ids: list[str], skipped: Optional[list[SkippedImage]] = None) -> ExtractResponse:
     traits = []
     for proposed in answer.traits:
@@ -138,6 +172,7 @@ def to_response(answer: ModelAnswer, sent_ids: list[str], skipped: Optional[list
             continue
         traits.append(Trait(
             id=f"tr_{len(traits) + 1:02d}",
+            category=clean_category(proposed.category),
             name=proposed.name,
             description=proposed.description,
             evidence_image_ids=evidence,

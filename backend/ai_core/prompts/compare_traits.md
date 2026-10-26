@@ -51,6 +51,23 @@ Rules:
    impressions. Write for a designer, not for a programmer.
 7. Judge each trait on its own. Do not try to give an overall verdict.
 8. Use the trait ids exactly as listed: {{trait_ids}}.
+9. Each trait carries its category in square brackets. Judge it the way a designer would for
+   that category:
+   - Form & architecture: compare the primary volume, how volumes join, the stance and the
+     silhouette. A different arrangement of volumes is a deviation even if details match.
+   - Proportions: compare ratios between the main dimensions or parts, as far as the view
+     shows them without strong perspective. Say which ratio you compared.
+   - Edges & radii: compare the edge type (sharp, small constant radius, large radius,
+     variable radius, chamfer) and its size relative to the part, edge by edge.
+   - Angles & inclines: compare the direction and the rough angle of the inclined faces or
+     lines. Only judge an angle in a view that shows it without strong foreshortening.
+   - Surfaces & transitions: compare flat, single-curved or double-curved surfaces and how
+     they blend (crisp break, tangent blend, soft blend).
+   - Splits & shut lines: compare where the parting lines and seams run and how parts meet.
+   - Interfaces & details, Graphics & branding: compare the placement, shape and pattern.
+   - Colour, material & finish: see rule 3.
+   In the note, name the geometry you compared, for example "top edge has a large soft radius;
+   the brand uses a small constant radius".
 
 ## Answer format
 

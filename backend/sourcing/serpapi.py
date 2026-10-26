@@ -15,11 +15,21 @@ class SearchError(Exception):
         super().__init__(message)
 
 
-def build_query(brand: Brand) -> str:
-    # One provider request per search keeps the free allowance predictable.
-    return " ".join(part.strip() for part in
-                    [brand.name, brand.category, *brand.keywords, "official"]
-                    if part.strip())
+def build_query(brand: Brand, official: bool = True) -> str:
+    # One provider request per search keeps the free allowance predictable. The word "official"
+    # nudges results towards brand sources, but Google sometimes returns nothing with it
+    # (for example "Volvo Automotive official"), so search_images retries once without it.
+    parts = [brand.name, brand.product_line, brand.category, *brand.keywords] + (["official"] if official else [])
+    return " ".join(part.strip() for part in parts if part.strip())
+
+
+def is_no_results(data) -> bool:
+    if not isinstance(data, dict):
+        return False
+    error = str(data.get("error") or "").lower()
+    if error:
+        return "no results" in error or "hasn't returned any results" in error
+    return data.get("images_results") == []
 
 
 def valid_url(value):
@@ -43,9 +53,18 @@ def search_images(brand: Brand, dimensions=None, metadata=None) -> SearchRespons
         raise SearchError(503, "missing_api_key", "Add your SerpAPI key to IMAGE_SEARCH_API_KEY in your local .env file.")
     try:
         with httpx.Client(timeout=30) as client:
-            response = client.get("https://serpapi.com/search.json", params={
-                "engine": "google_images", "q": build_query(brand), "api_key": key,
-            })
+            for official in (True, False):
+                response = client.get("https://serpapi.com/search.json", params={
+                    "engine": "google_images", "q": build_query(brand, official), "api_key": key,
+                })
+                if response.status_code >= 400:
+                    break
+                try:
+                    empty = is_no_results(response.json())
+                except ValueError:
+                    break
+                if not empty:
+                    break
         if response.status_code in (401, 403):
             raise SearchError(503, "invalid_api_key", "Your SerpAPI key was rejected — check the key in your local .env file.")
         if response.status_code == 429:

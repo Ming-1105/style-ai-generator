@@ -36,6 +36,13 @@ If you need something from another folder, add a note under that owner's "Needs 
   the brand; it flags only small, AI-generated, fan-made and user-generated/marketplace images (see the decision log). Tests updated
   (37 pass). 23 of 30 live results now start selected instead of 3.
 
+- **Changed by B at the designer's request (2026-10-19), please review:** the image search used to add the word "official" to every query, and
+  Google sometimes returns nothing with it (for example "Volvo automotive official" gave 0 results, "Volvo automotive" gave 100). `search_images` now
+  searches again without that word when the first search comes back empty (one extra SerpAPI request, only in that case). Three tests added (40 pass).
+
+- **Changed by B at the designer's request (2026-10-25), please review:** `build_query` also uses the new optional `brand.product_line`
+  (for example "professional power tools"), so a project can study one range of a company. Proposed contract change, see `docs/contract-changes.md`.
+
 ## B — AI core (`/backend/ai_core/`)
 
 - **Done:**

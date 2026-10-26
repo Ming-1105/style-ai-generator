@@ -479,6 +479,16 @@
   #step-panel-6 .direction-ref{font-size:13px;}
   #step-panel-6 .btn-toggle{font-size:15px;}
 
+  /* product range field and trait categories */
+  .brand-sub{width:100%; font-size:16px; text-align:center; padding:12px 16px; border:1px solid var(--line); background:var(--field);}
+  .trait-group-head{grid-column:1/-1; display:flex; align-items:baseline; gap:10px; margin-top:12px; padding-bottom:4px; border-bottom:1px solid var(--line);
+    font-family:var(--font-heading); font-weight:700; font-size:17px;}
+  .trait-group-head:first-child{margin-top:0;}
+  .trait-cat{align-self:flex-start; font-family:var(--font-mono); font-size:11px; text-transform:lowercase; letter-spacing:.03em; padding:2px 6px; max-width:100%; border-radius:20px; background:var(--field); color:var(--muted);}
+  .traits-list.compact .trait-cat{margin-left:0;}
+  .feature-group{font-family:var(--font-mono); font-size:11px; text-transform:lowercase; color:var(--muted); margin-top:10px;}
+  .feature-group:first-child{margin-top:0;}
+
   /* the button that goes on to the next step: same size on every step */
   .btn-row{flex-wrap:wrap;}
   .btn-row .btn-primary{order:-1; flex:1 0 100%; width:100%; max-width:560px; font-size:18px; padding:18px 24px;}
@@ -558,6 +568,8 @@
       <div class="start-stack">
         <label class="sr-only" for="brand-name">Brand name</label>
         <input type="text" id="brand-name" class="brand-big" placeholder="Brand name" autocomplete="off">
+        <label class="sr-only" for="brand-product-line">Product range (optional)</label>
+        <input type="text" id="brand-product-line" class="brand-sub" placeholder="Product range (optional), e.g. professional power tools" autocomplete="off">
         <button type="button" class="more-info-toggle" id="own-btn" aria-expanded="false" aria-controls="own-panel">
           <span aria-hidden="true">+</span><span id="own-label">Upload your own images and colours (optional)</span>
         </button>
@@ -695,6 +707,7 @@
 
       <div class="add-keyword-row" style="margin-top:24px;">
         <input type="text" id="add-trait-input" placeholder="+ Add trait manually">
+        <select id="add-trait-cat" aria-label="Category of the new trait"></select>
         <button type="button" class="btn-ghost" id="add-trait-btn">Add</button>
       </div>
 
@@ -892,7 +905,7 @@
   // Every project starts empty: nothing is pre-filled.
   function freshState(){
     return {
-      brand: {name: '', category: '', website: '', keywords: [], values: ''},
+      brand: {name: '', product_line: '', category: '', website: '', keywords: [], values: ''},
       candidates: [],        // ImageCandidate[] from /api/sources/search (designer toggles `included`)
       traits: [],            // Trait[] from /api/dna/extract, edited by the designer
       toneWords: [],         // tone words suggested by the AI
@@ -920,10 +933,39 @@
   var state = freshState();   // replaced when a project is opened
 
 
+  /* ---------- industrial-design categories of a trait (same keys as contracts/models.py) ---------- */
+  var CATEGORIES = [
+    ['form', 'Form & architecture'], ['proportion', 'Proportions'], ['edges', 'Edges & radii'],
+    ['angles', 'Angles & inclines'], ['surfaces', 'Surfaces & transitions'], ['splits', 'Splits & shut lines'],
+    ['interfaces', 'Interfaces & details'], ['graphics', 'Graphics & branding'], ['cmf', 'Colour, material & finish'],
+    ['other', 'Other']
+  ];
+  function categoryKey(t){
+    for (var i = 0; i < CATEGORIES.length; i++) if (CATEGORIES[i][0] === t.category) return t.category;
+    return 'other';
+  }
+  function categoryLabel(key){
+    for (var i = 0; i < CATEGORIES.length; i++) if (CATEGORIES[i][0] === key) return CATEGORIES[i][1];
+    return 'Other';
+  }
+  // Traits in category order, each group with its key; the order within a group is kept.
+  function groupedByCategory(traits){
+    return CATEGORIES.map(function(c){
+      return {key: c[0], label: c[1], traits: traits.filter(function(t){ return categoryKey(t) === c[0]; })};
+    }).filter(function(g){ return g.traits.length; });
+  }
+  function categorySelect(t){
+    var key = categoryKey(t);
+    return '<select class="trait-cat" data-id="' + esc(t.id) + '" aria-label="Category of ' + esc(t.name) + '">' +
+      CATEGORIES.map(function(c){ return '<option value="' + c[0] + '"' + (c[0] === key ? ' selected' : '') + '>' + esc(c[1]) + '</option>'; }).join('') +
+      '</select>';
+  }
+
   /* ---------- help texts: edit them here, nowhere else ---------- */
   // One entry per option the designer can change. `step` says under which tab it is shown.
   var HELP = {
     brand_name:   {step: 1, label: 'Brand name', text: 'The brand you want to study. It is used to search for pictures, so spell it the way people write it.'},
+    product_line: {step: 1, label: 'Product range', text: 'Optional. Fill this in when you want the house style of one range of a company, not the whole company, for example its professional power tools. The search and the AI then look at that range only.'},
     more_info:    {step: 1, label: 'More info', text: 'Only the brand name is needed. Open the menu to add the category, official website, keywords and brand values; they make the picture search more accurate.'},
     category:     {step: 1, label: 'Category', text: 'The kind of product the brand makes. Optional: pick one from the list, type your own, or leave it empty. It helps the search find the right pictures; change it if the results show the wrong kind of product.'},
     website:      {step: 1, label: 'Official website', text: 'The brand\'s own site. If you fill it in, CopyCat also looks there for pictures, which are usually the most reliable ones. Leave it empty to search the web only.'},
@@ -942,6 +984,7 @@
     edit_remove:  {step: 3, label: 'Edit or remove a trait', text: 'Rename a trait if you would put it differently, or remove one that is wrong. Removed traits are left out of the house style; you can undo right after.'},
     add_trait:    {step: 3, label: 'Add a trait yourself', text: 'Add a trait the AI missed. It has no pictures linked to it, so the AI will judge it from your words alone.'},
     low_conf:     {step: 3, label: 'Low confidence', text: 'The AI was not sure about this trait, often because few pictures show it. Check it against the pictures before you rely on it.'},
+    categories:   {step: 3, label: 'Categories', text: 'Every trait is sorted the way a designer looks at a product: form and architecture, proportions, edges and radii, angles, surfaces and transitions, splits and shut lines, interfaces, graphics, and colour, material and finish. Change a trait\'s category with the menu on its card.'},
     view:         {step: 3, label: 'Cards or compact list', text: 'Cards show every trait with larger pictures. The compact list puts each trait on one row so you can see all of them in one window. Only the way they are shown changes.'},
     evidence:     {step: 3, label: 'Evidence pictures', text: 'The pictures where the AI saw this trait. Click any of them to see them all larger, and check whether you agree.'},
     tone:         {step: 3, label: 'Brand tone', text: 'Words that describe the brand\'s character. Click a word to keep or drop it, or add your own; only the kept words go into the house style.'},
@@ -1101,7 +1144,7 @@
   }
 
   function renderBrandName(){
-    document.querySelectorAll('.js-brand-name').forEach(function(el){ el.textContent = state.brand.name || 'brand'; });
+    document.querySelectorAll('.js-brand-name').forEach(function(el){ el.textContent = (state.brand.name || 'brand') + (state.brand.product_line ? ' ' + state.brand.product_line : ''); });
   }
 
   function showPanel(n){
@@ -1208,8 +1251,10 @@
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape' && document.getElementById('brand-drawer').classList.contains('open')) setDrawerOpen(false);
     });
-    document.getElementById('brand-name').addEventListener('keydown', function(e){
-      if (e.key === 'Enter'){ e.preventDefault(); findImages(); }
+    ['brand-name', 'brand-product-line'].forEach(function(id){
+      document.getElementById(id).addEventListener('keydown', function(e){
+        if (e.key === 'Enter'){ e.preventDefault(); findImages(); }
+      });
     });
     document.getElementById('brand-category').addEventListener('click', function(){
       try { if (!this.value && this.showPicker) this.showPicker(); } catch (e){}   // list of suggestions; typing your own or leaving it empty is fine
@@ -1217,6 +1262,7 @@
   }
   function renderBrand(){
     document.getElementById('brand-name').value = state.brand.name;
+    document.getElementById('brand-product-line').value = state.brand.product_line || '';
     document.getElementById('brand-category').value = state.brand.category;
     renderOwn();
     document.getElementById('brand-website').value = state.brand.website;
@@ -1226,6 +1272,7 @@
   }
   function readBrandForm(){
     state.brand.name = document.getElementById('brand-name').value.trim();
+    state.brand.product_line = document.getElementById('brand-product-line').value.trim();
     state.brand.category = document.getElementById('brand-category').value;
     state.brand.website = document.getElementById('brand-website').value.trim();
     state.brand.values = document.getElementById('brand-values').value.trim();
@@ -1560,7 +1607,7 @@
     list.classList.toggle('compact', state.traitView === 'compact');
     document.getElementById('view-cards').setAttribute('aria-pressed', state.traitView === 'compact' ? 'false' : 'true');
     document.getElementById('view-compact').setAttribute('aria-pressed', state.traitView === 'compact' ? 'true' : 'false');
-    list.innerHTML = state.traits.map(function(t){
+    function card(t){
       var conf = pct(t.confidence);
       var confHtml = conf === null ? '<span class="mono muted" title="The AI did not report a confidence for this trait">not rated</span>' : '<span class="mono ' + (t.low_confidence ? 'text-warn' : '') + '">' + conf + '%</span>';
       var shown = t.evidence_image_ids.slice(0, 4);
@@ -1570,6 +1617,7 @@
           '<span class="mono muted evidence-label">' + t.seen_count + '/' + state.extractedFrom + ' images' +
           (t.evidence_image_ids.length > 4 ? ' · +' + (t.evidence_image_ids.length - 4) + ' more' : '') + (t.evidence_image_ids.length ? ' · click to enlarge' : '') + '</span>';
       return '<li class="trait-card" data-id="' + esc(t.id) + '">' +
+        categorySelect(t) +
         '<div class="trait-name-row">' +
           '<span class="trait-name" contenteditable="false" data-id="' + esc(t.id) + '">' + esc(t.name) + '</span>' +
           (t.low_confidence ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
@@ -1591,8 +1639,17 @@
           '</div>' +
         '</div>' +
       '</li>';
-    }).join('');
+    }
+    // One flowing grid, sorted by category; the category shows on each card instead of as a heading.
+    list.innerHTML = groupedByCategory(state.traits).map(function(g){ return g.traits.map(card).join(''); }).join('');
 
+    list.querySelectorAll('.trait-cat').forEach(function(sel){
+      sel.addEventListener('change', function(){
+        var trait = findTrait(this.dataset.id);
+        trait.category = this.value;
+        renderTraits();   // the card moves to its new group
+      });
+    });
     list.querySelectorAll('input[type=range]').forEach(function(range){
       range.addEventListener('input', function(){
         var trait = findTrait(this.dataset.id);
@@ -1673,7 +1730,7 @@
     if (!name) return;
     manualCounter++;
     state.traits.push({
-      id: 'tr_m' + manualCounter, name: name, description: 'Added manually by the designer.',
+      id: 'tr_m' + manualCounter, category: document.getElementById('add-trait-cat').value || 'other', name: name, description: 'Added manually by the designer.',
       evidence_image_ids: [], seen_count: 0, confidence: null, importance: 50,
       low_confidence: false, origin: 'manual'
     });
@@ -1706,10 +1763,12 @@
     var el = document.getElementById('house-style-content');
     if (!pkg){ el.innerHTML = '<p class="muted">Lock the Style DNA first.</p>'; return; }
 
-    var featuresHtml = pkg.traits.map(function(t){
-      return '<div class="feature-row"><span class="feature-name">' + esc(t.name) + '</span>' +
-        '<div class="weight-bar"><div class="weight-bar-fill" style="width:' + t.importance + '%"></div></div>' +
-        '<span class="mono">' + t.importance + '</span></div>';
+    var featuresHtml = groupedByCategory(pkg.traits).map(function(g){
+      return '<div class="feature-group">' + esc(g.label) + '</div>' + g.traits.map(function(t){
+        return '<div class="feature-row"><span class="feature-name">' + esc(t.name) + '</span>' +
+          '<div class="weight-bar"><div class="weight-bar-fill" style="width:' + t.importance + '%"></div></div>' +
+          '<span class="mono">' + t.importance + '</span></div>';
+      }).join('');
     }).join('');
     var toneHtml = pkg.tone_words.length
       ? '<div class="chip-row" style="margin-top:10px;">' + pkg.tone_words.map(function(w){ return '<span class="chip">' + esc(w) + '</span>'; }).join('') + '</div>'
@@ -1750,7 +1809,7 @@
     var dateStr = 'Locked ' + new Date(pkg.created_at).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
 
     el.innerHTML =
-      '<h2>' + esc(pkg.brand.name) + ' — House Style Package v' + pkg.version + '</h2>' +
+      '<h2>' + esc(pkg.brand.name) + (pkg.brand.product_line ? ' ' + esc(pkg.brand.product_line) : '') + ' — House Style Package v' + pkg.version + '</h2>' +
       '<p class="mono muted doc-meta">' + dateStr + ' · ' + pkg.traits.length + ' traits · ' + pkg.source_image_ids.length + ' sources</p>' +
       '<section><h3>Signature features</h3><div class="features-list">' + featuresHtml + '</div></section>' +
       '<section><h3>Tone</h3>' + toneHtml + '</section>' +
@@ -2540,7 +2599,7 @@
   }
   function buildRecord(){
     var data = snapshotData();
-    if (current.autoName && data.state.brand.name) current.name = data.state.brand.name;
+    if (current.autoName && data.state.brand.name) current.name = data.state.brand.name + (data.state.brand.product_line ? ' · ' + data.state.brand.product_line : '');
     return {
       id: current.id, name: current.name, autoName: current.autoName, schemaVersion: SCHEMA_VERSION,
       createdAt: current.createdAt, updatedAt: new Date().toISOString(), data: data
@@ -2617,6 +2676,7 @@
         t.importance = Math.max(0, Math.min(100, Math.round(num(t.importance, 50))));
         t.low_confidence = t.low_confidence === true;
         t.origin = t.origin === 'manual' ? 'manual' : 'ai';
+        t.category = typeof t.category === 'string' ? t.category : null;
         return t;
       }
       var validTrait = function(t){ return isObject(t) && typeof t.id === 'string' && typeof t.name === 'string'; };
@@ -2986,6 +3046,8 @@
     document.getElementById('back-to-house-btn').addEventListener('click', function(){ navigateToStep(5); });
 
     wireDrawer();
+    document.getElementById('add-trait-cat').innerHTML = CATEGORIES.map(function(c){ return '<option value="' + c[0] + '">' + esc(c[1]) + '</option>'; }).join('');
+    document.getElementById('add-trait-cat').value = 'form';
     wireOwn();
     wirePaste();
     wireProjects();

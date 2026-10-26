@@ -143,7 +143,7 @@ class WhatIsSentTests(unittest.TestCase):
     def test_prompt_lists_the_traits_but_never_the_importance(self):
         _, model = run(SAMPLE)
         prompt = model.calls[0][0]
-        self.assertIn("tr_01 | Blade headlights: Sharp, tapered LED graphic", prompt)
+        self.assertIn("tr_01 | [Interfaces & details] Blade headlights: Sharp, tapered LED graphic", prompt)
         self.assertIn("Acme", prompt)
         self.assertNotIn("{{", prompt)
         self.assertNotIn("importance", prompt.lower())

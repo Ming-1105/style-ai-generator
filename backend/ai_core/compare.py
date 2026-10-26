@@ -18,7 +18,7 @@ from backend.ai_core.images import ImageLoadError, LoadedImage, load_image
 from backend.ai_core.model_call import ask_and_parse, read_json_object
 from backend.ai_core.providers import VisionProvider, get_provider
 from backend.ai_core.scoring import build_compare_result
-from contracts.models import CompareResult, Finding, HouseStylePackage, ImageCandidate, Trait, TraitScore
+from contracts.models import TRAIT_CATEGORIES, CompareResult, Finding, HouseStylePackage, ImageCandidate, Trait, TraitScore
 
 log = logging.getLogger(__name__)
 
@@ -176,12 +176,13 @@ def build_prompt(
     refs_by_trait = refs_by_trait or {}
     trait_lines = []
     for t in package.traits:
-        line = f"- {t.id} | {t.name}: {t.description}"
+        category = f"[{TRAIT_CATEGORIES[t.category]}] " if t.category in TRAIT_CATEGORIES else ""
+        line = f"- {t.id} | {category}{t.name}: {t.description}"
         if refs_by_trait.get(t.id):
             line += f" | reference images: {', '.join(refs_by_trait[t.id])}"
         trait_lines.append(line)
     values = {
-        "brand_name": package.brand.name or "(not given)",
+        "brand_name": package.brand.name + (f" ({package.brand.product_line})" if package.brand.product_line else "") if package.brand.name else "(not given)",
         "traits": "\n".join(trait_lines),
         "trait_ids": ", ".join(t.id for t in package.traits),
         "design_views_section": views_section(designs),

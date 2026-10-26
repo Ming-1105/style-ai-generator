@@ -484,7 +484,7 @@
   .trait-group-head{grid-column:1/-1; display:flex; align-items:baseline; gap:10px; margin-top:12px; padding-bottom:4px; border-bottom:1px solid var(--line);
     font-family:var(--font-heading); font-weight:700; font-size:17px;}
   .trait-group-head:first-child{margin-top:0;}
-  .trait-cat{margin-left:auto; font-size:11.5px; padding:2px 6px; max-width:170px;}
+  .trait-cat{align-self:flex-start; font-family:var(--font-mono); font-size:11px; text-transform:lowercase; letter-spacing:.03em; padding:2px 6px; max-width:100%; border-radius:20px; background:var(--field); color:var(--muted);}
   .traits-list.compact .trait-cat{margin-left:0;}
   .feature-group{font-family:var(--font-mono); font-size:11px; text-transform:lowercase; color:var(--muted); margin-top:10px;}
   .feature-group:first-child{margin-top:0;}
@@ -1617,10 +1617,10 @@
           '<span class="mono muted evidence-label">' + t.seen_count + '/' + state.extractedFrom + ' images' +
           (t.evidence_image_ids.length > 4 ? ' · +' + (t.evidence_image_ids.length - 4) + ' more' : '') + (t.evidence_image_ids.length ? ' · click to enlarge' : '') + '</span>';
       return '<li class="trait-card" data-id="' + esc(t.id) + '">' +
+        categorySelect(t) +
         '<div class="trait-name-row">' +
           '<span class="trait-name" contenteditable="false" data-id="' + esc(t.id) + '">' + esc(t.name) + '</span>' +
           (t.low_confidence ? '<span class="chip chip-warn">low confidence — check</span>' : '') +
-          categorySelect(t) +
         '</div>' +
         '<p class="trait-desc">' + esc(t.description) + '</p>' +
         '<div class="trait-body">' +
@@ -1640,10 +1640,8 @@
         '</div>' +
       '</li>';
     }
-    list.innerHTML = groupedByCategory(state.traits).map(function(g){
-      return '<li class="trait-group-head"><span>' + esc(g.label) + '</span><span class="mono muted">' + g.traits.length + '</span></li>' +
-        g.traits.map(card).join('');
-    }).join('');
+    // One flowing grid, sorted by category; the category shows on each card instead of as a heading.
+    list.innerHTML = groupedByCategory(state.traits).map(function(g){ return g.traits.map(card).join(''); }).join('');
 
     list.querySelectorAll('.trait-cat').forEach(function(sel){
       sel.addEventListener('change', function(){

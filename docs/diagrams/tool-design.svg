@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+<style>
+  text{font-family:"Segoe UI",Arial,Helvetica,sans-serif; fill:#1a1a1a;}
+  .title{font-size:30px; font-weight:700;}
+  .sub{font-size:18px; fill:#666;}
+  .h{font-size:21px; font-weight:700;}
+  .p{font-size:17px;}
+  .m{font-size:16px; fill:#666;}
+  .mono{font-family:Consolas,"Courier New",monospace; font-size:15px; fill:#555;}
+  .b{font-weight:700;}
+  .small{font-size:15px; fill:#666;}
+  .chipn{font-size:17px; font-weight:700;}
+  .box{fill:#fff; stroke:#c9c6bf; stroke-width:2.5;}
+  .dash{fill:#fff; stroke:#bdbab2; stroke-width:2.5; stroke-dasharray:9 7;}
+  .blue{fill:#e8f0fb; stroke:#2f6fd0; stroke-width:3;}
+  .orange{fill:#fdeeea; stroke:#e8683a; stroke-width:3;}
+  .green{fill:#e6f6ef; stroke:#1faa7a; stroke-width:3;}
+  .grey{fill:#f6f5f2; stroke:#c9c6bf; stroke-width:2.5;}
+  .chip{fill:#fff; stroke:#1faa7a; stroke-width:2;}
+  .line{stroke:#b5b2aa; stroke-width:2.5; fill:none;}
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M1 1 L9 5 L1 9" fill="none" stroke="#9a978f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+<rect width="1200" height="900" fill="#fff"/>
+<text class="title" x="40" y="52" text-anchor="start">How CopyCat works: one designer, six steps, two AI modules</text>
+<text class="sub" x="40" y="84" text-anchor="start">The AI measures and suggests; the designer reviews, edits and decides at every step.</text>
+<rect class="green" x="40" y="112" width="1120" height="180" rx="14"/>
+<text class="h" x="62" y="146" text-anchor="start">Interface</text>
+<text class="m" x="165" y="146" text-anchor="start">frontend/ · plain HTML, CSS and JavaScript · projects saved in the browser</text>
+<rect class="chip" x="58" y="168" width="170" height="82" rx="12"/>
+<text class="chipn" x="143" y="203" text-anchor="middle">1 Brand</text>
+<text class="small" x="143" y="230" text-anchor="middle">name, product range</text>
+<rect class="chip" x="242" y="168" width="170" height="82" rx="12"/>
+<text class="chipn" x="327" y="203" text-anchor="middle">2 Sources</text>
+<text class="small" x="327" y="230" text-anchor="middle">review the images</text>
+<rect class="chip" x="426" y="168" width="170" height="82" rx="12"/>
+<text class="chipn" x="511" y="203" text-anchor="middle">3 Style DNA</text>
+<text class="small" x="511" y="230" text-anchor="middle">edit the traits</text>
+<rect class="chip" x="610" y="168" width="170" height="82" rx="12"/>
+<text class="chipn" x="695" y="203" text-anchor="middle">4 House Style</text>
+<text class="small" x="695" y="230" text-anchor="middle">lock the package</text>
+<rect class="chip" x="794" y="168" width="170" height="82" rx="12"/>
+<text class="chipn" x="879" y="203" text-anchor="middle">5 Your Design</text>
+<text class="small" x="879" y="230" text-anchor="middle">upload up to 4 views</text>
+<rect class="chip" x="978" y="168" width="170" height="82" rx="12"/>
+<text class="chipn" x="1063" y="203" text-anchor="middle">6 Compare</text>
+<text class="small" x="1063" y="230" text-anchor="middle">scores, directions</text>
+<text class="m" x="62" y="278" text-anchor="start">Every AI result is shown with its evidence and can be edited before it is used.</text>
+<rect class="grey" x="40" y="350" width="1120" height="296" rx="14"/>
+<text class="h" x="62" y="382" text-anchor="start">Backend</text>
+<text class="m" x="160" y="382" text-anchor="start">FastAPI · localhost:8000</text>
+<text class="m" x="700" y="382" text-anchor="start">main.py only wires the two routers</text>
+<rect class="blue" x="62" y="400" width="420" height="226" rx="14"/>
+<text class="h" x="82" y="432" text-anchor="start">Sourcing</text>
+<text class="mono" x="176" y="432" text-anchor="start">backend/sourcing/</text>
+<text class="p" x="82" y="466" text-anchor="start">Searches Google Images for the brand</text>
+<text class="p" x="82" y="491" text-anchor="start">and product range (retries once more broadly)</text>
+<text class="p" x="82" y="516" text-anchor="start">Reads the brand's official website</text>
+<text class="p" x="82" y="541" text-anchor="start">Removes duplicates, flags doubtful images</text>
+<text class="p b" x="82" y="606" text-anchor="start">POST /api/sources/search</text>
+<rect class="orange" x="520" y="400" width="618" height="226" rx="14"/>
+<text class="h" x="540" y="432" text-anchor="start">AI core</text>
+<text class="mono" x="626" y="432" text-anchor="start">backend/ai_core/</text>
+<text class="p" x="540" y="466" text-anchor="start">Extracts traits in 9 design</text>
+<text class="p" x="540" y="491" text-anchor="start">categories, with evidence images</text>
+<text class="p" x="540" y="516" text-anchor="start">Finds colours, tone, do/don't rules</text>
+<text class="p" x="540" y="541" text-anchor="start">Compares a design trait by trait</text>
+<text class="p" x="842" y="466" text-anchor="start">Code checks every model answer</text>
+<text class="p" x="842" y="491" text-anchor="start">Fit, coverage and ranked directions</text>
+<text class="p" x="842" y="516" text-anchor="start">are computed in code, not by the AI</text>
+<text class="p" x="842" y="541" text-anchor="start">Unknown parts: 'not assessable'</text>
+<text class="p b" x="540" y="606" text-anchor="start">POST /api/dna/extract</text>
+<text class="p b" x="842" y="606" text-anchor="start">POST /api/compare</text>
+<path class="line" d="M327 292 L327 322 L420 322 L420 400" marker-end="url(#a)"/>
+<path class="line" d="M511 292 L511 322 L640 322 L640 400" marker-end="url(#a)"/>
+<path class="line" d="M1063 292 L1063 400" marker-end="url(#a)"/>
+<rect class="dash" x="62" y="704" width="200" height="84" rx="14"/>
+<text class="h" x="162" y="735" text-anchor="middle">SerpAPI</text>
+<text class="small" x="162" y="760" text-anchor="middle">Google Images results</text>
+<rect class="dash" x="282" y="704" width="200" height="84" rx="14"/>
+<text class="h" x="382" y="735" text-anchor="middle">Brand website</text>
+<text class="small" x="382" y="760" text-anchor="middle">official pages</text>
+<rect class="dash" x="520" y="704" width="618" height="84" rx="14"/>
+<text class="h" x="829" y="735" text-anchor="middle">Google Gemini API</text>
+<text class="small" x="829" y="760" text-anchor="middle">gemini-3.5-flash-lite · reads images and prompt, answers in JSON</text>
+<path class="line" d="M162 626 L162 704" marker-start="url(#a)" marker-end="url(#a)"/>
+<path class="line" d="M382 626 L382 704" marker-start="url(#a)" marker-end="url(#a)"/>
+<path class="line" d="M829 626 L829 704" marker-start="url(#a)" marker-end="url(#a)"/>
+<text class="small" x="196" y="686" text-anchor="start">outside services</text>
+<rect class="box" x="40" y="818" width="1120" height="62" rx="14"/>
+<text class="p b" x="62" y="845" text-anchor="start">Data flow (contracts/models.py):</text>
+<text class="p" x="330" y="845" text-anchor="start">ImageCandidate  →  Trait  →  House Style Package  →  Compare result</text>
+<text class="small" x="62" y="868" text-anchor="start">Images are fetched into memory for one request and never stored; the source domain is shown with every image.</text>
+</svg>

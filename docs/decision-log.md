@@ -392,3 +392,23 @@
   model, so the designer still checks and edits every trait.
 - **Seen on real images:** test images were used in memory only; nothing was saved in the repo. The stronger model returned 503 (overloaded)
   during the test, so all numbers above are from gemini-3.5-flash-lite.
+
+## 2026-10-28 — Logo, logo placement and bold colour allowed back into the Style DNA (Person B)
+
+- **What:** The extraction prompt now builds the trait list in an order: first the geometric traits (at least 4, aiming for 5 or 6), then
+  interfaces, then at most 2 `graphics` traits and at most 3 `cmf` traits. A logo or typography that is clearly visible in at least 2 images
+  gets a `graphics` trait about its placement and size; a shared colour scheme gets a `cmf` trait. A bold colour is a good trait when it is
+  the brand's recognisable signature, but it must say which colour, where, how much of the product it covers, what it is combined with and
+  the finish. A trait whose main point is a colour counts as `cmf` even when it is about a button. Nothing is invented: no recurring logo or
+  colour, no trait.
+- **Why:** The previous rule (at most two colour traits, graphics only "then") pushed logo and colour almost out of the result, but for many
+  brands they are part of the design language (a test on one tool range: the colour blocking was the most important trait). A first attempt
+  with only "allow them" let colour and logo crowd out the geometry (2 of 7 traits geometric), so the order is part of the prompt now. Final
+  test on the same range: 8 traits over 8 categories, with grip angle, proportion, edges, a logo-placement trait and a colour-blocking trait.
+  The model gave the logo a different colour in two runs, so the designer still checks it.
+
+## 2026-10-28 — One-click launcher for Windows
+
+- **What:** `launcher/` holds `start-copycat.bat` (starts the server if needed and opens the browser) and `make-desktop-shortcut.bat`
+  (makes a desktop shortcut with an icon). Not part of the product; it only makes the tool easier to open for the team.
+

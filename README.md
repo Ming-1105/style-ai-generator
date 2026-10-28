@@ -29,6 +29,9 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
+On Windows, `launcher/make-desktop-shortcut.bat` puts a CopyCat icon on your desktop that starts the tool and opens it in the browser
+(see [launcher/README.md](launcher/README.md)).
+
 ## Run in mock mode
 
 Mock mode is the default (`MOCK_MODE=1` in `.env`, and also when no `.env` exists). Every endpoint

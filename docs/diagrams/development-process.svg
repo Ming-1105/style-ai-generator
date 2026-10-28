@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1016" viewBox="0 0 1200 1016">
+<style>
+  text{font-family:"Segoe UI",Arial,Helvetica,sans-serif; fill:#1a1a1a;}
+  .title{font-size:30px; font-weight:700;}
+  .sub{font-size:18px; fill:#666;}
+  .h{font-size:21px; font-weight:700;}
+  .p{font-size:17px;}
+  .m{font-size:16px; fill:#666;}
+  .mono{font-family:Consolas,"Courier New",monospace; font-size:15px; fill:#555;}
+  .b{font-weight:700;}
+  .small{font-size:15px; fill:#666;}
+  .chipn{font-size:17px; font-weight:700;}
+  .box{fill:#fff; stroke:#c9c6bf; stroke-width:2.5;}
+  .dash{fill:#fff; stroke:#bdbab2; stroke-width:2.5; stroke-dasharray:9 7;}
+  .blue{fill:#e8f0fb; stroke:#2f6fd0; stroke-width:3;}
+  .orange{fill:#fdeeea; stroke:#e8683a; stroke-width:3;}
+  .green{fill:#e6f6ef; stroke:#1faa7a; stroke-width:3;}
+  .grey{fill:#f6f5f2; stroke:#c9c6bf; stroke-width:2.5;}
+  .chip{fill:#fff; stroke:#1faa7a; stroke-width:2;}
+  .line{stroke:#b5b2aa; stroke-width:2.5; fill:none;}
+</style>
+<defs>
+  <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M1 1 L9 5 L1 9" fill="none" stroke="#9a978f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+<rect width="1200" height="1016" fill="#fff"/>
+<text class="title" x="40" y="52" text-anchor="start">How we built CopyCat: three people, three agents, one contract</text>
+<text class="sub" x="40" y="84" text-anchor="start">Each agent edits only its own folder; everything shared changes only by team agreement.</text>
+<rect class="box" x="40" y="112" width="1120" height="100" rx="14"/>
+<text class="h" x="62" y="146" text-anchor="start">Shared contract everyone builds against</text>
+<text class="p" x="62" y="176" text-anchor="start">AGENTS.md · contracts/models.py · fixtures/ (fictional brand Acme) · backend/main.py</text>
+<text class="m" x="62" y="200" text-anchor="start">Rules for every agent: never invent a score · keep mock mode working · stay in your own folder</text>
+<path class="line" d="M220 212 L220 250" marker-end="url(#a)"/>
+<rect class="blue" x="40" y="250" width="360" height="290" rx="14"/>
+<text class="h" x="60" y="284" text-anchor="start">Person A · Sourcing</text>
+<text class="mono" x="60" y="310" text-anchor="start">backend/sourcing/</text>
+<text class="m" x="60" y="346" text-anchor="start">Own coding agent (Claude Code or Codex)</text>
+<text class="p" x="60" y="392" text-anchor="start">Image search and website reading</text>
+<text class="p" x="60" y="420" text-anchor="start">Duplicates and flagging</text>
+<text class="p b" x="60" y="448" text-anchor="start">POST /api/sources/search</text>
+<text class="small" x="60" y="500" text-anchor="start">Branch, e.g.</text>
+<text class="mono" x="60" y="522" text-anchor="start">sourcing/search-fallback</text>
+<path class="line" d="M220 540 L220 570" marker-end="url(#a)"/>
+<path class="line" d="M600 212 L600 250" marker-end="url(#a)"/>
+<rect class="orange" x="420" y="250" width="360" height="290" rx="14"/>
+<text class="h" x="440" y="284" text-anchor="start">Person B · AI core</text>
+<text class="mono" x="440" y="310" text-anchor="start">backend/ai_core/</text>
+<text class="m" x="440" y="346" text-anchor="start">Own coding agent (Claude Code or Codex)</text>
+<text class="p" x="440" y="392" text-anchor="start">Gemini prompts and trait extraction</text>
+<text class="p" x="440" y="420" text-anchor="start">Scoring and design directions</text>
+<text class="p b" x="440" y="448" text-anchor="start">POST /api/dna/extract, /api/compare</text>
+<text class="small" x="440" y="500" text-anchor="start">Branch, e.g.</text>
+<text class="mono" x="440" y="522" text-anchor="start">ai-core/design-categories</text>
+<path class="line" d="M600 540 L600 570" marker-end="url(#a)"/>
+<path class="line" d="M980 212 L980 250" marker-end="url(#a)"/>
+<rect class="green" x="800" y="250" width="360" height="290" rx="14"/>
+<text class="h" x="820" y="284" text-anchor="start">Person C · Interface</text>
+<text class="mono" x="820" y="310" text-anchor="start">frontend/</text>
+<text class="m" x="820" y="346" text-anchor="start">Own coding agent (Claude Code or Codex)</text>
+<text class="p" x="820" y="392" text-anchor="start">Six-step designer interface</text>
+<text class="p" x="820" y="420" text-anchor="start">Editable traits, projects, PDF export</text>
+<text class="p" x="820" y="448" text-anchor="start">Built on mock data first</text>
+<text class="small" x="820" y="500" text-anchor="start">Branch, e.g.</text>
+<text class="mono" x="820" y="522" text-anchor="start">ui/overhaul</text>
+<path class="line" d="M980 540 L980 570" marker-end="url(#a)"/>
+<rect class="grey" x="40" y="570" width="1120" height="140" rx="14"/>
+<text class="h" x="62" y="602" text-anchor="start">GitHub</text>
+<text class="m" x="150" y="602" text-anchor="start">one shared repository, Ming-1105/style-ai-generator: code, prompts, tests, docs and the full history</text>
+<rect class="box" x="62" y="620" width="240" height="74" rx="14"/>
+<text class="h" x="80" y="652" text-anchor="start">1  Own branch</text>
+<text class="small" x="80" y="678" text-anchor="start">small commits, one area each</text>
+<path class="line" d="M302 657 L340 657" marker-end="url(#a)"/>
+<rect class="box" x="340" y="620" width="240" height="74" rx="14"/>
+<text class="h" x="358" y="652" text-anchor="start">2  Pull request</text>
+<text class="small" x="358" y="678" text-anchor="start">how a change reaches main</text>
+<path class="line" d="M580 657 L618 657" marker-end="url(#a)"/>
+<rect class="box" x="618" y="620" width="240" height="74" rx="14"/>
+<text class="h" x="636" y="652" text-anchor="start">3  Integration branch</text>
+<text class="small" x="636" y="678" text-anchor="start">the three parts tested together</text>
+<path class="line" d="M858 657 L896 657" marker-end="url(#a)"/>
+<rect class="box" x="896" y="620" width="240" height="74" rx="14"/>
+<text class="h" x="914" y="652" text-anchor="start">4  main</text>
+<text class="small" x="914" y="678" text-anchor="start">must always run in mock mode</text>
+<rect class="dash" x="40" y="730" width="1120" height="92" rx="14"/>
+<text class="h" x="62" y="764" text-anchor="start">Need to change the contract?</text>
+<text class="p" x="62" y="796" text-anchor="start">Write a proposal in docs/contract-changes.md  →  the team agrees in a meeting  →  one pull request updates AGENTS.md, fixtures/ and contracts/</text>
+<rect class="box" x="40" y="842" width="1120" height="70" rx="14"/>
+<text class="h" x="62" y="874" text-anchor="start">Our part</text>
+<text class="p" x="170" y="874" text-anchor="start">Direct the agents in plain language · ask for a plan before larger changes</text>
+<text class="p" x="170" y="898" text-anchor="start">Check every result ourselves: run the tool, read screenshots, measure the page</text>
+<rect class="dash" x="40" y="932" width="1120" height="64" rx="14"/>
+<text class="h" x="62" y="960" text-anchor="start">docs/</text>
+<text class="p" x="135" y="960" text-anchor="start">STATUS.md updated every session · decision-log.md records every AI choice (date, what, why)</text>
+<text class="small" x="135" y="982" text-anchor="start">timeline of how the project developed</text>
+</svg>

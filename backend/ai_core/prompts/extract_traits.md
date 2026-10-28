@@ -32,7 +32,9 @@ Before writing traits, study every image the way you would study a product on a 
 - Then at the geometry: proportions and ratios, the character of edges and radii, the angles of
   inclined faces and lines, how surfaces curve and blend into each other.
 - Then at the splits: parting lines, shut lines, how parts and materials meet.
-- Only then at interfaces, graphics and colour, material and finish.
+- Then at interfaces, and at the surface level: where the logo sits and how big it is, the
+  typography and markings, and which colours go where. For many brands these are part of
+  the design language, so look at them as carefully as at the geometry.
 - Look for what repeats across products and views. A feature on one product only is not a
   design language. A feature that comes back on different products, in the same way, is.
 
@@ -59,7 +61,9 @@ Every trait belongs to exactly one category. Use the category key in your answer
 - `graphics`: graphics and branding. Logo size and placement, typography on the product,
   graphic bands, labels and markings, lights and displays as graphics.
 - `cmf`: colour, material and finish. Colour blocking and where each colour goes, the
-  materials, textures and gloss levels, and how they are combined.
+  materials, textures and gloss levels, and how they are combined. A bold, unmistakable
+  colour can be the most recognisable part of a brand; if it recurs across the images, report
+  it.
 
 ## What to report
 
@@ -76,16 +80,30 @@ Rules:
      hand-held tool; all other edges are larger, soft radii."
    - Useful: "Grip axis is inclined about 100 to 110 degrees to the motor axis, with the
      trigger set into the top of the grip."
-   - Not useful: "Sleek and modern", "premium feel", "ergonomic handle", "bold colours".
+   - Useful: "Logo printed in white on the upper third of the housing, left of the vents,
+     about 1/5 of the housing width; never on the grip."
+   - Useful: "Saturated dark blue is the main housing colour, carried over the whole body
+     except a black grip zone and a thin silver ring at the chuck; matt finish."
+   - Not useful: "Sleek and modern", "premium feel", "ergonomic handle", or "bold colours" on
+     their own. A bold colour is a good trait when it is the brand's recognisable signature,
+     but then describe it: which colour, where it goes, how much of the product it covers,
+     what it is combined with, and its finish.
    Estimates of sizes and angles are welcome; always give them as a range and say what they
    are relative to. Never pretend to measure more precisely than a photo allows.
 4. Describe the trait itself, not the photograph. Lighting, camera angle, background and
    image quality are not brand traits.
 5. Return between 6 and 12 traits, each about one distinct feature; aim for 8 to 10 when the
-   images show that much. At least half of the
-   traits must be in the geometric categories (`form`, `proportion`, `edges`, `angles`,
-   `surfaces`, `splits`). Use at most 2 traits in `cmf`. Return fewer traits, or an empty
-   list, if little recurs. Never pad the list, and never split one feature into two traits.
+   images show that much. Build the list in this
+   order. First the geometric traits (`form`, `proportion`, `edges`, `angles`, `surfaces`,
+   `splits`): at least 4, aim for 5 or 6, and look for each of these six before you give up
+   on one. Then interfaces. Only then the surface-level traits: at most 2 in `graphics` and at
+   most 3 in `cmf`. A trait whose main point is a colour (for example a red trigger) counts as
+   `cmf`, even if it is about a button. If a
+   logo or typography is clearly visible in at least 2 images, report one `graphics` trait for
+   its placement and size. If the products share a colour scheme, report one `cmf` trait for
+   it. Do not invent either: if no logo or colour pattern recurs, leave them out. Return
+   fewer traits, or an empty list, if little recurs. Never pad the list, and never split one
+   feature into two traits.
    A detail that is mostly about texture or colour (for example a rubber grip inlay) belongs in
    `interfaces` or `cmf`, not in `surfaces`; `surfaces` is about the shape of the surface.
 6. `confidence` is a number from 0 to 1: how sure you are that this is a deliberate,

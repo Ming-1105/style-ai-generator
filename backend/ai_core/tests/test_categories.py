@@ -43,7 +43,7 @@ class CategoryTests(unittest.TestCase):
 class PromptTests(unittest.TestCase):
     def test_extraction_asks_for_categories_and_geometry(self):
         prompt = extract_prompt(BRAND, [fake_load("img_01", "x"), fake_load("img_02", "x")])
-        for words in ("`edges`", "`angles`", "`proportion`", "At least half of the", "range in degrees"):
+        for words in ("`edges`", "`angles`", "`proportion`", "First the geometric traits", "range in degrees", "at most 2 in `graphics`", "logo", "bold colour"):
             self.assertIn(words, prompt)
         self.assertNotIn("{{", prompt)
 

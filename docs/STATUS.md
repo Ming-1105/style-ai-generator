@@ -64,6 +64,9 @@ If you need something from another folder, add a note under that owner's "Needs 
     analysed, with the reason) and `do_dont` (rules drawn from the traits); `/api/compare` returns `coverage`. In `AGENTS.md`,
     `contracts/models.py` and the fixtures.
   - Test page for the compare step: `http://localhost:8000/api/dev/compare` (developer tool, not the app's screen).
+  - Logo and colour traits (branch `ai-core/logo-colour-traits`): the extraction prompt builds geometry first, then up to 2 graphics
+    (logo, placement) and 3 colour/material traits; bold brand colours are allowed when described in detail.
+  - `launcher/`: double-click `make-desktop-shortcut.bat` for a desktop icon that starts CopyCat and opens it in the browser (Windows).
 - **Open pull requests, to merge in this order:** `ai-core/compare-live`, `ai-core/directions`, `ai-core/image-detail`,
   `contract/reference-images` (shared files: AGENTS.md, contracts/models.py), `ai-core/references`, `ai-core/cost-controls`, `docs/timeline`,
   `chore/ignore-loose-notes`.
